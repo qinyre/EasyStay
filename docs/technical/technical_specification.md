@@ -14,7 +14,6 @@
 
 ## 2. 项目目录结构 (Directory Structure)
 
-为了保证评分中的“项目结构清晰” ，建议采用以下布局：
 
 ```text
 /EasyStay
@@ -35,7 +34,7 @@
 
 **详情页排序**：前端获取房型列表后，必须调用 `.sort((a, b) => a.price - b.price)` 进行升序排列 。
 
-**列表页优化**：为了获得“技术复杂度”分值，酒店列表需实现长列表渲染优化（如 Virtual List 或 Intersection Observer 监听滑动） 。
+**列表页优化**：酒店列表需实现长列表渲染优化（如 Virtual List 或 Intersection Observer 监听滑动） 。
 
 ### 3.2 权限与状态机 (成员 B/C 关注)
 
@@ -47,7 +46,7 @@
 
 ## 4. 数据库 Schema 设计 (JSON 结构)
 
-基于“数据结构合理性”的考核点 ，核心数据对象定义如下：
+核心数据对象定义如下：
 
 ### Hotel Object (`hotels.json`)
 
