@@ -14,7 +14,6 @@
 
 ## 2. 项目目录结构 (Directory Structure)
 
-
 ```text
 /EasyStay
 ├── /client-mobile         # 成员A：移动端源代码 (React)
