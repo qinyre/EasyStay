@@ -28,12 +28,14 @@ EasyStay 是一个功能完善的酒店预订管理系统，采用前后端分�
 ## 功能特性
 
 ### 用户端（移动端）
+
 - 首页 Banner 展示与跳转
 - 酒店列表查询（支持定位、关键词搜索、日期筛选、星级过滤）
 - 酒店详情展示（房型价格自动升序排列）
 - 长列表优化渲染
 
 ### 管理端（PC端）
+
 - **商户功能**
   - 酒店信息录入与编辑
   - 房型与价格管理
@@ -44,11 +46,12 @@ EasyStay 是一个功能完善的酒店预订管理系统，采用前后端分�
   - 虚拟删除与数据恢复
 
 ### 技术亮点
-- 前后端分离架构，RESTful API 设计
-- JSON 文件持久化存储
-- 权限分级与角色管理
-- 虚拟删除机制保障数据安全
-- 房型智能排序（价格升序）
+
+- **前后端分离架构**，RESTful API 设计
+- **JSON 文件持久化存储**，数据安全可靠
+- **权限分级与角色管理**，确保系统安全
+- **虚拟删除机制**，保障数据可恢复
+- **房型智能排序**（价格升序），提升用户体验
 
 ---
 
@@ -62,6 +65,7 @@ EasyStay 是一个功能完善的酒店预订管理系统，采用前后端分�
 ### 安装步骤
 
 1. **克隆项目**
+
    ```bash
    git clone https://github.com/your-username/EasyStay.git
    cd EasyStay
@@ -70,18 +74,21 @@ EasyStay 是一个功能完善的酒店预订管理系统，采用前后端分�
 2. **安装依赖**
 
    服务端：
+
    ```bash
    cd server
    npm install
    ```
 
    移动端：
+
    ```bash
    cd client-mobile
    npm install
    ```
 
    PC管理端：
+
    ```bash
    cd client-pc
    npm install
@@ -90,18 +97,21 @@ EasyStay 是一个功能完善的酒店预订管理系统，采用前后端分�
 3. **启动服务**
 
    启动后端服务（默认端口 3000）：
+
    ```bash
    cd server
    npm start
    ```
 
    启动移动端（默认端口 3001）：
+
    ```bash
    cd client-mobile
    npm start
    ```
 
    启动PC管理端（默认端口 3002）：
+
    ```bash
    cd client-pc
    npm start
@@ -140,18 +150,21 @@ EasyStay/
 ## 技术栈
 
 ### 前端
+
 - **框架**：React 18
 - **状态管理**：React Context / Hooks
 - **HTTP客户端**：Axios
 - **UI组件库**：Ant Design Mobile（移动端）/ Ant Design（PC端）
 
 ### 后端
+
 - **运行环境**：Node.js
 - **Web框架**：Express.js
 - **数据存储**：JSON文件（fs模块）
 - **认证**：JWT Token
 
 ### 开发工具
+
 - Git（版本控制）
 - ESLint（代码规范）
 - Prettier（代码格式化）
@@ -163,15 +176,18 @@ EasyStay/
 系统采用 RESTful API 设计，基础路径为 `/api/v1`
 
 ### 认证接口
+
 - `POST /auth/register` - 用户注册
 - `POST /auth/login` - 用户登录
 
 ### 移动端接口
+
 - `GET /mobile/home/banners` - 获取首页Banner
 - `GET /mobile/hotels` - 酒店列表查询
 - `GET /mobile/hotels/:id` - 酒店详情获取
 
 ### 管理端接口
+
 - `POST /merchant/hotels` - 录入酒店信息
 - `PUT /merchant/hotels/:id` - 编辑酒店信息
 - `PATCH /admin/audit/:hotelId` - 审核酒店信息
@@ -184,6 +200,7 @@ EasyStay/
 ## 数据结构
 
 ### 酒店信息（hotels.json）
+
 ```json
 {
   "id": "string",
@@ -203,6 +220,7 @@ EasyStay/
 ```
 
 ### 用户账户（users.json）
+
 ```json
 {
   "username": "merchant001",
@@ -218,7 +236,7 @@ EasyStay/
 ## 文档
 
 | 文档 | 描述 |
-|------|------|
+| ------ | ------ |
 | [产品需求规格说明](docs/product/requirements_specification.md) | 产品功能需求 |
 | [技术实现方案](docs/technical/technical_specification.md) | 技术架构设计 |
 | [API接口规范](docs/technical/api_spec.md) | 接口定义文档 |
@@ -256,7 +274,6 @@ EasyStay/
 ---
 
 <div align="center">
-
 **Built with ❤️ by EasyStay Team**
 
 [English](./README_EN.md) | **简体中文**
