@@ -4,7 +4,7 @@ import { Card, Tag } from 'antd-mobile';
 import { Hotel } from '../types';
 import { formatCurrency } from '../utils/format';
 
-interface HotelCardProps {
+export interface HotelCardProps {
   hotel: Hotel;
   onClick: () => void;
 }

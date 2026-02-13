@@ -11,31 +11,51 @@ const HotelList: React.FC = () => {
   const navigate = useNavigate();
   const [hotels, setHotels] = useState<Hotel[]>([]);
   const [hasMore, setHasMore] = useState(true);
-  
+  const [loading, setLoading] = useState(false);
+  const [page, setPage] = useState(1);
+
   // Filter state
   const city = searchParams.get('city') || '';
   const keyword = searchParams.get('keyword') || '';
 
   const loadMore = async () => {
-    // Simulate pagination
-    if (hotels.length > 20) {
-      setHasMore(false);
-      return;
+    if (loading) return;
+
+    try {
+      setLoading(true);
+      const nextPage = page + 1;
+      const newHotels = await getHotels({ city, keyword, page: nextPage });
+
+      if (newHotels.length === 0) {
+        setHasMore(false);
+      } else {
+        setHotels(val => [...val, ...newHotels]);
+        setPage(nextPage);
+      }
+    } catch (error) {
+      console.error('加载更多酒店失败:', error);
+    } finally {
+      setLoading(false);
     }
-    
-    // In a real app, you would pass page/offset
-    const newHotels = await getHotels({ city, keyword });
-    // Simulate adding unique IDs to avoid key conflicts in this mock
-    const mockedMore = newHotels.map(h => ({ ...h, id: `${h.id}-${Date.now()}-${Math.random()}` }));
-    
-    setHotels(val => [...val, ...mockedMore]);
   };
 
   // Initial load
   useEffect(() => {
-    getHotels({ city, keyword }).then((data) => {
-      setHotels(data);
-    });
+    const loadInitial = async () => {
+      try {
+        setLoading(true);
+        const data = await getHotels({ city, keyword, page: 1 });
+        setHotels(data);
+        setPage(1);
+        setHasMore(data.length > 0);
+      } catch (error) {
+        console.error('加载酒店列表失败:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadInitial();
   }, [city, keyword]);
 
   return (
@@ -59,10 +79,22 @@ const HotelList: React.FC = () => {
           <Dropdown.Item key='sorter' title='Sort'>
             <div style={{ padding: 12 }}>
               <List>
-                <List.Item onClick={() => {}}>Recommended</List.Item>
-                <List.Item onClick={() => {}}>Price: Low to High</List.Item>
-                <List.Item onClick={() => {}}>Price: High to Low</List.Item>
-                <List.Item onClick={() => {}}>Rating</List.Item>
+                <List.Item onClick={() => {
+                  const sorted = [...hotels].sort((a, b) => b.rating - a.rating);
+                  setHotels(sorted);
+                }}>Recommended</List.Item>
+                <List.Item onClick={() => {
+                  const sorted = [...hotels].sort((a, b) => (a.price_start || 0) - (b.price_start || 0));
+                  setHotels(sorted);
+                }}>Price: Low to High</List.Item>
+                <List.Item onClick={() => {
+                  const sorted = [...hotels].sort((a, b) => (b.price_start || 0) - (a.price_start || 0));
+                  setHotels(sorted);
+                }}>Price: High to Low</List.Item>
+                <List.Item onClick={() => {
+                  const sorted = [...hotels].sort((a, b) => b.rating - a.rating);
+                  setHotels(sorted);
+                }}>Rating</List.Item>
               </List>
             </div>
           </Dropdown.Item>
