@@ -28,7 +28,9 @@ export interface Hotel {
   image?: string;
   images?: string[];
   is_offline: boolean;
-  audit_status: 'pending' | 'approved' | 'rejected';
+  audit_status: 'Pending' | 'Approved' | 'Rejected';
+  fail_reason?: string;
+  banner_url?: string;
   created_at: string;
   price_start?: number; // Starting price for display
   tags?: string[]; // "Family", "Free Parking", etc.

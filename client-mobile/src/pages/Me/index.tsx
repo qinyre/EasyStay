@@ -27,16 +27,16 @@ const Me: React.FC = () => {
   return (
     <div className="bg-gray-50 min-h-screen pb-20">
       <NavBar backArrow={false}>{t('me.title')}</NavBar>
-      
+
       {/* User Info Card */}
       <div className="bg-white p-6 flex flex-col items-center justify-center mb-4">
         <Avatar src={user.avatar} style={{ '--size': '80px', '--border-radius': '50%' }} />
         <h2 className="mt-4 text-xl font-bold text-gray-900">{user.name}</h2>
         {!user.isLoggedIn && (
-            <Button 
-                color='primary' 
-                fill='outline' 
-                size='small' 
+            <Button
+                color='primary'
+                fill='outline'
+                size='small'
                 className="mt-2"
                 onClick={() => navigate('/login')}
             >
@@ -47,25 +47,29 @@ const Me: React.FC = () => {
 
       {/* Settings List */}
       <List header={t('me.general')} className="mb-4">
-        <List.Item 
-            prefix={<Globe size={20} className="text-blue-500" />} 
+        <List.Item
+            prefix={<Globe size={20} className="text-blue-500" />}
             onClick={handleLanguageSwitch}
             extra={i18n.language === 'en' ? 'English' : '中文'}
         >
             {t('me.language')}
         </List.Item>
-        <List.Item 
-            prefix={<Settings size={20} className="text-gray-500" />} 
-            onClick={() => {}}
+        <List.Item
+            prefix={<Settings size={20} className="text-gray-500" />}
+            onClick={() => {
+              Toast.show('设置功能开发中');
+            }}
         >
             {t('me.settings')}
         </List.Item>
       </List>
 
       <List header={t('me.about')}>
-        <List.Item 
-            prefix={<HelpCircle size={20} className="text-gray-500" />} 
-            onClick={() => {}}
+        <List.Item
+            prefix={<HelpCircle size={20} className="text-gray-500" />}
+            onClick={() => {
+              Toast.show('关于页面开发中');
+            }}
         >
             {t('me.about')}
         </List.Item>
@@ -76,7 +80,9 @@ const Me: React.FC = () => {
 
       {user.isLoggedIn && (
           <div className="p-4 mt-4">
-            <Button block color='danger' onClick={() => {}}>
+            <Button block color='danger' onClick={() => {
+              Toast.show('退出登录功能开发中');
+            }}>
                 <LogOut size={18} className="mr-2 inline" />
                 {t('me.logout')}
             </Button>

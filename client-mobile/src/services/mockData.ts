@@ -1,3 +1,5 @@
+import { Hotel } from '../types';
+
 export const MOCK_HOTELS: Hotel[] = [
   {
     id: '1',
@@ -38,7 +40,7 @@ export const MOCK_HOTELS: Hotel[] = [
       'https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
     ],
     is_offline: false,
-    audit_status: 'approved',
+    audit_status: 'Approved',
     created_at: '2023-01-01T00:00:00Z',
     price_start: 1288,
     tags: ['Luxury', 'River View', 'City Center'],
@@ -81,7 +83,7 @@ export const MOCK_HOTELS: Hotel[] = [
       'https://images.unsplash.com/photo-1582719508461-905c673771fd?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
     ],
     is_offline: false,
-    audit_status: 'approved',
+    audit_status: 'Approved',
     created_at: '2023-02-15T00:00:00Z',
     price_start: 358,
     tags: ['Budget', 'Near Metro', 'Shopping'],
@@ -116,7 +118,7 @@ export const MOCK_HOTELS: Hotel[] = [
       'https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
     ],
     is_offline: false,
-    audit_status: 'approved',
+    audit_status: 'Approved',
     created_at: '2023-03-10T00:00:00Z',
     price_start: 3888,
     tags: ['Resort', 'Beach', 'Family'],
@@ -151,7 +153,7 @@ export const MOCK_HOTELS: Hotel[] = [
       'https://images.unsplash.com/photo-1564501049417-98d0b18608f3?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
     ],
     is_offline: false,
-    audit_status: 'approved',
+    audit_status: 'Approved',
     created_at: '2023-04-05T00:00:00Z',
     price_start: 688,
     tags: ['Historic', 'Cultural', 'Quiet'],

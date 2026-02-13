@@ -26,10 +26,19 @@ const Home: React.FC = () => {
   const [showEndPicker, setShowEndPicker] = useState(false);
 
   useEffect(() => {
-    getPopularCities().then((data) => {
-      setPopularCities(data);
-      setLoading(false);
-    });
+    const loadCities = async () => {
+      try {
+        const data = await getPopularCities();
+        setPopularCities(data);
+      } catch (error) {
+        console.error('加载热门城市失败:', error);
+        Toast.show('加载热门城市失败');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadCities();
   }, []);
 
   const handleSearch = () => {
@@ -76,7 +85,9 @@ const Home: React.FC = () => {
           }>
             <Form.Item
               label={<MapPin className="text-blue-500" size={20} />}
-              onClick={() => {}} // Could open a city selector
+              onClick={() => {
+                Toast.show('城市选择功能开发中');
+              }}
             >
               <Input 
                 placeholder={t('home.search_placeholder')}
