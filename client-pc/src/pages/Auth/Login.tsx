@@ -12,20 +12,26 @@ const Login: React.FC = () => {
     e.preventDefault();
     setError("");
 
-    const result = await login({ username, password });
-    if (result.code === 200 && result.data) {
-      // 保存token和角色
-      localStorage.setItem("token", result.data.token);
-      localStorage.setItem("role", result.data.role);
+    try {
+      const result = await login({ username, password });
+      console.log("登录结果:", result); // 添加调试信息
 
-      // 根据角色跳转
-      if (result.data.role === "merchant") {
-        navigate("/merchant");
+      if (result.code === 200 && result.data) {
+        // 保存token和角色
+        localStorage.setItem("token", result.data.token);
+        localStorage.setItem("role", result.data.role);
+        console.log("保存到localStorage成功"); // 添加调试信息
+
+        // 强制刷新页面
+        setTimeout(() => {
+          window.location.href = "/"; // 直接跳转到根路径
+        }, 1000);
       } else {
-        navigate("/admin/audit");
+        setError(result.message);
       }
-    } else {
-      setError(result.message);
+    } catch (error) {
+      console.error("登录出错:", error);
+      setError("登录失败，请重试");
     }
   };
 

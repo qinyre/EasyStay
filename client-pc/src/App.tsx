@@ -8,23 +8,26 @@ import PublishList from "./pages/Admin/PublishList";
 function App() {
   // 获取用户信息
   const getUserInfo = () => {
-    const token = localStorage.getItem("token");
-    const role = localStorage.getItem("role");
-    return token ? { token, role } : null;
+    try {
+      const token = localStorage.getItem("token");
+      const role = localStorage.getItem("role");
+      console.log("获取用户信息:", { token, role }); // 添加调试信息
+      return token && role ? { token, role } : null;
+    } catch (error) {
+      console.error("读取localStorage出错:", error);
+      return null;
+    }
   };
 
   const userInfo = getUserInfo();
+  console.log("当前用户信息:", userInfo); // 添加调试信息
 
   return (
     <BrowserRouter>
       <Routes>
-        {/* 认证路由 */}
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-
         {/* 商户路由 */}
         <Route
-          path="/merchant/*"
+          path="/merchant"
           element={
             userInfo?.role === "merchant" ? (
               <HotelForm />
@@ -55,6 +58,10 @@ function App() {
             )
           }
         />
+
+        {/* 认证路由 */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
 
         {/* 默认路由 */}
         <Route
