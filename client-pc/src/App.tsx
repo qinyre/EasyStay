@@ -1,35 +1,79 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import Login from "./pages/Auth/Login";
+import Register from "./pages/Auth/Register";
+import HotelForm from "./pages/Merchant/HotelForm";
+import AuditList from "./pages/Admin/AuditList";
+import PublishList from "./pages/Admin/PublishList";
 
 function App() {
-  const [count, setCount] = useState(0)
+  // 获取用户信息
+  const getUserInfo = () => {
+    const token = localStorage.getItem("token");
+    const role = localStorage.getItem("role");
+    return token ? { token, role } : null;
+  };
+
+  const userInfo = getUserInfo();
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <BrowserRouter>
+      <Routes>
+        {/* 认证路由 */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+
+        {/* 商户路由 */}
+        <Route
+          path="/merchant/*"
+          element={
+            userInfo?.role === "merchant" ? (
+              <HotelForm />
+            ) : (
+              <Navigate to="/login" />
+            )
+          }
+        />
+
+        {/* 管理员路由 */}
+        <Route
+          path="/admin/audit"
+          element={
+            userInfo?.role === "admin" ? (
+              <AuditList />
+            ) : (
+              <Navigate to="/login" />
+            )
+          }
+        />
+        <Route
+          path="/admin/publish"
+          element={
+            userInfo?.role === "admin" ? (
+              <PublishList />
+            ) : (
+              <Navigate to="/login" />
+            )
+          }
+        />
+
+        {/* 默认路由 */}
+        <Route
+          path="/"
+          element={
+            userInfo ? (
+              userInfo.role === "merchant" ? (
+                <Navigate to="/merchant" />
+              ) : (
+                <Navigate to="/admin/audit" />
+              )
+            ) : (
+              <Navigate to="/login" />
+            )
+          }
+        />
+      </Routes>
+    </BrowserRouter>
+  );
 }
 
-export default App
+export default App;
