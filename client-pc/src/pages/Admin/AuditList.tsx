@@ -1,5 +1,6 @@
 //管理员审核
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { getHotels, auditHotel } from "../../services/hotel";
 
 const AuditList: React.FC = () => {
@@ -7,6 +8,7 @@ const AuditList: React.FC = () => {
   const [selectedHotel, setSelectedHotel] = useState<any | null>(null);
   const [reason, setReason] = useState("");
   const [message, setMessage] = useState("");
+  const navigate = useNavigate();
 
   // 获取酒店列表
   useEffect(() => {
@@ -55,6 +57,16 @@ const AuditList: React.FC = () => {
     window.location.href = "/login";
   };
 
+  // 导航到审核页面
+  const navigateToAudit = () => {
+    navigate("/admin/audit");
+  };
+
+  // 导航到上下线页面
+  const navigateToPublish = () => {
+    navigate("/admin/publish");
+  };
+
   return (
     <div style={{ padding: "2rem" }}>
       <div
@@ -65,7 +77,23 @@ const AuditList: React.FC = () => {
           marginBottom: "1rem",
         }}
       >
-        <h2>酒店审核管理</h2>
+        <div>
+          <h2>酒店审核管理</h2>
+          <div style={{ marginTop: "1rem" }}>
+            <button
+              onClick={navigateToAudit}
+              style={{ padding: "0.5rem 1rem", marginRight: "1rem" }}
+            >
+              审核
+            </button>
+            <button
+              onClick={navigateToPublish}
+              style={{ padding: "0.5rem 1rem" }}
+            >
+              上/下线
+            </button>
+          </div>
+        </div>
         <button onClick={handleLogout} style={{ padding: "0.5rem 1rem" }}>
           登出
         </button>
