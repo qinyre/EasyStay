@@ -1,10 +1,12 @@
 //管理员上下线酒店
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { getHotels, publishHotel } from "../../services/hotel";
 
 const PublishList: React.FC = () => {
   const [hotels, setHotels] = useState<any[]>([]);
   const [message, setMessage] = useState("");
+  const navigate = useNavigate();
 
   // 获取酒店列表
   useEffect(() => {
@@ -16,7 +18,14 @@ const PublishList: React.FC = () => {
     };
     fetchHotels();
   }, []);
-
+  // 导航到审核页面
+  const navigateToAudit = () => {
+    navigate("/admin/audit");
+  };
+  // 导航到上下线页面
+  const navigateToPublish = () => {
+    navigate("/admin/publish");
+  };
   // 处理上下线
   const handlePublish = async (hotel: any, isOnline: boolean) => {
     const result = await publishHotel(hotel.id, isOnline);
@@ -51,7 +60,23 @@ const PublishList: React.FC = () => {
           marginBottom: "1rem",
         }}
       >
-        <h2>酒店上下线管理</h2>
+        <div>
+          <h2>酒店上下线管理</h2>
+          <div style={{ marginTop: "1rem" }}>
+            <button
+              onClick={navigateToAudit}
+              style={{ padding: "0.5rem 1rem", marginRight: "1rem" }}
+            >
+              审核
+            </button>
+            <button
+              onClick={navigateToPublish}
+              style={{ padding: "0.5rem 1rem" }}
+            >
+              上/下线
+            </button>
+          </div>
+        </div>
         <button onClick={handleLogout} style={{ padding: "0.5rem 1rem" }}>
           登出
         </button>
