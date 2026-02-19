@@ -112,9 +112,30 @@ const HotelForm: React.FC = () => {
     }
   };
 
+  // 登出功能
+  const handleLogout = () => {
+    // 清除localStorage中的用户信息
+    localStorage.removeItem("token");
+    localStorage.removeItem("role");
+    // 跳转到登录页面
+    window.location.href = "/login";
+  };
+
   return (
     <div style={{ padding: "2rem" }}>
-      <h2>酒店信息管理</h2>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: "1rem",
+        }}
+      >
+        <h2>酒店信息管理</h2>
+        <button onClick={handleLogout} style={{ padding: "0.5rem 1rem" }}>
+          登出
+        </button>
+      </div>
 
       {/* 表单区域 */}
       <div
