@@ -33,3 +33,21 @@ export interface Hotel {
   price_start?: number; // Starting price for display
   tags?: string[]; // "Family", "Free Parking", etc.
 }
+
+export interface Booking {
+  id: string;
+  hotelId: string;
+  roomId: string;
+  userId: string;
+  checkIn: string; // ISO date string
+  checkOut: string; // ISO date string
+  totalPrice: number;
+  status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
+  guestName: string;
+  guestPhone: string;
+  createdAt: string;
+  // Computed or populated fields for UI
+  hotelName?: string;
+  hotelImage?: string;
+  roomType?: string;
+}

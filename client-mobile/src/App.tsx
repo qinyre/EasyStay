@@ -12,21 +12,27 @@ const Placeholder = ({ title }: { title: string }) => (
   </div>
 );
 
+import { SearchProvider } from './contexts/SearchContext';
+import Bookings from './pages/Bookings';
+import BookingDetail from './pages/BookingDetail';
 import Me from './pages/Me';
 
 function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Layout />}>
-          <Route index element={<Home />} />
-          <Route path="hotels" element={<HotelList />} />
-          <Route path="hotel/:id" element={<HotelDetail />} />
-          <Route path="bookings" element={<Placeholder title="My Bookings" />} />
-          <Route path="profile" element={<Me />} />
-        </Route>
-      </Routes>
-    </BrowserRouter>
+    <SearchProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Layout />}>
+            <Route index element={<Home />} />
+            <Route path="hotels" element={<HotelList />} />
+            <Route path="hotel/:id" element={<HotelDetail />} />
+            <Route path="bookings" element={<Bookings />} />
+            <Route path="booking/:id" element={<BookingDetail />} />
+            <Route path="profile" element={<Me />} />
+          </Route>
+        </Routes>
+      </BrowserRouter>
+    </SearchProvider>
   );
 }
 
