@@ -15,6 +15,10 @@ const authRoutes = require('./routes/auth');
 const mobileRoutes = require('./routes/mobile');
 const merchantRoutes = require('./routes/merchant');
 const adminRoutes = require('./routes/admin');
+const setupSwagger = require('./utils/swagger');
+
+// 接入 Swagger 接口描述文档
+setupSwagger(app);
 
 // 注册路由
 app.use('/api/v1/auth', authRoutes);

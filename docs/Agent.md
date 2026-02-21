@@ -163,7 +163,10 @@ EasyStay/
 
 ---
 
-## 5. API 接口规范
+## 5. API 接口规范与测试
+
+> ⭐️ **【重要更新】**：后端已集成 Swagger 在线接口文档工具。
+> 启动后端服务后，请直接访问 [http://localhost:3000/api-docs](http://localhost:3000/api-docs) 查阅所有的最新接口参数并进行在线联调测试。
 
 ### 5.1 全局约定
 
@@ -304,16 +307,20 @@ interface User {
 }
 ```
 
-### 6.3 数据约束规则
+### 6.3 数据约束规则 (Zod 强校验保护)
+
+> 后端路由已全面接入 `Zod` 参数校验能力，当前端传参不符以下规定的长度或类型时，将拦截请求并返回 `400` 错误。
 
 | 字段 | 约束 | 说明 |
 |------|------|------|
-| `hotel.id` | 唯一 | 建议使用时间戳或 UUID |
-| `hotel.star_level` | 1-5 | 必须在此范围内 |
+| `hotel.id` | 唯一 | 后端自动生成 |
+| `hotel.name_cn` | 2 - 50 字符 | 必填，且必须是字符串 |
+| `hotel.open_date` | DateString | 必须匹配 `YYYY-MM-DD` 格式 |
+| `hotel.star_level` | 1-5 整数 | 必须在此范围内 |
 | `hotel.audit_status` | 枚举 | Pending / Approved / Rejected |
 | `hotel.is_offline` | 布尔 | true 表示下线 |
-| `room.price` | Number | 必须为数字类型，支持排序 |
-| `room.stock` | >= 0 | 库存不能为负数 |
+| `room.price` | Number | 必须为大于0的数字，不支持负数 |
+| `room.stock` | >= 0 | 库存不能为负数，且必须为整数 |
 
 ---
 
