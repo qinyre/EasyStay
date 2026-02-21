@@ -1,87 +1,234 @@
 [
     {
-        "id": "mock_hotel_001",
-        "name_cn": "北京王府井希尔顿酒店",
-        "name_en": "Hilton Beijing Wangfujing",
-        "address": "北京市东城区王府井东街8号",
+        "id": "hotel_1001",
+        "name_cn": "上海浦东丽思卡尔顿酒店",
+        "name_en": "The Ritz-Carlton Shanghai, Pudong",
+        "address": "上海市浦东新区陆家嘴世纪大道8号上海国金中心",
         "star_level": 5,
-        "open_date": "2008-01-01",
+        "open_date": "2010-06-21",
         "audit_status": "Approved",
         "is_offline": false,
-        "banner_url": "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&q=80&w=1000",
+        "banner_url": "https://images.unsplash.com/photo-1542314831-c53cd4b85d05?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200",
         "tags": [
             "豪华",
-            "市中心",
-            "购物便利"
+            "外滩江景",
+            "米其林餐厅",
+            "无边泳池"
         ],
-        "attractions": "王府井步行街、故宫、天安门",
-        "discount_info": "提前3天预订享95折",
+        "attractions": "距离东方明珠塔300米，步行5分钟即可到达黄浦江畔。",
+        "merchant_id": "merchant_01",
+        "discount_info": "连住3晚享9折优惠",
         "rooms": [
             {
-                "type_name": "经典双床房",
-                "price": 1288,
-                "stock": 10
-            },
-            {
-                "type_name": "豪华大床房",
-                "price": 1588,
+                "type_name": "豪华江景大床房",
+                "price": 2888,
                 "stock": 5
             },
             {
+                "type_name": "经典双床房",
+                "price": 2088,
+                "stock": 12
+            },
+            {
                 "type_name": "行政套房",
-                "price": 3288,
+                "price": 4588,
                 "stock": 2
             }
         ]
     },
     {
-        "id": "mock_hotel_002",
-        "name_cn": "丽枫酒店（北京望京798店）",
-        "name_en": "Lavande Hotel Beijing Wangjing 798",
-        "address": "北京市朝阳区酒仙桥路2号",
-        "star_level": 3,
-        "open_date": "2018-05-10",
+        "id": "hotel_1002",
+        "name_cn": "杭州西子湖四季酒店",
+        "name_en": "Four Seasons Hotel Hangzhou at West Lake",
+        "address": "浙江省杭州市西湖区灵隐路5号",
+        "star_level": 5,
+        "open_date": "2010-10-01",
         "audit_status": "Approved",
         "is_offline": false,
-        "banner_url": "https://images.unsplash.com/photo-1551882547-ff40c66fe566?auto=format&fit=crop&q=80&w=1000",
+        "banner_url": "https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200",
         "tags": [
-            "艺术街区",
-            "高性价比",
-            "商务出行"
+            "西湖名胜",
+            "园林景观",
+            "静谧山水"
         ],
-        "attractions": "798艺术区、望京SOHO",
-        "discount_info": "连住3晚享88折",
+        "attractions": "出门即是西湖，近曲院风荷、灵隐寺。",
+        "merchant_id": "merchant_01",
         "rooms": [
             {
-                "type_name": "大床房",
-                "price": 398,
+                "type_name": "园景双人房",
+                "price": 3500,
+                "stock": 8
+            },
+            {
+                "type_name": "西湖侧影大床房",
+                "price": 4200,
+                "stock": 3
+            }
+        ]
+    },
+    {
+        "id": "hotel_1003",
+        "name_cn": "桔子酒店·精选 (北京三里屯店)",
+        "name_en": "Orange Hotel Select Beijing Sanlitun",
+        "address": "北京市朝阳区工人体育场北路长虹桥西",
+        "star_level": 3,
+        "open_date": "2018-05-15",
+        "audit_status": "Approved",
+        "is_offline": false,
+        "banner_url": "https://images.unsplash.com/photo-1618773928120-2c14f8ab465b?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200",
+        "tags": [
+            "商务出差",
+            "潮人聚集区",
+            "地铁周边"
+        ],
+        "attractions": "距离三里屯太古里步行3分钟，夜生活丰富。",
+        "merchant_id": "merchant_02",
+        "discount_info": "新用户首单立减50元",
+        "rooms": [
+            {
+                "type_name": "标准大床房",
+                "price": 459,
                 "stock": 20
             },
             {
-                "type_name": "双床房",
-                "price": 428,
+                "type_name": "舒适双床房",
+                "price": 499,
+                "stock": 15
+            },
+            {
+                "type_name": "影音大床房",
+                "price": 589,
+                "stock": 5
+            }
+        ]
+    },
+    {
+        "id": "hotel_1004",
+        "name_cn": "三亚亚特兰蒂斯度假区",
+        "name_en": "Atlantis Sanya",
+        "address": "海南省三亚市海棠湾镇海棠北路36号",
+        "star_level": 5,
+        "open_date": "2018-04-28",
+        "audit_status": "Approved",
+        "is_offline": false,
+        "banner_url": "https://plus.unsplash.com/premium_photo-1661962369796-7eebbe64687d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200",
+        "tags": [
+            "水世界",
+            "海底套房",
+            "亲子度假",
+            "网红打卡"
+        ],
+        "attractions": "自带超大水上乐园和失落的空间水族馆。",
+        "merchant_id": "merchant_03",
+        "rooms": [
+            {
+                "type_name": "海景大床房",
+                "price": 2388,
+                "stock": 50
+            },
+            {
+                "type_name": "波塞冬水底套房",
+                "price": 108888,
+                "stock": 1
+            }
+        ]
+    },
+    {
+        "id": "hotel_1005",
+        "name_cn": "如家快捷酒店 (广州珠江新城店)",
+        "name_en": "Home Inn Guangzhou Zhujiang New Town",
+        "address": "广东省广州市天河区花城大道88号",
+        "star_level": 2,
+        "open_date": "2015-09-01",
+        "audit_status": "Approved",
+        "is_offline": false,
+        "banner_url": "https://images.unsplash.com/photo-1590490359683-658d3d23f972?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200",
+        "tags": [
+            "高性价比",
+            "经济型"
+        ],
+        "merchant_id": "merchant_02",
+        "rooms": [
+            {
+                "type_name": "特惠无窗房",
+                "price": 199,
+                "stock": 10
+            },
+            {
+                "type_name": "商务大床房",
+                "price": 259,
+                "stock": 25
+            }
+        ]
+    },
+    {
+        "id": "hotel_1006",
+        "name_cn": "深圳湾安达仕酒店",
+        "name_en": "Andaz Shenzhen Bay",
+        "address": "广东省深圳市南山区科苑南路2600号",
+        "star_level": 5,
+        "open_date": "2020-12-28",
+        "audit_status": "Pending",
+        "is_offline": false,
+        "banner_url": "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200",
+        "tags": [
+            "湾区地标",
+            "艺术设计",
+            "新晋网红"
+        ],
+        "merchant_id": "merchant_01",
+        "attractions": "紧邻深圳人才公园和华润春笋大厦。",
+        "rooms": [
+            {
+                "type_name": "安达仕大床房",
+                "price": 1800,
                 "stock": 15
             }
         ]
     },
     {
-        "id": "mock_hotel_003",
-        "name_cn": "未审核测试酒店",
-        "name_en": "Pending Audit Hotel",
-        "address": "测试地址",
-        "star_level": 4,
-        "open_date": "2023-11-20",
-        "audit_status": "Pending",
+        "id": "hotel_1007",
+        "name_cn": "成都春熙路某私人电竞客栈",
+        "name_en": "Chengdu E-Sports Inn",
+        "address": "四川省成都市锦江区春熙路南段18号3楼",
+        "star_level": 1,
+        "open_date": "2022-03-01",
+        "audit_status": "Rejected",
         "is_offline": false,
-        "banner_url": "https://example.com/banner.jpg",
+        "banner_url": "https://images.unsplash.com/photo-1598928506311-c95d43b271d1?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200",
         "tags": [
-            "测试"
+            "电竞包房",
+            "五连坐"
         ],
+        "merchant_id": "merchant_03",
         "rooms": [
             {
-                "type_name": "标准间",
-                "price": 200,
+                "type_name": "电竞双人间",
+                "price": 150,
                 "stock": 5
+            }
+        ]
+    },
+    {
+        "id": "hotel_1008",
+        "name_cn": "乌镇水乡精品民宿 (因装修暂停营业)",
+        "name_en": "Wuzhen Water Town Boutique Homestay",
+        "address": "浙江省桐乡市乌镇西栅景区内",
+        "star_level": 4,
+        "open_date": "2016-08-08",
+        "audit_status": "Approved",
+        "is_offline": true,
+        "banner_url": "https://images.unsplash.com/photo-1493809842364-78817add7ffb?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200",
+        "tags": [
+            "古镇风情",
+            "临水客房"
+        ],
+        "merchant_id": "merchant_01",
+        "rooms": [
+            {
+                "type_name": "临水大床房",
+                "price": 880,
+                "stock": 0
             }
         ]
     }
