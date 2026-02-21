@@ -11,14 +11,24 @@ const HotelDetail: React.FC = () => {
   const navigate = useNavigate();
   const [hotel, setHotel] = useState<Hotel | null>(null);
   const [loading, setLoading] = useState(true);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   useEffect(() => {
-    if (id) {
-      getHotelById(id).then((data) => {
-        setHotel(data || null);
-        setLoading(false);
-      });
-    }
+    const loadHotel = async () => {
+      if (id) {
+        try {
+          const data = await getHotelById(id);
+          setHotel(data || null);
+        } catch (error) {
+          console.error('加载酒店详情失败:', error);
+          Toast.show('加载酒店详情失败');
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadHotel();
   }, [id]);
 
   if (loading) return <div className="p-10 text-center text-gray-500">Loading...</div>;
@@ -33,7 +43,11 @@ const HotelDetail: React.FC = () => {
     <div className="bg-white min-h-screen pb-20">
       {/* Header Image Swiper */}
       <div className="relative h-64">
-        <Swiper loop indicatorProps={{ className: 'custom-swiper-indicator' }}>
+        <Swiper
+          loop
+          indicatorProps={{ className: 'custom-swiper-indicator' }}
+          onIndexChange={(index) => setCurrentImageIndex(index)}
+        >
           {images.map((img, index) => (
             <Swiper.Item key={index}>
               <Image src={img} fit='cover' className="w-full h-64" />
@@ -55,7 +69,7 @@ const HotelDetail: React.FC = () => {
         </div>
         
         <div className="absolute bottom-4 right-4 bg-black/60 text-white text-xs px-3 py-1 rounded-full z-10">
-            1/{images.length} Photos
+            {currentImageIndex + 1}/{images.length} Photos
         </div>
       </div>
 

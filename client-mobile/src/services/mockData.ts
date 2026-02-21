@@ -1,3 +1,5 @@
+import { Hotel } from '../types';
+
 export const MOCK_HOTELS: Hotel[] = [
   {
     id: '1',
