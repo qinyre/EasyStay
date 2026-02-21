@@ -37,7 +37,7 @@ const PublishList: React.FC = () => {
         setHotels(hotelsResult.data);
       }
     } else {
-      setMessage("操作失败：" + result.message);
+      setMessage("操作失败：" + (result.message || "未知错误"));
     }
   };
 
