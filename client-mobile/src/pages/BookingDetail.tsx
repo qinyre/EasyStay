@@ -59,6 +59,7 @@ const BookingDetail: React.FC = () => {
     setPaying(true);
     try {
       // 模拟支付过程
+      console.log('Payment method:', method);
       await new Promise(resolve => setTimeout(resolve, 2000));
 
       // 更新订单状态为已确认
@@ -128,16 +129,6 @@ const BookingDetail: React.FC = () => {
 
   if (!booking) return <div className="p-10 text-center text-gray-500">加载中...</div>;
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'pending': return 'warning';
-      case 'confirmed': return 'success';
-      case 'completed': return 'primary';
-      case 'cancelled': return 'default';
-      default: return 'default';
-    }
-  };
-
   const getStatusBgColor = (status: string) => {
     switch (status) {
       case 'pending': return 'bg-orange-500';
@@ -149,7 +140,6 @@ const BookingDetail: React.FC = () => {
   };
 
   const isPending = booking.status === 'pending';
-  const canCancel = isPending && !isExpired;
 
   return (
     <div className="bg-gray-50 min-h-screen flex flex-col pb-safe">
