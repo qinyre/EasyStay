@@ -310,6 +310,9 @@ const HotelForm: React.FC = () => {
               <th style={{ padding: "0.5rem" }}>酒店名称</th>
               <th style={{ padding: "0.5rem" }}>星级</th>
               <th style={{ padding: "0.5rem" }}>地址</th>
+              <th style={{ padding: "0.5rem" }}>审核状态</th>
+              <th style={{ padding: "0.5rem" }}>上线状态</th>
+              <th style={{ padding: "0.5rem" }}>拒绝理由</th>
               <th style={{ padding: "0.5rem" }}>操作</th>
             </tr>
           </thead>
@@ -319,6 +322,21 @@ const HotelForm: React.FC = () => {
                 <td style={{ padding: "0.5rem" }}>{hotel.name_cn}</td>
                 <td style={{ padding: "0.5rem" }}>{hotel.star_level}星</td>
                 <td style={{ padding: "0.5rem" }}>{hotel.address}</td>
+                <td style={{ padding: "0.5rem" }}>
+                  {hotel.audit_status === "pending" && "待审核"}
+                  {hotel.audit_status === "approved" && "已通过"}
+                  {hotel.audit_status === "rejected" && "已拒绝"}
+                </td>
+                <td style={{ padding: "0.5rem" }}>
+                  {hotel.is_offline ? "已下线" : "已上线"}
+                </td>
+                <td style={{ padding: "0.5rem" }}>
+                  {hotel.audit_status === "rejected" && hotel.reject_reason && (
+                    <div style={{ color: "red", fontSize: "0.9rem" }}>
+                      拒绝理由: {hotel.reject_reason}
+                    </div>
+                  )}
+                </td>
                 <td style={{ padding: "0.5rem" }}>
                   <button
                     onClick={() => handleEdit(hotel)}

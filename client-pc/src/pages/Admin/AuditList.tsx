@@ -34,7 +34,10 @@ const AuditList: React.FC = () => {
       status === "rejected" ? reason : "",
     );
     if (result.code === 200) {
-      setMessage("审核操作成功");
+      // 审核通过时显示上线信息
+      const successMessage =
+        status === "approved" ? "审核通过，酒店已自动上线" : "审核操作成功";
+      setMessage(successMessage);
       // 刷新列表
       const hotelsResult = await getHotels();
       if (hotelsResult.code === 200 && hotelsResult.data) {

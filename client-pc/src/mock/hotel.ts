@@ -1,6 +1,7 @@
 export const mockHotels = [
   {
     id: "1",
+    merchant_id: "merchant1", // 添加商户ID字段
     name_cn: "上海陆家嘴禧酒店",
     name_en: "Joy Hotel Lujiazui",
     address: "上海市浦东新区陆家嘴环路1000号",
@@ -15,6 +16,7 @@ export const mockHotels = [
   },
   {
     id: "2",
+    merchant_id: "merchant1", // 添加商户ID字段
     name_cn: "北京王府井大酒店",
     name_en: "Wangfujing Hotel Beijing",
     address: "北京市东城区王府井大街50号",
