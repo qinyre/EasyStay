@@ -42,15 +42,23 @@ const resources = {
         "price_high_low": "Price: High to Low",
         "rating": "Rating",
         "price": "Price",
+        "star": "Star Rating",
         "price_placeholder": "Price Range Slider Placeholder",
         "more": "More",
-        "more_placeholder": "More Filters Placeholder"
+        "more_placeholder": "More Filters Placeholder",
+        "filter": "Filter",
+        "clear_filters": "Clear All",
+        "no_results": "No hotels found",
+        "selected_filters": "Selected:",
+        "all_stars": "All Stars"
       },
       "booking": {
         "title": "Bookings",
         "empty": "No Bookings",
         "empty_desc": "You haven't made any bookings yet.",
+        "confirm_title": "Confirm Booking",
         "detail_title": "Booking Detail",
+        "success_title": "Booking Successful!",
         "guest_info": "Guest Information",
         "order_info": "Order Information",
         "order_no": "Order No.",
@@ -58,6 +66,8 @@ const resources = {
         "total_price": "Total Price",
         "cancel_confirm": "Are you sure you want to cancel this booking?",
         "cancel_success": "Booking cancelled successfully",
+        "cancel_failed": "Failed to cancel booking",
+        "pay_coming_soon": "Payment feature coming soon",
         "nights": "Nights",
         "tabs": {
             "all": "All",
@@ -79,7 +89,17 @@ const resources = {
         },
         "actions": {
             "cancel": "Cancel Booking",
-            "pay": "Pay Now"
+            "pay": "Pay Now",
+            "paying": "Paying...",
+            "save": "Save",
+            "saving": "Saving..."
+        },
+        "messages": {
+            "save_success": "Saved to bookings, please proceed to payment",
+            "save_failed": "Save failed, please try again",
+            "pay_select_method": "Select payment method to continue",
+            "pay_success": "Payment successful!",
+            "pay_failed": "Payment failed, please try again"
         }
       },
       "hotelDetail": {
@@ -93,7 +113,9 @@ const resources = {
       "common": {
         "loading": "Loading...",
         "switch_lang": "Switch Language",
-        "copied": "Copied to clipboard"
+        "copied": "Copied to clipboard",
+        "confirm": "Confirm",
+        "cancel": "Cancel"
       }
     }
   },
@@ -136,15 +158,23 @@ const resources = {
         "price_high_low": "价格：从高到低",
         "rating": "评分",
         "price": "价格",
+        "star": "星级",
         "price_placeholder": "价格范围筛选占位符",
         "more": "更多",
-        "more_placeholder": "更多筛选条件占位符"
+        "more_placeholder": "更多筛选条件占位符",
+        "filter": "筛选",
+        "clear_filters": "清除全部",
+        "no_results": "暂无符合条件的酒店",
+        "selected_filters": "已选:",
+        "all_stars": "全部星级"
       },
       "booking": {
         "title": "我的订单",
         "empty": "暂无订单",
         "empty_desc": "您还没有预订任何酒店",
+        "confirm_title": "确认预订",
         "detail_title": "订单详情",
+        "success_title": "预订成功！",
         "guest_info": "入住人信息",
         "order_info": "订单信息",
         "order_no": "订单编号",
@@ -152,6 +182,8 @@ const resources = {
         "total_price": "订单总价",
         "cancel_confirm": "确定要取消该订单吗？",
         "cancel_success": "订单取消成功",
+        "cancel_failed": "订单取消失败",
+        "pay_coming_soon": "支付功能即将上线",
         "nights": "晚",
         "tabs": {
             "all": "全部",
@@ -166,14 +198,20 @@ const resources = {
             "cancelled": "已取消"
         },
         "status_desc": {
-            "pending": "请在30分钟内完成支付，否则订单将自动取消",
+            "pending": "请在15分钟内完成支付，否则订单将自动取消",
             "confirmed": "您的预订已确认，祝您旅途愉快！",
             "completed": "感谢您的入住，期待再次光临",
             "cancelled": "该订单已取消"
         },
         "actions": {
             "cancel": "取消订单",
-            "pay": "立即支付"
+            "pay": "立即支付",
+            "save": "暂存",
+            "saving": "暂存中..."
+        },
+        "messages": {
+            "save_success": "已暂存到订单，请前往支付",
+            "save_failed": "暂存失败，请重试"
         }
       },
       "hotelDetail": {

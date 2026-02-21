@@ -5,10 +5,13 @@ import { formatCurrency } from '../utils/format';
 
 interface RoomCardProps {
   room: Room;
+  nights?: number;
   onBook: () => void;
 }
 
-export const RoomCard: React.FC<RoomCardProps> = ({ room, onBook }) => {
+export const RoomCard: React.FC<RoomCardProps> = ({ room, nights = 1, onBook }) => {
+  const totalPrice = room.price * nights;
+
   return (
     <Card className="mb-3 rounded-lg border border-gray-100 shadow-sm" bodyStyle={{ padding: 12 }}>
       <div className="flex">
@@ -21,14 +24,18 @@ export const RoomCard: React.FC<RoomCardProps> = ({ room, onBook }) => {
             <p className="text-xs text-gray-500 mt-1 line-clamp-2">{room.description}</p>
           </div>
           <div className="flex justify-between items-end mt-2">
-            <div className="text-lg font-bold text-blue-600">{formatCurrency(room.price)}</div>
-            <Button 
-                color='primary' 
-                size='mini' 
+            <div>
+              <div className="text-sm text-gray-400">{nights > 1 ? `${nights}晚总价` : '每晚'}</div>
+              <div className="text-lg font-bold text-blue-600">{formatCurrency(totalPrice)}</div>
+              {nights > 1 && <div className="text-xs text-gray-400">¥{room.price}/晚</div>}
+            </div>
+            <Button
+                color='primary'
+                size='mini'
                 onClick={onBook}
                 className="font-bold px-4 rounded-lg"
             >
-                Book
+                预订
             </Button>
           </div>
         </div>

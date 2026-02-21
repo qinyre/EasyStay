@@ -50,8 +50,10 @@ export const HotelCard: React.FC<HotelCardProps> = ({ hotel, onClick }) => {
         </div>
         
         <div className="flex justify-between items-end mt-4">
-            <div className="text-xs text-gray-400">
-                {hotel.star_level} Star Hotel
+            <div className="flex items-center gap-1">
+                {[...Array(hotel.star_level)].map((_, i) => (
+                    <Star key={i} size={12} className="fill-yellow-400 text-yellow-400" />
+                ))}
             </div>
             <div className="flex items-baseline">
                 <span className="text-xs text-gray-500 mr-1">from</span>

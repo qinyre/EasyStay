@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MapPin, Calendar, Search, Star, Navigation, ChevronDown } from 'lucide-react';
+import { MapPin, Calendar, Search, Star, Navigation, ChevronDown, DollarSign, SlidersHorizontal } from 'lucide-react';
 import { format } from 'date-fns';
 import { Button, Card, Form, Input, Toast } from 'antd-mobile';
 import { getPopularCities } from '../services/api';
@@ -11,20 +11,26 @@ import OptimizedImage from '../components/OptimizedImage';
 import OptimizedSwiper from '../components/OptimizedSwiper';
 import { useTranslation } from 'react-i18next';
 import { useSearch } from '../contexts/SearchContext';
+import { MOCK_HOTELS } from '../services/mockData';
 
 const Home: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { city, setCity, dateRange, setDateRange, keyword, setKeyword } = useSearch();
+  const { city, setCity, dateRange, setDateRange, keyword, setKeyword, starLevel, setStarLevel, priceRange, setPriceRange, toSearchParams } = useSearch();
   const [popularCities, setPopularCities] = useState<{ name: string; image: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [locating, setLocating] = useState(false);
+
+  const featuredHotels = MOCK_HOTELS.slice(0, 4);
 
   // Calendar visibility
   const [showCalendar, setShowCalendar] = useState(false);
 
   // City picker visibility
   const [showCityPicker, setShowCityPicker] = useState(false);
+
+  // Filter panel visibility
+  const [showFilterPanel, setShowFilterPanel] = useState(false);
 
   useEffect(() => {
     getPopularCities().then((data) => {
@@ -34,13 +40,7 @@ const Home: React.FC = () => {
   }, []);
 
   const handleSearch = () => {
-    const params = new URLSearchParams();
-    if (city) params.append('city', city);
-    if (keyword) params.append('keyword', keyword);
-    params.append('checkIn', format(dateRange.start, 'yyyy-MM-dd'));
-    params.append('checkOut', format(dateRange.end, 'yyyy-MM-dd'));
-    
-    navigate(`/hotels?${params.toString()}`);
+    navigate(`/hotels?${toSearchParams().toString()}`);
   };
 
   const handleLocation = async () => {
@@ -56,40 +56,65 @@ const Home: React.FC = () => {
     }
   };
 
-  const banners = [
-    // 优化图片 URL - 更大尺寸，更好质量，WebP 格式
-    "https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=400&q=75&fm=webp",
-    "https://images.unsplash.com/photo-1582719508461-905c673771fd?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=400&q=75&fm=webp",
-    "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=400&q=75&fm=webp"
+  const starLevels = [
+    { value: 0, label: '全部' },
+    { value: 5, label: '五星' },
+    { value: 4, label: '四星' },
+    { value: 3, label: '三星' },
+  ];
+
+  const priceRanges = [
+    { min: 0, max: 5000, label: '不限' },
+    { min: 0, max: 300, label: '¥300以下' },
+    { min: 300, max: 500, label: '¥300-500' },
+    { min: 500, max: 800, label: '¥500-800' },
+    { min: 800, max: 1200, label: '¥800-1200' },
+    { min: 1200, max: 5000, label: '¥1200以上' },
   ];
 
   return (
     <div className="pb-20 bg-gray-50 min-h-screen">
-      {/* Top Banner Swiper - 使用优化组件，支持预加载和骨架屏 */}
+      {/* Top Hotel Banner Swiper */}
       <OptimizedSwiper
-        images={banners}
-        className="h-48"
+        hotels={featuredHotels.map(h => ({
+          id: h.id,
+          name_cn: h.name_cn,
+          name_en: h.name_en,
+          image: h.image || '',
+          price_start: h.price_start,
+          rating: h.rating
+        }))}
+        className="h-56"
         autoplay
         loop
-        title={t('home.title')}
       />
 
-      {/* Search Box - Below Banner */}
+      {/* Search Box */}
       <div className="px-4 mt-4 relative z-10">
         <Card className="shadow-lg rounded-xl">
           <Form layout='horizontal' footer={
-            <Button block color='primary' size='large' onClick={handleSearch}>
-              {t('home.search_btn')}
-            </Button>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setShowFilterPanel(!showFilterPanel)}
+                className="flex-1 h-12 bg-gradient-to-r from-gray-50 to-gray-100 hover:from-gray-100 hover:to-gray-200 border border-gray-200 rounded-xl flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
+              >
+                <SlidersHorizontal size={18} className="text-gray-600" />
+                <span className="text-gray-700 font-medium">筛选</span>
+                {(starLevel > 0 || priceRange.min > 0 || priceRange.max < 5000) && (
+                  <span className="w-2 h-2 bg-blue-500 rounded-full" />
+                )}
+              </button>
+              <Button block color='primary' size='large' className="flex-[2]" onClick={handleSearch}>
+                {t('home.search_btn')}
+              </Button>
+            </div>
           }>
-            <Form.Item
-              label={<MapPin className="text-blue-500" size={20} />}
-            >
+            <Form.Item label={<MapPin className="text-blue-500" size={20} />}>
               <div className="flex gap-2">
-                <Input 
+                <Input
                   placeholder={t('home.search_placeholder')}
-                  value={city} 
-                  onChange={val => setCity(val)} 
+                  value={city}
+                  onChange={val => setCity(val)}
                   clearable
                   className="flex-1"
                   readOnly
@@ -110,10 +135,8 @@ const Home: React.FC = () => {
                 </button>
               </div>
             </Form.Item>
-            
-            <Form.Item
-              label={<Calendar className="text-blue-500" size={20} />}
-            >
+
+            <Form.Item label={<Calendar className="text-blue-500" size={20} />}>
               <div className="flex justify-between items-center w-full" onClick={() => setShowCalendar(true)}>
                 <div className="flex-1">
                   <div className="text-xs text-gray-400">{t('home.check_in')}</div>
@@ -127,17 +150,66 @@ const Home: React.FC = () => {
               </div>
             </Form.Item>
 
-            <Form.Item
-              label={<Search className="text-blue-500" size={20} />}
-            >
-              <Input 
-                placeholder="Keyword (Optional)" 
-                value={keyword} 
-                onChange={val => setKeyword(val)} 
+            <Form.Item label={<Search className="text-blue-500" size={20} />}>
+              <Input
+                placeholder="Keyword (Optional)"
+                value={keyword}
+                onChange={val => setKeyword(val)}
                 clearable
               />
             </Form.Item>
           </Form>
+
+          {/* Filter Panel */}
+          {showFilterPanel && (
+            <div className="border-t border-gray-100 pt-4 mt-4">
+              {/* 星级筛选 */}
+              <div className="mb-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <Star className="text-yellow-500" size={16} />
+                  <span className="text-sm font-medium text-gray-700">星级</span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {starLevels.map((level) => (
+                    <button
+                      key={level.value}
+                      className={`px-3 py-1.5 rounded-full text-sm transition-all ${
+                        starLevel === level.value
+                          ? 'bg-yellow-500 text-white font-medium'
+                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      }`}
+                      onClick={() => setStarLevel(level.value)}
+                    >
+                      {level.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* 价格筛选 */}
+              <div>
+                <div className="flex items-center gap-2 mb-3">
+                  <DollarSign className="text-green-500" size={16} />
+                  <span className="text-sm font-medium text-gray-700">价格区间</span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {priceRanges.map((range) => (
+                    <button
+                      key={range.label}
+                      className={`px-3 py-1.5 rounded-full text-sm transition-all ${
+                        priceRange.min === range.min && priceRange.max === range.max
+                          ? 'bg-green-500 text-white font-medium'
+                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      }`}
+                      onClick={() => setPriceRange({ min: range.min, max: range.max })}
+                    >
+                      {range.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
         </Card>
       </div>
 
@@ -162,7 +234,7 @@ const Home: React.FC = () => {
           <Star className="text-yellow-500 fill-current" size={18} />
           {t('home.popular_destinations')}
         </h2>
-        
+
         <div className="flex overflow-x-auto gap-4 pb-4 snap-x hide-scrollbar">
           {loading ? (
              Array(4).fill(0).map((_, i) => (
@@ -178,7 +250,6 @@ const Home: React.FC = () => {
                     Toast.show({ content: `已选择：${cityItem.name}`, duration: 1000 });
                 }}
               >
-                {/* 使用优化的图片组件 - 懒加载 + 骨架屏 */}
                 <OptimizedImage
                   src={cityItem.image}
                   alt={cityItem.name}
@@ -197,7 +268,7 @@ const Home: React.FC = () => {
         {/* Quick City Tags */}
         <div className="mt-4 px-4">
           <div className="flex flex-wrap gap-2">
-            {['北京', '上海', '广州', '深圳', '成都', '杭州', '武汉', '西安', '南京', '重庆', '三亚', '昆明'].map(cityName => (
+            {['北京', '上海', '广州', '深圳', '成都', '杭州', '武汉', '西安', '南京', '重庆', '三亚', '新加坡'].map(cityName => (
               <button
                 key={cityName}
                 className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
@@ -216,7 +287,7 @@ const Home: React.FC = () => {
           </div>
         </div>
       </div>
-      
+
       {/* Features */}
       <div className="mt-4 px-4 pb-4">
         <h2 className="text-lg font-bold text-gray-800 mb-4">{t('home.why_choose_us')}</h2>

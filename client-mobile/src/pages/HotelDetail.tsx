@@ -163,10 +163,11 @@ const HotelDetail: React.FC = () => {
         <div className="mt-8">
             <h3 className="font-bold text-gray-900 mb-4 text-lg">{t('hotelDetail.select_room')}</h3>
             {sortedRooms.map(room => (
-                <RoomCard 
-                    key={room.id} 
-                    room={room} 
-                    onBook={() => Toast.show({ content: `Booking ${room.type}`, icon: 'success' })} 
+                <RoomCard
+                    key={room.id}
+                    room={room}
+                    nights={differenceInDays(dateRange.end, dateRange.start)}
+                    onBook={() => navigate(`/hotel/${hotel.id}/booking/${room.id}`)}
                 />
             ))}
         </div>

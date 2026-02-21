@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Tabs, Card, Tag, Button, PullToRefresh, ErrorBlock } from 'antd-mobile';
+import { Tabs, PullToRefresh, ErrorBlock, Dialog, Toast } from 'antd-mobile';
 import { useNavigate } from 'react-router-dom';
-import { getBookings } from '../../services/api';
+import { getBookings, cancelBooking, updateBookingStatus } from '../../services/api';
 import { Booking } from '../../types';
-import { formatCurrency, formatDate } from '../../utils/format';
+import { BookingCard } from '../../components/BookingCard';
+import { PaymentModal } from '../../components/PaymentModal';
 
 const Bookings: React.FC = () => {
   const { t } = useTranslation();
@@ -12,41 +13,101 @@ const Bookings: React.FC = () => {
   const [activeTab, setActiveTab] = useState('all');
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(false);
+  const [payingBookingId, setPayingBookingId] = useState<string | null>(null);
+  const [showPayment, setShowPayment] = useState(false);
+  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
 
-  const fetchBookings = async () => {
+  const fetchBookings = useCallback(async () => {
     setLoading(true);
     try {
       const data = await getBookings(activeTab === 'all' ? undefined : activeTab);
       setBookings(data);
-    } catch (error) {
-      console.error('Failed to fetch bookings', error);
+    } catch (err) {
+      console.error('Failed to fetch bookings', err);
     } finally {
       setLoading(false);
     }
-  };
+  }, [activeTab]);
 
   useEffect(() => {
     fetchBookings();
-  }, [activeTab]);
+  }, [fetchBookings]);
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'pending': return 'warning';
-      case 'confirmed': return 'success';
-      case 'completed': return 'primary';
-      case 'cancelled': return 'default';
-      default: return 'default';
+  const handleCancelBooking = async (bookingId: string, e: React.MouseEvent) => {
+    e?.stopPropagation();
+
+    const result = await Dialog.confirm({
+      content: t('booking.cancel_confirm'),
+      confirmText: t('common.confirm'),
+      cancelText: t('common.cancel'),
+    });
+
+    if (result) {
+      try {
+        await cancelBooking(bookingId);
+        Toast.show({
+          content: t('booking.cancel_success'),
+          icon: 'success',
+        });
+        await fetchBookings();
+      } catch (error) {
+        console.error('Cancel booking error:', error);
+        Toast.show({
+          content: t('booking.cancel_failed'),
+          icon: 'fail',
+        });
+      }
     }
   };
 
-  const getStatusText = (status: string) => {
-    return t(`booking.status.${status}`, status);
+  const handlePayClick = (booking: Booking, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSelectedBooking(booking);
+    setShowPayment(true);
+  };
+
+  const handlePayment = async (method: string) => {
+    if (!selectedBooking) return;
+
+    setPayingBookingId(selectedBooking.id);
+    try {
+      // 模拟支付过程
+      console.log('Payment method:', method);
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      // 更新订单状态
+      await updateBookingStatus(selectedBooking.id, 'confirmed');
+
+      Toast.show({
+        content: t('booking.messages.pay_success'),
+        icon: 'success',
+        duration: 1500,
+      });
+
+      setShowPayment(false);
+
+      // 直接跳转到订单详情页
+      setTimeout(() => {
+        navigate(`/booking/${selectedBooking.id}`);
+      }, 500);
+
+      await fetchBookings();
+    } catch (error) {
+      console.error('Payment error:', error);
+      Toast.show({
+        content: t('booking.messages.pay_failed'),
+        icon: 'fail',
+      });
+    } finally {
+      setPayingBookingId(null);
+      setSelectedBooking(null);
+    }
   };
 
   return (
     <div className="bg-gray-50 min-h-screen flex flex-col">
       <div className="bg-white sticky top-0 z-10 shadow-sm">
-        <div className="p-4 pb-2 font-bold text-lg text-gray-900">{t('tab.bookings')}</div>
+        <div className="p-4 pb-2 font-bold text-lg text-gray-900">{t('booking.title')}</div>
         <Tabs activeKey={activeTab} onChange={setActiveTab}>
           <Tabs.Tab title={t('booking.tabs.all')} key='all' />
           <Tabs.Tab title={t('booking.tabs.pending')} key='pending' />
@@ -62,52 +123,32 @@ const Bookings: React.FC = () => {
               <ErrorBlock status='empty' title={t('booking.empty')} description={t('booking.empty_desc')} />
             ) : (
               bookings.map(booking => (
-                <Card 
-                    key={booking.id} 
-                    className="rounded-xl shadow-sm active:opacity-80 transition-opacity"
-                    onClick={() => navigate(`/booking/${booking.id}`)}
-                >
-                  <div className="flex gap-3">
-                    <img 
-                        src={booking.hotelImage} 
-                        alt={booking.hotelName} 
-                        className="w-24 h-24 object-cover rounded-lg bg-gray-200"
-                    />
-                    <div className="flex-1 min-w-0 flex flex-col justify-between py-1">
-                      <div>
-                        <div className="flex justify-between items-start">
-                            <h3 className="font-bold text-gray-900 truncate pr-2">{booking.hotelName}</h3>
-                            <Tag color={getStatusColor(booking.status)}>
-                                {getStatusText(booking.status)}
-                            </Tag>
-                        </div>
-                        <p className="text-sm text-gray-500 mt-1">{booking.roomType}</p>
-                        <p className="text-xs text-gray-400 mt-1">
-                            {formatDate(new Date(booking.checkIn), 'MM-dd')} - {formatDate(new Date(booking.checkOut), 'MM-dd')}
-                        </p>
-                      </div>
-                      <div className="text-right font-bold text-blue-600">
-                        {formatCurrency(booking.totalPrice)}
-                      </div>
-                    </div>
-                  </div>
-                  {booking.status === 'pending' && (
-                      <div className="mt-3 pt-3 border-t border-gray-100 flex justify-end gap-2">
-                          <Button size='mini' shape='rounded' onClick={(e) => { e.stopPropagation(); /* Cancel logic */ }}>
-                            {t('booking.actions.cancel')}
-                          </Button>
-                          <Button size='mini' shape='rounded' color='primary' onClick={(e) => { e.stopPropagation(); /* Pay logic */ }}>
-                            {t('booking.actions.pay')}
-                          </Button>
-                      </div>
-                  )}
-                </Card>
+                <BookingCard
+                  key={booking.id}
+                  booking={booking}
+                  onClick={() => navigate(`/booking/${booking.id}`)}
+                  onCancel={(e) => handleCancelBooking(booking.id, e)}
+                  onPay={handlePayClick}
+                  paying={payingBookingId === booking.id}
+                />
               ))
             )}
             <div className="h-safe-bottom" />
           </div>
         </PullToRefresh>
       </div>
+
+      {/* 支付弹窗 */}
+      <PaymentModal
+        visible={showPayment}
+        amount={selectedBooking?.totalPrice ?? 0}
+        onClose={() => {
+          setShowPayment(false);
+          setSelectedBooking(null);
+        }}
+        onConfirm={handlePayment}
+        loading={payingBookingId !== null}
+      />
     </div>
   );
 };
