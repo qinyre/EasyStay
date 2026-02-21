@@ -24,10 +24,12 @@ export const createHotel = async (data: any): Promise<HotelResponse> => {
           // 读取酒店数据
           const hotels = readHotels();
 
-          // 添加商户ID到酒店数据
+          // 添加商户ID到酒店数据，并设置默认状态
           const hotelData = {
             id: "new-id-" + Date.now(),
             merchant_id: merchantId,
+            audit_status: "pending", // 默认为待审核状态
+            is_offline: true, // 默认为下线状态，等待审核
             ...data,
           };
 
@@ -48,7 +50,13 @@ export const createHotel = async (data: any): Promise<HotelResponse> => {
   } else {
     // 后端API调用
     try {
-      const result = await api.post("/merchant/hotels", data);
+      // 添加默认状态到请求数据
+      const hotelData = {
+        audit_status: "pending", // 默认为待审核状态
+        is_offline: true, // 默认为下线状态，等待审核
+        ...data,
+      };
+      const result = await api.post("/merchant/hotels", hotelData);
       return result.data;
     } catch (error: any) {
       return {
@@ -139,6 +147,17 @@ export const auditHotel = async (
           );
           if (hotelIndex !== -1) {
             hotels[hotelIndex].audit_status = status;
+            // 保存拒绝理由
+            if (status === "rejected") {
+              hotels[hotelIndex].reject_reason = reason;
+            } else {
+              // 审核通过或其他状态时清除拒绝理由
+              delete hotels[hotelIndex].reject_reason;
+            }
+            // 审核通过时自动上线
+            if (status === "approved") {
+              hotels[hotelIndex].is_offline = false;
+            }
             // 写入数据
             writeHotels(hotels);
           }
@@ -154,7 +173,16 @@ export const auditHotel = async (
   } else {
     // 后端API调用
     try {
-      const result = await api.patch(`/admin/audit/${id}`, { status, reason });
+      // 审核通过时，需要同时设置上线状态
+      const auditData = {
+        status,
+        reason,
+        // 审核通过时自动上线
+        is_online: status === "approved",
+        // 保存拒绝理由
+        reject_reason: status === "rejected" ? reason : null,
+      };
+      const result = await api.patch(`/admin/audit/${id}`, auditData);
       return result.data;
     } catch (error: any) {
       return {
