@@ -1,0 +1,39 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+
+# 生产环境构建产物
+/dist
+
+# 环境变量文件 (防止泄露你的个人调试配置或 API 密钥)
+.env
+.env.local
+.env.*.local
+
+# TypeScript 缓存
+*.tsbuildinfo
+
+# 某些系统特有的冗余
+Thumbs.db
