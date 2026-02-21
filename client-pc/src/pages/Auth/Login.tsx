@@ -17,9 +17,10 @@ const Login: React.FC = () => {
       console.log("登录结果:", result); // 添加调试信息
 
       if (result.code === 200 && result.data) {
-        // 保存token和角色
+        // 保存token、角色和用户名
         localStorage.setItem("token", result.data.token);
         localStorage.setItem("role", result.data.role);
+        localStorage.setItem("username", username); // 保存用户名
         console.log("保存到localStorage成功"); // 添加调试信息
 
         // 强制刷新页面

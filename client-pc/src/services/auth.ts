@@ -1,5 +1,5 @@
 import api from "./api";
-import { mockUsers } from "../mock/user";
+import { readUsers, writeUsers } from "../test-data/dataManager";
 
 // 注册
 export const register = async (data: {
@@ -14,6 +14,30 @@ export const register = async (data: {
     message: string;
   }>((resolve) => {
     setTimeout(() => {
+      // 读取用户数据
+      const users = readUsers();
+
+      // 检查用户名是否已存在
+      const existingUser = users.find(
+        (u: { username: string; password: string; role: string }) =>
+          u.username === data.username,
+      );
+      if (existingUser) {
+        resolve({ code: 400, message: "用户名已存在" });
+        return;
+      }
+
+      // 添加新用户
+      const newUser = {
+        username: data.username,
+        password: data.password,
+        role: data.role,
+      };
+      users.push(newUser);
+
+      // 写入数据
+      writeUsers(users);
+
       resolve({
         code: 200,
         data: { token: "mock-token", role: data.role },
@@ -34,8 +58,12 @@ export const login = async (data: { username: string; password: string }) => {
     message: string;
   }>((resolve) => {
     setTimeout(() => {
-      const user = mockUsers.find(
-        (u) => u.username === data.username && u.password === data.password,
+      // 读取用户数据
+      const users = readUsers();
+
+      const user = users.find(
+        (u: { username: string; password: string; role: string }) =>
+          u.username === data.username && u.password === data.password,
       );
       if (user) {
         resolve({
