@@ -1,22 +1,6 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 
-// 语言持久化存储 key
-const LANGUAGE_STORAGE_KEY = 'easystay_language';
-
-// 从 localStorage 读取已保存的语言，或检测浏览器语言
-const getInitialLanguage = (): string => {
-  const savedLang = localStorage.getItem(LANGUAGE_STORAGE_KEY);
-  if (savedLang) {
-    return savedLang;
-  }
-  const browserLang = navigator.language.toLowerCase();
-  if (browserLang.startsWith('zh')) {
-    return 'zh';
-  }
-  return 'zh'; // 默认中文
-};
-
 // 翻译资源
 const resources = {
   en: {
@@ -97,16 +81,11 @@ i18n
   .use(initReactI18next)
   .init({
     resources,
-    lng: getInitialLanguage(),
-    fallbackLng: 'zh',
+    lng: "en", // 默认语言，后续可从 localStorage 读取
+    fallbackLng: "en",
     interpolation: {
       escapeValue: false
     }
   });
-
-// 监听语言变化，持久化到 localStorage
-i18n.on('languageChanged', (lng) => {
-  localStorage.setItem(LANGUAGE_STORAGE_KEY, lng);
-});
 
 export default i18n;

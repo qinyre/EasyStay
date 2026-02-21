@@ -3,7 +3,7 @@ import { Button, Card, Image } from 'antd-mobile';
 import { Room } from '../types';
 import { formatCurrency } from '../utils/format';
 
-export interface RoomCardProps {
+interface RoomCardProps {
   room: Room;
   onBook: () => void;
 }
