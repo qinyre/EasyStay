@@ -1,4 +1,4 @@
-import { Hotel } from '../types';
+import { Hotel, Booking } from '../types';
 
 export const MOCK_HOTELS: Hotel[] = [
   {
@@ -158,4 +158,71 @@ export const MOCK_HOTELS: Hotel[] = [
     price_start: 688,
     tags: ['Historic', 'Cultural', 'Quiet'],
   },
+];
+
+export const MOCK_BOOKINGS: Booking[] = [
+  {
+    id: 'b1',
+    hotelId: '1',
+    roomId: 'r1',
+    userId: 'u1',
+    checkIn: '2023-10-01',
+    checkOut: '2023-10-03',
+    totalPrice: 2576,
+    status: 'pending',
+    guestName: 'John Doe',
+    guestPhone: '13800138000',
+    createdAt: '2023-09-25T10:00:00Z',
+    hotelName: 'EasyStay Grand Hotel',
+    hotelImage: 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+    roomType: '豪华江景房'
+  },
+  {
+    id: 'b2',
+    hotelId: '2',
+    roomId: 'r3',
+    userId: 'u1',
+    checkIn: '2023-09-15',
+    checkOut: '2023-09-16',
+    totalPrice: 358,
+    status: 'completed',
+    guestName: 'John Doe',
+    guestPhone: '13800138000',
+    createdAt: '2023-09-10T14:30:00Z',
+    hotelName: 'EasyStay City Inn',
+    hotelImage: 'https://images.unsplash.com/photo-1582719508461-905c673771fd?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+    roomType: '标准双床房'
+  },
+  {
+    id: 'b3',
+    hotelId: '3',
+    roomId: 'r5',
+    userId: 'u1',
+    checkIn: '2023-11-01',
+    checkOut: '2023-11-05',
+    totalPrice: 15552,
+    status: 'confirmed',
+    guestName: 'Alice Smith',
+    guestPhone: '13912345678',
+    createdAt: '2023-10-20T09:15:00Z',
+    hotelName: 'EasyStay Seaview Resort',
+    hotelImage: 'https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+    roomType: '海景别墅'
+  },
+  {
+    id: 'b4',
+    hotelId: '1',
+    roomId: 'r2',
+    userId: 'u1',
+    checkIn: '2023-08-01',
+    checkOut: '2023-08-02',
+    totalPrice: 2588,
+    status: 'cancelled',
+    guestName: 'John Doe',
+    guestPhone: '13800138000',
+    createdAt: '2023-07-28T11:00:00Z',
+    hotelName: 'EasyStay Grand Hotel',
+    hotelImage: 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+    roomType: '行政套房'
+  }
 ];

@@ -5,8 +5,10 @@ import { Dropdown, InfiniteScroll, NavBar, PullToRefresh, List } from 'antd-mobi
 import { getHotels } from '../services/api';
 import { Hotel } from '../types';
 import { HotelCard } from '../components/HotelCard';
+import { useTranslation } from 'react-i18next';
 
 const HotelList: React.FC = () => {
+  const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [hotels, setHotels] = useState<Hotel[]>([]);
@@ -67,45 +69,45 @@ const HotelList: React.FC = () => {
             backArrow={<ChevronLeft size={24} />}
         >
             <div className="text-sm font-normal">
-                <div className="font-bold text-gray-900">{city || 'All Cities'}</div>
+                <div className="font-bold text-gray-900">{city || t('hotelList.all_cities')}</div>
                 <div className="text-xs text-gray-500">
-                    {searchParams.get('checkIn') ? `${searchParams.get('checkIn')} - ${searchParams.get('checkOut')}` : 'Any Dates'}
+                    {searchParams.get('checkIn') ? `${searchParams.get('checkIn')} - ${searchParams.get('checkOut')}` : t('hotelList.any_dates')}
                 </div>
             </div>
         </NavBar>
         
         {/* Filter Bar using Antd Mobile Dropdown */}
         <Dropdown>
-          <Dropdown.Item key='sorter' title='Sort'>
+          <Dropdown.Item key='sorter' title={t('hotelList.sort')}>
             <div style={{ padding: 12 }}>
               <List>
                 <List.Item onClick={() => {
                   const sorted = [...hotels].sort((a, b) => b.rating - a.rating);
                   setHotels(sorted);
-                }}>Recommended</List.Item>
+                }}>{t('hotelList.recommended')}</List.Item>
                 <List.Item onClick={() => {
                   const sorted = [...hotels].sort((a, b) => (a.price_start || 0) - (b.price_start || 0));
                   setHotels(sorted);
-                }}>Price: Low to High</List.Item>
+                }}>{t('hotelList.price_low_high')}</List.Item>
                 <List.Item onClick={() => {
                   const sorted = [...hotels].sort((a, b) => (b.price_start || 0) - (a.price_start || 0));
                   setHotels(sorted);
-                }}>Price: High to Low</List.Item>
+                }}>{t('hotelList.price_high_low')}</List.Item>
                 <List.Item onClick={() => {
                   const sorted = [...hotels].sort((a, b) => b.rating - a.rating);
                   setHotels(sorted);
-                }}>Rating</List.Item>
+                }}>{t('hotelList.rating')}</List.Item>
               </List>
             </div>
           </Dropdown.Item>
-          <Dropdown.Item key='price' title='Price'>
+          <Dropdown.Item key='price' title={t('hotelList.price')}>
             <div style={{ padding: 12 }}>
-              <div className="p-4 text-center text-gray-500">Price Range Slider Placeholder</div>
+              <div className="p-4 text-center text-gray-500">{t('hotelList.price_placeholder')}</div>
             </div>
           </Dropdown.Item>
-          <Dropdown.Item key='more' title='More'>
+          <Dropdown.Item key='more' title={t('hotelList.more')}>
             <div style={{ padding: 12 }}>
-               <div className="p-4 text-center text-gray-500">More Filters Placeholder</div>
+               <div className="p-4 text-center text-gray-500">{t('hotelList.more_placeholder')}</div>
             </div>
           </Dropdown.Item>
         </Dropdown>
