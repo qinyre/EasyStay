@@ -1,0 +1,17 @@
+[
+  {
+    "username": "admin",
+    "password": "password123",
+    "role": "admin"
+  },
+  {
+    "username": "merchant_01",
+    "password": "password123",
+    "role": "merchant"
+  },
+  {
+    "username": "string",
+    "password": "string",
+    "role": "merchant"
+  }
+]
