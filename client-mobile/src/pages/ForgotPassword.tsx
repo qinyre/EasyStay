@@ -1,14 +1,12 @@
 import React, { useState } from 'react';
 import { NavBar, Form, Input, Button, Toast, Result } from 'antd-mobile';
-import { Mail, Shield, CheckCircle, ArrowRight } from 'lucide-react';
+import { Mail, Shield, CheckCircle, Eye, EyeOff } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import { sendResetCode, resetPasswordWithCode } from '../services/auth';
-import { useTranslation } from 'react-i18next';
 
 type Step = 'email' | 'verify' | 'success';
 
 const ForgotPassword: React.FC = () => {
-  const { t } = useTranslation();
   const navigate = useNavigate();
 
   const [step, setStep] = useState<Step>('email');
@@ -56,9 +54,9 @@ const ForgotPassword: React.FC = () => {
           return prev - 1;
         });
       }, 1000);
-    } catch (error: any) {
+    } catch (error) {
       Toast.show({
-        content: error.message || '发送失败，请稍后重试',
+        content: error instanceof Error ? error.message : '发送失败，请稍后重试',
         icon: 'fail',
       });
     } finally {
@@ -86,9 +84,9 @@ const ForgotPassword: React.FC = () => {
     try {
       await resetPasswordWithCode({ email, code, newPassword });
       setStep('success');
-    } catch (error: any) {
+    } catch (error) {
       Toast.show({
-        content: error.message || '重置失败，请检查验证码',
+        content: error instanceof Error ? error.message : '重置失败，请检查验证码',
         icon: 'fail',
       });
     } finally {
@@ -124,9 +122,9 @@ const ForgotPassword: React.FC = () => {
           return prev - 1;
         });
       }, 1000);
-    } catch (error: any) {
+    } catch (error) {
       Toast.show({
-        content: error.message || '发送失败，请稍后重试',
+        content: error instanceof Error ? error.message : '发送失败，请稍后重试',
         icon: 'fail',
       });
     } finally {
@@ -376,8 +374,5 @@ const ForgotPassword: React.FC = () => {
     </div>
   );
 };
-
-// 导入 Eye 和 EyeOff 图标
-import { Eye, EyeOff } from 'lucide-react';
 
 export default ForgotPassword;
