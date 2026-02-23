@@ -493,3 +493,61 @@ export const getHotelById = async (id: string): Promise<HotelResponse> => {
     }
   }
 };
+
+// 删除酒店
+export const deleteHotel = async (id: string): Promise<HotelResponse> => {
+  // 根据配置选择数据源
+  if (DATA_SOURCE === "local") {
+    // 获取当前登录的商户ID
+    const merchantId =
+      localStorage.getItem("username") || localStorage.getItem("token");
+
+    // 本地存储逻辑
+    return new Promise<{ code: number; data?: any; message: string }>(
+      (resolve) => {
+        setTimeout(() => {
+          // 读取酒店数据
+          const hotels = readHotels();
+
+          // 查找酒店
+          const hotelIndex = hotels.findIndex(
+            (h: { id: string }) => h.id === id,
+          );
+          if (hotelIndex === -1) {
+            resolve({ code: 404, message: "酒店不存在" });
+            return;
+          }
+
+          // 检查是否是当前商户的酒店
+          const hotel = hotels[hotelIndex];
+          if (hotel.merchant_id !== merchantId) {
+            resolve({ code: 403, message: "无权操作此酒店" });
+            return;
+          }
+
+          // 删除酒店
+          hotels.splice(hotelIndex, 1);
+
+          // 写入数据
+          writeHotels(hotels);
+
+          resolve({ code: 200, message: "success" });
+        }, 500);
+      },
+    );
+  } else {
+    // 后端API调用
+    try {
+      const result = (await api.delete(
+        `/merchant/hotels/${id}`,
+      )) as unknown as HotelResponse;
+      return result;
+    } catch (error: any) {
+      console.error("删除酒店API调用错误:", error);
+      return {
+        code: error.code || 500,
+        message: error.message || "服务器错误",
+      };
+    }
+  }
+};

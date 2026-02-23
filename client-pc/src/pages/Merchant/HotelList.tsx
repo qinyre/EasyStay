@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { getHotels } from "../../services/hotel";
+import { getHotels, deleteHotel } from "../../services/hotel";
 import {
   Table,
   Button,
@@ -159,16 +159,15 @@ const HotelList: React.FC = () => {
   const confirmDelete = async () => {
     if (hotelToDelete) {
       try {
-        // 这里应该调用删除酒店的API
-        // 由于我们使用本地存储，直接从本地存储中删除
-        const hotels = JSON.parse(localStorage.getItem("hotels") || "[]");
-        const updatedHotels = hotels.filter(
-          (hotel: any) => hotel.id !== hotelToDelete,
-        );
-        localStorage.setItem("hotels", JSON.stringify(updatedHotels));
-        message.success("酒店删除成功");
-        // 刷新酒店列表
-        fetchHotels();
+        // 调用删除酒店的API
+        const result = await deleteHotel(hotelToDelete);
+        if (result.code === 200) {
+          message.success("酒店删除成功");
+          // 刷新酒店列表
+          fetchHotels();
+        } else {
+          message.error(result.message || "删除酒店失败");
+        }
       } catch (error) {
         console.error("删除酒店失败:", error);
         message.error("删除酒店失败");

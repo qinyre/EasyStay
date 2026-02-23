@@ -103,7 +103,7 @@ const PublishList: React.FC = () => {
             <Button
               type="primary"
               icon={<UpCircleOutlined />}
-              onClick={() => handleStatusChange(record, false)}
+              onClick={() => handleStatusChange(record, true)}
             >
               上线
             </Button>
@@ -111,7 +111,7 @@ const PublishList: React.FC = () => {
             <Button
               danger
               icon={<DownCircleOutlined />}
-              onClick={() => handleStatusChange(record, true)}
+              onClick={() => handleStatusChange(record, false)}
             >
               下线
             </Button>
