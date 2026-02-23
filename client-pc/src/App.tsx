@@ -1,39 +1,67 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import React from "react";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
 import Login from "./pages/Auth/Login";
 import Register from "./pages/Auth/Register";
-import HotelForm from "./pages/Merchant/HotelForm";
 import AuditList from "./pages/Admin/AuditList";
 import PublishList from "./pages/Admin/PublishList";
+import HotelForm from "./pages/Merchant/HotelForm";
+import HotelList from "./pages/Merchant/HotelList";
+import "./index.css";
 
-function App() {
-  // 获取用户信息
-  const getUserInfo = () => {
-    try {
-      const token = localStorage.getItem("token");
-      const role = localStorage.getItem("role");
-      console.log("获取用户信息:", { token, role }); // 添加调试信息
-      return token && role ? { token, role } : null;
-    } catch (error) {
-      console.error("读取localStorage出错:", error);
-      return null;
-    }
-  };
+// 路由保护组件
+const ProtectedRoute: React.FC<{
+  children: React.ReactNode;
+  requiredRole?: string;
+}> = ({ children, requiredRole }) => {
+  const token = localStorage.getItem("token");
+  const userRole = localStorage.getItem("role");
 
-  const userInfo = getUserInfo();
-  console.log("当前用户信息:", userInfo); // 添加调试信息
+  if (!token) {
+    return <Navigate to="/login" replace />;
+  }
 
+  if (requiredRole && userRole !== requiredRole) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return <>{children}</>;
+};
+
+const App: React.FC = () => {
   return (
-    <BrowserRouter>
+    <Router>
       <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+
         {/* 商户路由 */}
         <Route
-          path="/merchant"
+          path="/merchant/hotels"
           element={
-            userInfo?.role === "merchant" ? (
+            <ProtectedRoute requiredRole="merchant">
+              <HotelList />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/merchant/add"
+          element={
+            <ProtectedRoute requiredRole="merchant">
               <HotelForm />
-            ) : (
-              <Navigate to="/login" />
-            )
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/merchant/edit/:id"
+          element={
+            <ProtectedRoute requiredRole="merchant">
+              <HotelForm />
+            </ProtectedRoute>
           }
         />
 
@@ -41,46 +69,26 @@ function App() {
         <Route
           path="/admin/audit"
           element={
-            userInfo?.role === "admin" ? (
+            <ProtectedRoute requiredRole="admin">
               <AuditList />
-            ) : (
-              <Navigate to="/login" />
-            )
+            </ProtectedRoute>
           }
         />
         <Route
           path="/admin/publish"
           element={
-            userInfo?.role === "admin" ? (
+            <ProtectedRoute requiredRole="admin">
               <PublishList />
-            ) : (
-              <Navigate to="/login" />
-            )
+            </ProtectedRoute>
           }
         />
-
-        {/* 认证路由 */}
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
 
         {/* 默认路由 */}
-        <Route
-          path="/"
-          element={
-            userInfo ? (
-              userInfo.role === "merchant" ? (
-                <Navigate to="/merchant" />
-              ) : (
-                <Navigate to="/admin/audit" />
-              )
-            ) : (
-              <Navigate to="/login" />
-            )
-          }
-        />
+        <Route path="/" element={<Navigate to="/login" replace />} />
+        <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
-    </BrowserRouter>
+    </Router>
   );
-}
+};
 
 export default App;

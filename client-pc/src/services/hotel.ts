@@ -28,9 +28,11 @@ export const createHotel = async (data: any): Promise<HotelResponse> => {
           const hotelData = {
             id: "new-id-" + Date.now(),
             merchant_id: merchantId,
-            audit_status: "pending", // 默认为待审核状态
+            //audit_status: "pending", // 默认为待审核状态
             is_offline: true, // 默认为下线状态，等待审核
             ...data,
+            // 确保不会被data中的值覆盖
+            audit_status: "pending",
           };
 
           // 添加到数组
@@ -348,6 +350,8 @@ export const getHotels = async (): Promise<HotelResponse> => {
         setTimeout(() => {
           // 读取酒店数据
           const hotels = readHotels();
+          console.log("读取到的酒店数据:", hotels);
+          console.log("当前用户角色:", role);
 
           let filteredHotels = hotels;
 
@@ -356,6 +360,12 @@ export const getHotels = async (): Promise<HotelResponse> => {
             filteredHotels = hotels.filter(
               (h: { merchant_id: string }) => h.merchant_id === merchantId,
             );
+            console.log("商户ID:", merchantId);
+            console.log("过滤后的酒店数据:", filteredHotels);
+          } else {
+            // 管理员或其他角色，返回所有酒店
+            filteredHotels = hotels;
+            console.log("管理员模式，返回所有酒店:", filteredHotels);
           }
 
           resolve({ code: 200, data: filteredHotels, message: "success" });
@@ -374,8 +384,15 @@ export const getHotels = async (): Promise<HotelResponse> => {
           "/merchant/hotels",
         )) as unknown as HotelResponse;
       } else {
-        // 管理员获取所有酒店
-        result = (await api.get("/admin/hotels")) as unknown as HotelResponse;
+        // 管理员获取所有酒店 - 先尝试管理员API，如果失败则回退到本地存储
+        try {
+          result = (await api.get("/admin/hotels")) as unknown as HotelResponse;
+        } catch (adminError) {
+          console.error("管理员API调用失败，回退到本地存储:", adminError);
+          // 回退到本地存储
+          const hotels = readHotels();
+          result = { code: 200, data: hotels, message: "success" };
+        }
       }
 
       // 确保返回的数据格式正确
@@ -421,6 +438,57 @@ export const getHotels = async (): Promise<HotelResponse> => {
         code: error.code || 500,
         message: error.message || "服务器错误",
         data: [],
+      };
+    }
+  }
+};
+
+// 根据ID获取酒店详情
+export const getHotelById = async (id: string): Promise<HotelResponse> => {
+  // 根据配置选择数据源
+  if (DATA_SOURCE === "local") {
+    // 本地存储逻辑
+    return new Promise<{ code: number; data?: any; message: string }>(
+      (resolve) => {
+        setTimeout(() => {
+          // 读取酒店数据
+          const hotels = readHotels();
+
+          // 查找酒店
+          const hotel = hotels.find((h: { id: string }) => h.id === id);
+          if (hotel) {
+            resolve({ code: 200, data: hotel, message: "success" });
+          } else {
+            resolve({ code: 404, message: "酒店不存在" });
+          }
+        }, 500);
+      },
+    );
+  } else {
+    // 后端API调用
+    try {
+      const role = localStorage.getItem("role");
+      let result;
+
+      if (role === "merchant") {
+        // 商户获取自己的酒店详情
+        result = (await api.get(
+          `/merchant/hotels/${id}`,
+        )) as unknown as HotelResponse;
+      } else {
+        // 管理员获取酒店详情
+        result = (await api.get(
+          `/admin/hotels/${id}`,
+        )) as unknown as HotelResponse;
+      }
+
+      console.log("获取酒店详情结果:", result);
+
+      return result;
+    } catch (error: any) {
+      return {
+        code: error.code || 500,
+        message: error.message || "服务器错误",
       };
     }
   }
