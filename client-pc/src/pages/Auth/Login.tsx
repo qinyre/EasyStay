@@ -38,57 +38,81 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <Card
-        title={
-          <div className="text-center">
-            <Title level={3} style={{ margin: 0 }}>
-              易宿酒店管理系统
-            </Title>
-            <p className="text-gray-500">请登录您的账号</p>
-          </div>
-        }
-        style={{ width: 400 }}
-        className="shadow-lg"
-      >
-        <Form form={form} layout="vertical" onFinish={handleSubmit}>
-          <Form.Item
-            name="username"
-            label="用户名"
-            rules={[{ required: true, message: "请输入用户名" }]}
-          >
-            <Input placeholder="请输入用户名" size="large" />
-          </Form.Item>
-
-          <Form.Item
-            name="password"
-            label="密码"
-            rules={[{ required: true, message: "请输入密码" }]}
-          >
-            <Input.Password placeholder="请输入密码" size="large" />
-          </Form.Item>
-
-          <Form.Item>
-            <Button
-              type="primary"
-              htmlType="submit"
-              size="large"
-              style={{ width: "100%" }}
-              loading={loading}
-            >
-              登录
-            </Button>
-          </Form.Item>
-
-          <Form.Item>
-            <div className="text-center">
-              <a href="/register" className="text-blue-500">
-                注册新账号
-              </a>
+    <div
+      style={{
+        minHeight: "100vh",
+        width: "100%",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: "linear-gradient(135deg, #e3f2fd 0%, #f5f5f5 100%)",
+        padding: "20px",
+      }}
+    >
+      <div style={{ width: "100%", maxWidth: "400px" }}>
+        <Card
+          title={
+            <div style={{ textAlign: "center" }}>
+              <Title
+                level={2}
+                style={{
+                  margin: "0 auto",
+                  color: "#1890ff",
+                  textAlign: "center",
+                }}
+              >
+                易宿酒店管理系统
+              </Title>
+              <p className="text-gray-500 mt-2" style={{ textAlign: "center" }}>
+                请登录您的账号
+              </p>
             </div>
-          </Form.Item>
-        </Form>
-      </Card>
+          }
+          className="shadow-xl rounded-lg overflow-hidden"
+          style={{ width: "100%" }}
+        >
+          <Form form={form} layout="vertical" onFinish={handleSubmit}>
+            <Form.Item
+              name="username"
+              label="用户名"
+              rules={[{ required: true, message: "请输入用户名" }]}
+            >
+              <Input placeholder="请输入用户名" size="large" />
+            </Form.Item>
+
+            <Form.Item
+              name="password"
+              label="密码"
+              rules={[{ required: true, message: "请输入密码" }]}
+            >
+              <Input.Password placeholder="请输入密码" size="large" />
+            </Form.Item>
+
+            <Form.Item>
+              <Button
+                type="primary"
+                htmlType="submit"
+                size="large"
+                style={{ width: "100%", height: 48, fontSize: 16 }}
+                loading={loading}
+              >
+                登录
+              </Button>
+            </Form.Item>
+
+            <Form.Item>
+              <div className="text-center">
+                <a
+                  href="/register"
+                  className="text-blue-500 hover:text-blue-700 font-medium"
+                >
+                  注册新账号
+                </a>
+              </div>
+            </Form.Item>
+          </Form>
+        </Card>
+      </div>
     </div>
   );
 };
