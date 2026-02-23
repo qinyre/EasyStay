@@ -85,7 +85,7 @@ const Me: React.FC = () => {
         </List.Item>
         <List.Item
           prefix={<Settings size={20} className="text-gray-500" />}
-          onClick={() => {}}
+          onClick={() => navigate('/settings')}
         >
           {t('me.settings')}
         </List.Item>
@@ -94,7 +94,7 @@ const Me: React.FC = () => {
       <List header={t('me.about')}>
         <List.Item
           prefix={<HelpCircle size={20} className="text-gray-500" />}
-          onClick={() => {}}
+          onClick={() => navigate('/about')}
         >
           {t('me.about')}
         </List.Item>

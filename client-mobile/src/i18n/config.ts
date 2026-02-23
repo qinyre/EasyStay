@@ -158,6 +158,9 @@ const resources = {
         "select_room": "Select Room",
         "photos": "Photos"
       },
+      "settings": {
+        "title": "Settings"
+      },
       "common": {
         "loading": "Loading...",
         "switch_lang": "Switch Language",
@@ -320,6 +323,9 @@ const resources = {
         "about": "关于酒店",
         "select_room": "选择房间",
         "photos": "张照片"
+      },
+      "settings": {
+        "title": "设置"
       },
       "common": {
         "loading": "加载中...",
