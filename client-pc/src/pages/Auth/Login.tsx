@@ -45,11 +45,18 @@ const Login: React.FC = () => {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        background: "linear-gradient(135deg, #e3f2fd 0%, #f5f5f5 100%)",
+        background:
+          "url(/src/images/background.png) no-repeat center center fixed" /* 替换为你的背景图片路径 */,
+        backgroundSize: "cover",
         padding: "20px",
       }}
     >
-      <div style={{ width: "100%", maxWidth: "400px" }}>
+      <div
+        style={{
+          width: "100%",
+          maxWidth: "400px",
+        }}
+      >
         <Card
           title={
             <div style={{ textAlign: "center" }}>

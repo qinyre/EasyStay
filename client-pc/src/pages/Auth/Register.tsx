@@ -60,11 +60,18 @@ const Register: React.FC = () => {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          background: "linear-gradient(135deg, #e3f2fd 0%, #f5f5f5 100%)",
+          background:
+            "url(/src/images/background.png) no-repeat center center fixed",
+          backgroundSize: "cover",
           padding: "20px",
         }}
       >
-        <div style={{ width: "100%", maxWidth: "400px" }}>
+        <div
+          style={{
+            width: "100%",
+            maxWidth: "400px",
+          }}
+        >
           <Card
             style={{ width: "100%", textAlign: "center" }}
             className="shadow-xl rounded-lg"
@@ -73,7 +80,7 @@ const Register: React.FC = () => {
               注册成功
             </Title>
             <p className="text-lg mt-4" style={{ textAlign: "center" }}>
-              即将返回登录页面
+              即将进入{role === "admin" ? "管理员" : "商户"}页面
             </p>
             <p
               className="text-3xl mt-8 text-blue-500 font-bold"
@@ -95,11 +102,18 @@ const Register: React.FC = () => {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        background: "linear-gradient(135deg, #e3f2fd 0%, #f5f5f5 100%)",
+        background:
+          "url(/src/images/background.png) no-repeat center center fixed",
+        backgroundSize: "cover",
         padding: "20px",
       }}
     >
-      <div style={{ width: "100%", maxWidth: "400px" }}>
+      <div
+        style={{
+          width: "100%",
+          maxWidth: "400px",
+        }}
+      >
         <Card
           title={
             <div style={{ textAlign: "center" }}>
