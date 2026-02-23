@@ -9,6 +9,8 @@ import {
   Input,
   Tag,
   Empty,
+  Descriptions,
+  Card,
 } from "antd";
 import { CheckOutlined, CloseOutlined, EyeOutlined } from "@ant-design/icons";
 import AdminLayout from "../../layouts/Layout";
@@ -20,6 +22,7 @@ const AuditList: React.FC = () => {
   const [hotels, setHotels] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [visible, setVisible] = useState(false);
+  const [detailVisible, setDetailVisible] = useState(false);
   const [selectedHotel, setSelectedHotel] = useState<any>(null);
   const [reason, setReason] = useState("");
 
@@ -133,8 +136,8 @@ const AuditList: React.FC = () => {
   ];
 
   const handleViewDetail = (hotel: any) => {
-    // 实现查看详情逻辑
-    message.info("查看详情功能开发中");
+    setSelectedHotel(hotel);
+    setDetailVisible(true);
   };
 
   return (
@@ -182,6 +185,108 @@ const AuditList: React.FC = () => {
             value={reason}
             onChange={(e) => setReason(e.target.value)}
           />
+        </Modal>
+        <Modal
+          title="酒店详情"
+          open={detailVisible}
+          onCancel={() => setDetailVisible(false)}
+          footer={[
+            <Button key="close" onClick={() => setDetailVisible(false)}>
+              关闭
+            </Button>,
+          ]}
+          width={800}
+        >
+          {selectedHotel && (
+            <div>
+              <Descriptions bordered column={2}>
+                <Descriptions.Item label="酒店名称">
+                  {selectedHotel.name_cn}
+                </Descriptions.Item>
+                <Descriptions.Item label="英文名称">
+                  {selectedHotel.name_en || "-"}
+                </Descriptions.Item>
+                <Descriptions.Item label="地址">
+                  {selectedHotel.address}
+                </Descriptions.Item>
+                <Descriptions.Item label="星级">
+                  {"★".repeat(selectedHotel.star_level)}
+                </Descriptions.Item>
+                <Descriptions.Item label="开业时间">
+                  {selectedHotel.open_date || "-"}
+                </Descriptions.Item>
+                <Descriptions.Item label="审核状态">
+                  <Tag
+                    color={
+                      selectedHotel.audit_status === "pending" ||
+                      selectedHotel.audit_status === "Pending"
+                        ? "blue"
+                        : selectedHotel.audit_status === "approved" ||
+                            selectedHotel.audit_status === "Approved"
+                          ? "green"
+                          : selectedHotel.audit_status === "rejected" ||
+                              selectedHotel.audit_status === "Rejected"
+                            ? "red"
+                            : "gray"
+                    }
+                  >
+                    {selectedHotel.audit_status === "pending" ||
+                    selectedHotel.audit_status === "Pending"
+                      ? "待审核"
+                      : selectedHotel.audit_status === "approved" ||
+                          selectedHotel.audit_status === "Approved"
+                        ? "已通过"
+                        : selectedHotel.audit_status === "rejected" ||
+                            selectedHotel.audit_status === "Rejected"
+                          ? "已拒绝"
+                          : "未知"}
+                  </Tag>
+                </Descriptions.Item>
+                <Descriptions.Item label="酒店标签" span={2}>
+                  {selectedHotel.tags && selectedHotel.tags.length > 0
+                    ? selectedHotel.tags.map((tag: string, index: number) => (
+                        <Tag key={index}>{tag}</Tag>
+                      ))
+                    : "-"}
+                </Descriptions.Item>
+              </Descriptions>
+
+              <Card title="房型信息" className="mt-4">
+                {selectedHotel.rooms && selectedHotel.rooms.length > 0 ? (
+                  selectedHotel.rooms.map((room: any, index: number) => (
+                    <Descriptions
+                      key={index}
+                      bordered
+                      column={3}
+                      className="mb-4"
+                    >
+                      <Descriptions.Item label="房型名称">
+                        {room.type_name}
+                      </Descriptions.Item>
+                      <Descriptions.Item label="价格">
+                        ¥{room.price}
+                      </Descriptions.Item>
+                      <Descriptions.Item label="库存">
+                        {room.stock}间
+                      </Descriptions.Item>
+                    </Descriptions>
+                  ))
+                ) : (
+                  <Empty description="暂无房型信息" />
+                )}
+              </Card>
+
+              {(selectedHotel.audit_status === "rejected" ||
+                selectedHotel.audit_status === "Rejected") &&
+                (selectedHotel.reject_reason || selectedHotel.fail_reason) && (
+                  <Card title="拒绝原因" className="mt-4">
+                    <p>
+                      {selectedHotel.reject_reason || selectedHotel.fail_reason}
+                    </p>
+                  </Card>
+                )}
+            </div>
+          )}
         </Modal>
       </div>
     </AdminLayout>
