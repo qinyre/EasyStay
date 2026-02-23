@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MapPin, Calendar, Search, Star, Navigation, ChevronDown, DollarSign, SlidersHorizontal } from 'lucide-react';
-import { format } from 'date-fns';
+import { MapPin, Calendar, Search, Star, Navigation, ChevronDown, DollarSign, SlidersHorizontal, Tag, Minus, Plus } from 'lucide-react';
+import { format, differenceInDays } from 'date-fns';
 import { Button, Card, Form, Input, Toast } from 'antd-mobile';
 import { getPopularCities } from '../services/api';
 import { getCurrentCityWithFallback } from '../services/geolocation';
@@ -16,7 +16,7 @@ import { MOCK_HOTELS } from '../services/mockData';
 const Home: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { city, setCity, dateRange, setDateRange, keyword, setKeyword, starLevel, setStarLevel, priceRange, setPriceRange, toSearchParams } = useSearch();
+  const { city, setCity, dateRange, setDateRange, keyword, setKeyword, starLevel, setStarLevel, priceRange, setPriceRange, selectedTags, toggleTag, adjustNights, toSearchParams } = useSearch();
   const [popularCities, setPopularCities] = useState<{ name: string; image: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [locating, setLocating] = useState(false);
@@ -72,6 +72,18 @@ const Home: React.FC = () => {
     { min: 1200, max: 5000, label: '¥1200以上' },
   ];
 
+  // 快捷标签
+  const quickTags = [
+    { id: '亲子', label: '亲子', icon: '👨‍👩‍👧‍👦' },
+    { id: '免费停车场', label: '免费停车场', icon: '🅿️' },
+    { id: '含早餐', label: '含早餐', icon: '🍳' },
+    { id: '无烟房', label: '无烟房', icon: '🚭' },
+    { id: '海景', label: '海景', icon: '🌊' },
+    { id: '江景', label: '江景', icon: '🏞️' },
+    { id: '近地铁', label: '近地铁', icon: '🚇' },
+    { id: '奢华', label: '奢华', icon: '💎' },
+  ];
+
   return (
     <div className="pb-20 bg-gray-50 min-h-screen">
       {/* Top Hotel Banner Swiper */}
@@ -100,7 +112,7 @@ const Home: React.FC = () => {
               >
                 <SlidersHorizontal size={18} className="text-gray-600" />
                 <span className="text-gray-700 font-medium">筛选</span>
-                {(starLevel > 0 || priceRange.min > 0 || priceRange.max < 5000) && (
+                {(starLevel > 0 || priceRange.min > 0 || priceRange.max < 5000 || selectedTags.length > 0) && (
                   <span className="w-2 h-2 bg-blue-500 rounded-full" />
                 )}
               </button>
@@ -117,7 +129,6 @@ const Home: React.FC = () => {
                   onChange={val => setCity(val)}
                   clearable
                   className="flex-1"
-                  readOnly
                 />
                 <button
                   className={`text-blue-500 flex items-center gap-1 text-sm font-medium active:opacity-70 transition-opacity ${locating ? 'animate-pulse' : ''}`}
@@ -136,16 +147,40 @@ const Home: React.FC = () => {
               </div>
             </Form.Item>
 
-            <Form.Item label={<Calendar className="text-blue-500" size={20} />}>
-              <div className="flex justify-between items-center w-full" onClick={() => setShowCalendar(true)}>
-                <div className="flex-1">
-                  <div className="text-xs text-gray-400">{t('home.check_in')}</div>
-                  <div className="font-medium text-base">{format(dateRange.start, 'MM-dd')}</div>
+            <Form.Item label={
+              <div className="flex items-center gap-2 bg-gray-50 rounded-lg px-2 py-1">
+                <button
+                  className="w-7 h-7 flex items-center justify-center rounded-md bg-white shadow-sm text-gray-600 hover:text-blue-600 active:scale-95 transition-all disabled:opacity-50"
+                  onClick={() => adjustNights(-1)}
+                  disabled={differenceInDays(dateRange.end, dateRange.start) <= 1}
+                >
+                  <Minus size={14} />
+                </button>
+                <div className="flex flex-col items-center min-w-[50px]">
+                  <span className="text-[10px] text-gray-400">间夜数</span>
+                  <span className="text-sm font-bold text-gray-800">{differenceInDays(dateRange.end, dateRange.start)}</span>
                 </div>
-                <div className="px-4 text-gray-300">|</div>
-                <div className="flex-1">
-                  <div className="text-xs text-gray-400">{t('home.check_out')}</div>
-                  <div className="font-medium text-base">{format(dateRange.end, 'MM-dd')}</div>
+                <button
+                  className="w-7 h-7 flex items-center justify-center rounded-md bg-white shadow-sm text-gray-600 hover:text-blue-600 active:scale-95 transition-all disabled:opacity-50"
+                  onClick={() => adjustNights(1)}
+                  disabled={differenceInDays(dateRange.end, dateRange.start) >= 30}
+                >
+                  <Plus size={14} />
+                </button>
+              </div>
+            }>
+              <div className="flex justify-between items-center w-full">
+                {/* 日期选择区域 */}
+                <div className="flex-1 flex justify-between items-center" onClick={() => setShowCalendar(true)}>
+                  <div>
+                    <div className="text-xs text-gray-400">{t('home.check_in')}</div>
+                    <div className="font-medium text-base">{format(dateRange.start, 'MM-dd')}</div>
+                  </div>
+                  <div className="px-3 text-gray-300">|</div>
+                  <div>
+                    <div className="text-xs text-gray-400">{t('home.check_out')}</div>
+                    <div className="font-medium text-base">{format(dateRange.end, 'MM-dd')}</div>
+                  </div>
                 </div>
               </div>
             </Form.Item>
@@ -187,7 +222,7 @@ const Home: React.FC = () => {
               </div>
 
               {/* 价格筛选 */}
-              <div>
+              <div className="mb-4">
                 <div className="flex items-center gap-2 mb-3">
                   <DollarSign className="text-green-500" size={16} />
                   <span className="text-sm font-medium text-gray-700">价格区间</span>
@@ -206,6 +241,38 @@ const Home: React.FC = () => {
                       {range.label}
                     </button>
                   ))}
+                </div>
+              </div>
+
+              {/* 快捷标签筛选 */}
+              <div>
+                <div className="flex items-center gap-2 mb-3">
+                  <Tag className="text-purple-500" size={16} />
+                  <span className="text-sm font-medium text-gray-700">特色标签</span>
+                  {selectedTags.length > 0 && (
+                    <span className="ml-auto text-xs text-purple-600 bg-purple-50 px-2 py-0.5 rounded-full">
+                      已选 {selectedTags.length} 项
+                    </span>
+                  )}
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {quickTags.map((tag) => {
+                    const isSelected = selectedTags.includes(tag.id);
+                    return (
+                      <button
+                        key={tag.id}
+                        className={`px-3 py-1.5 rounded-full text-sm transition-all flex items-center gap-1 ${
+                          isSelected
+                            ? 'bg-purple-500 text-white font-medium'
+                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        }`}
+                        onClick={() => toggleTag(tag.id)}
+                      >
+                        <span>{tag.icon}</span>
+                        <span>{tag.label}</span>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             </div>

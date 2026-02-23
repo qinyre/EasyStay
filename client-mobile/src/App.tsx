@@ -15,32 +15,41 @@ const Placeholder = ({ title }: { title: string }) => (
 );
 
 import { SearchProvider } from './contexts/SearchContext';
+import { AuthProvider } from './contexts/AuthContext';
 import Bookings from './pages/Bookings';
 import BookingDetail from './pages/BookingDetail';
 import Me from './pages/Me';
 import TermsPage from './pages/legal/TermsPage';
 import PrivacyPage from './pages/legal/PrivacyPage';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import ForgotPassword from './pages/ForgotPassword';
 
 function App() {
   return (
-    <SearchProvider>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Layout />}>
-            <Route index element={<Home />} />
-            <Route path="hotels" element={<HotelList />} />
-            <Route path="hotel/:id" element={<HotelDetail />} />
-            <Route path="hotel/:hotelId/booking/:roomId" element={<BookingConfirm />} />
-            <Route path="booking/success" element={<BookingSuccess />} />
-            <Route path="bookings" element={<Bookings />} />
-            <Route path="booking/:id" element={<BookingDetail />} />
-            <Route path="profile" element={<Me />} />
-          </Route>
-          <Route path="/terms" element={<TermsPage />} />
-          <Route path="/privacy" element={<PrivacyPage />} />
-        </Routes>
-      </BrowserRouter>
-    </SearchProvider>
+    <AuthProvider>
+      <SearchProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Layout />}>
+              <Route index element={<Home />} />
+              <Route path="hotels" element={<HotelList />} />
+              <Route path="hotel/:id" element={<HotelDetail />} />
+              <Route path="hotel/:hotelId/booking/:roomId" element={<BookingConfirm />} />
+              <Route path="booking/success" element={<BookingSuccess />} />
+              <Route path="bookings" element={<Bookings />} />
+              <Route path="booking/:id" element={<BookingDetail />} />
+              <Route path="profile" element={<Me />} />
+            </Route>
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/terms" element={<TermsPage />} />
+            <Route path="/privacy" element={<PrivacyPage />} />
+          </Routes>
+        </BrowserRouter>
+      </SearchProvider>
+    </AuthProvider>
   );
 }
 

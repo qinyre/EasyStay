@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { ChevronLeft, Star, DollarSign, X } from 'lucide-react';
+import { ChevronLeft, Star, DollarSign, X, Tag } from 'lucide-react';
 import { Dropdown, InfiniteScroll, NavBar, PullToRefresh, List, Button } from 'antd-mobile';
 import { getHotels } from '../services/api';
 import { Hotel } from '../types';
@@ -24,9 +24,12 @@ const HotelList: React.FC = () => {
   const priceMax = parseInt(searchParams.get('priceMax') || '5000');
   const checkIn = searchParams.get('checkIn');
   const checkOut = searchParams.get('checkOut');
+  const tagsParam = searchParams.get('tags');
+  const selectedTags = tagsParam ? tagsParam.split(',') : [];
 
   // Local filter state for dropdown
   const [localStarLevel, setLocalStarLevel] = useState(starLevel);
+  const [localTags, setLocalTags] = useState<string[]>(selectedTags);
 
   // Update URL params helper
   const updateFilter = (key: string, value: string | number | null) => {
@@ -66,6 +69,7 @@ const HotelList: React.FC = () => {
         starLevel,
         priceMin,
         priceMax,
+        tags: selectedTags,
         page: nextPage
       });
 
@@ -93,6 +97,7 @@ const HotelList: React.FC = () => {
           starLevel,
           priceMin,
           priceMax,
+          tags: selectedTags,
           page: 1
         });
         setHotels(data);
@@ -106,7 +111,7 @@ const HotelList: React.FC = () => {
     };
 
     loadInitial();
-  }, [city, keyword, starLevel, priceMin, priceMax]);
+  }, [city, keyword, starLevel, priceMin, priceMax, tagsParam]);
 
   // Sync local state with URL params
   useEffect(() => {
@@ -141,9 +146,11 @@ const HotelList: React.FC = () => {
     if (checkIn) newParams.set('checkIn', checkIn);
     if (checkOut) newParams.set('checkOut', checkOut);
     setSearchParams(newParams);
+    setLocalTags([]);
+    setLocalStarLevel(0);
   };
 
-  const hasActiveFilters = starLevel > 0 || priceMin > 0 || priceMax < 5000;
+  const hasActiveFilters = starLevel > 0 || priceMin > 0 || priceMax < 5000 || selectedTags.length > 0;
 
   const priceRanges = [
     { min: 0, max: 5000, label: '不限' },
@@ -279,12 +286,69 @@ const HotelList: React.FC = () => {
               </List>
             </div>
           </Dropdown.Item>
+          <Dropdown.Item key='tags' title='标签'>
+            <div style={{ padding: 12, minWidth: 280 }}>
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <Tag className="text-purple-500" size={18} />
+                  <span className="font-medium text-gray-700">特色标签</span>
+                </div>
+                {selectedTags.length > 0 ? (
+                  <Button
+                    size="mini"
+                    fill="none"
+                    onClick={() => {
+                      setLocalTags([]);
+                      updateFilter('tags', null);
+                    }}
+                  >
+                    <X size={14} />
+                  </Button>
+                ) : null}
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  { id: '亲子', icon: '👨‍👩‍👧‍👦' },
+                  { id: '免费停车场', icon: '🅿️' },
+                  { id: '含早餐', icon: '🍳' },
+                  { id: '无烟房', icon: '🚭' },
+                  { id: '海景', icon: '🌊' },
+                  { id: '江景', icon: '🏞️' },
+                  { id: '近地铁', icon: '🚇' },
+                  { id: '奢华', icon: '💎' },
+                ].map((tag) => {
+                  const isSelected = selectedTags.includes(tag.id);
+                  return (
+                    <button
+                      key={tag.id}
+                      className={`px-3 py-2 rounded-lg text-sm transition-all flex items-center gap-2 text-left ${
+                        isSelected
+                          ? 'bg-purple-500 text-white font-medium'
+                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      }`}
+                      onClick={() => {
+                        const newTags = isSelected
+                          ? selectedTags.filter(t => t !== tag.id)
+                          : [...selectedTags, tag.id];
+                        setLocalTags(newTags);
+                        updateFilter('tags', newTags.length > 0 ? newTags.join(',') : null);
+                      }}
+                    >
+                      <span>{tag.icon}</span>
+                      <span>{tag.id}</span>
+                      {isSelected && <span className="ml-auto">✓</span>}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </Dropdown.Item>
         </Dropdown>
 
         {/* Active filters bar */}
         {hasActiveFilters && (
           <div className="px-4 py-2 bg-blue-50 border-t border-blue-100 flex items-center justify-between">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <span className="text-xs text-gray-600">已选:</span>
               {starLevel > 0 && (
                 <span className="px-2 py-0.5 bg-yellow-100 text-yellow-700 rounded-full text-xs flex items-center gap-1">
@@ -301,6 +365,15 @@ const HotelList: React.FC = () => {
                   }} />
                 </span>
               )}
+              {selectedTags.map(tag => (
+                <span key={tag} className="px-2 py-0.5 bg-purple-100 text-purple-700 rounded-full text-xs flex items-center gap-1">
+                  {tag}
+                  <X size={12} className="cursor-pointer" onClick={() => {
+                    const newTags = selectedTags.filter(t => t !== tag);
+                    updateFilter('tags', newTags.length > 0 ? newTags.join(',') : null);
+                  }} />
+                </span>
+              ))}
             </div>
             <button
               className="text-xs text-blue-600 font-medium"
@@ -316,7 +389,7 @@ const HotelList: React.FC = () => {
       <div className="flex-1">
         <PullToRefresh
           onRefresh={async () => {
-            const data = await getHotels({ city, keyword, starLevel, priceMin, priceMax });
+            const data = await getHotels({ city, keyword, starLevel, priceMin, priceMax, tags: selectedTags });
             setHotels(data);
             setHasMore(true);
           }}

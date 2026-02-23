@@ -51,3 +51,54 @@ export interface Booking {
   hotelImage?: string;
   roomType?: string;
 }
+
+// User Authentication Types
+export interface User {
+  id: string;
+  phone: string;
+  email?: string;
+  name?: string;
+  avatar?: string;
+  role?: 'user' | 'merchant' | 'admin';
+  createdAt: string;
+}
+
+export interface AuthResponse {
+  user: User;
+  token: string;
+}
+
+export interface LoginRequest {
+  phone: string;
+  password: string;
+}
+
+export interface RegisterRequest {
+  phone: string;
+  email: string;
+  password: string;
+  confirmPassword?: string;
+  name?: string;
+  role?: 'user' | 'merchant';
+}
+
+export interface ForgotPasswordRequest {
+  phone: string;
+  email: string;
+}
+
+export interface SendVerificationCodeRequest {
+  email: string;
+}
+
+export interface ResetPasswordWithCodeRequest {
+  email: string;
+  code: string;
+  newPassword: string;
+}
+
+// 保留旧接口以兼容
+export interface ResetPasswordRequest {
+  token: string;
+  newPassword: string;
+}

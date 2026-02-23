@@ -33,6 +33,54 @@ const resources = {
         "version": "Version",
         "logout": "Log Out"
       },
+      "login": {
+        "title": "Login",
+        "welcome": "Welcome Back",
+        "subtitle": "Login to access your bookings",
+        "phone_label": "Phone Number",
+        "phone_placeholder": "Please enter phone number",
+        "password_label": "Password",
+        "password_placeholder": "Please enter password (at least 6 characters)",
+        "submit": "Login",
+        "forgot_password": "Forgot password?",
+        "register_link": "Register now"
+      },
+      "register": {
+        "title": "Register",
+        "welcome": "Create Account",
+        "subtitle": "Join EasyStay for better experience",
+        "phone_label": "Phone Number",
+        "phone_placeholder": "Please enter phone number",
+        "email_label": "Email Address",
+        "email_placeholder": "Please enter email address",
+        "name_label": "Nickname",
+        "name_placeholder": "Please enter nickname (optional)",
+        "password_label": "Password",
+        "password_placeholder": "Please enter password (at least 6 characters)",
+        "confirm_password_label": "Confirm Password",
+        "confirm_password_placeholder": "Please enter password again",
+        "submit": "Register"
+      },
+      "forgotPassword": {
+        "title": "Forgot Password",
+        "phone_label": "Phone Number",
+        "phone_placeholder": "Please enter registered phone number",
+        "email_label": "Email Address",
+        "email_placeholder": "Please enter registered email address",
+        "submit": "Send Reset Link",
+        "success_title": "Email Sent",
+        "success_desc": "We have sent a password reset link to your email",
+        "back_to_login": "Back to Login",
+        "resend": "Resend",
+        "tips_title": "Didn't receive the email?",
+        "tips": [
+          "Check if the email address is correct",
+          "Check your spam folder",
+          "Try again later"
+        ],
+        "remember_password": "Remember your password?",
+        "login_now": "Login Now"
+      },
       "hotelList": {
         "all_cities": "All Cities",
         "any_dates": "Any Dates",
@@ -149,6 +197,54 @@ const resources = {
         "version": "版本",
         "logout": "退出登录"
       },
+      "login": {
+        "title": "登录",
+        "welcome": "欢迎回来",
+        "subtitle": "登录以查看您的订单",
+        "phone_label": "手机号",
+        "phone_placeholder": "请输入手机号",
+        "password_label": "密码",
+        "password_placeholder": "请输入密码（至少6位）",
+        "submit": "登录",
+        "forgot_password": "忘记密码？",
+        "register_link": "立即注册"
+      },
+      "register": {
+        "title": "注册",
+        "welcome": "创建账号",
+        "subtitle": "加入易宿，享受更好的体验",
+        "phone_label": "手机号",
+        "phone_placeholder": "请输入手机号",
+        "email_label": "邮箱地址",
+        "email_placeholder": "请输入邮箱地址",
+        "name_label": "昵称",
+        "name_placeholder": "请输入昵称（选填）",
+        "password_label": "密码",
+        "password_placeholder": "请输入密码（至少6位）",
+        "confirm_password_label": "确认密码",
+        "confirm_password_placeholder": "请再次输入密码",
+        "submit": "注册"
+      },
+      "forgotPassword": {
+        "title": "忘记密码",
+        "phone_label": "手机号",
+        "phone_placeholder": "请输入注册时的手机号",
+        "email_label": "邮箱地址",
+        "email_placeholder": "请输入注册时的邮箱",
+        "submit": "发送重置链接",
+        "success_title": "邮件已发送",
+        "success_desc": "我们已向您的邮箱发送了密码重置链接",
+        "back_to_login": "返回登录",
+        "resend": "重新发送",
+        "tips_title": "未收到邮件？",
+        "tips": [
+          "检查邮箱地址是否正确",
+          "查看垃圾邮件文件夹",
+          "稍后重试"
+        ],
+        "remember_password": "想起密码了？",
+        "login_now": "立即登录"
+      },
       "hotelList": {
         "all_cities": "所有城市",
         "any_dates": "任意日期",
@@ -211,7 +307,10 @@ const resources = {
         },
         "messages": {
             "save_success": "已暂存到订单，请前往支付",
-            "save_failed": "暂存失败，请重试"
+            "save_failed": "暂存失败，请重试",
+            "pay_select_method": "请选择支付方式继续",
+            "pay_success": "支付成功！",
+            "pay_failed": "支付失败，请重试"
         }
       },
       "hotelDetail": {
@@ -225,7 +324,9 @@ const resources = {
       "common": {
         "loading": "加载中...",
         "switch_lang": "切换语言",
-        "copied": "已复制到剪贴板"
+        "copied": "已复制到剪贴板",
+        "confirm": "确认",
+        "cancel": "取消"
       }
     }
   }
