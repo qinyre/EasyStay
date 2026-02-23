@@ -10,6 +10,8 @@ const HotelForm: React.FC = () => {
     rooms: [{ type_name: "", price: 0, stock: 0 }],
     open_date: "",
     banner_url: "https://via.placeholder.com/600x400",
+    tags: [] as string[],
+    tagsInput: "",
   });
   const [hotels, setHotels] = useState<any[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -85,6 +87,8 @@ const HotelForm: React.FC = () => {
       rooms: hotel.rooms || [{ type_name: "", price: 0, stock: 0 }],
       open_date: hotel.open_date || "",
       banner_url: hotel.banner_url || "https://via.placeholder.com/600x400",
+      tags: hotel.tags || [],
+      tagsInput: "",
     });
   };
 
@@ -112,6 +116,8 @@ const HotelForm: React.FC = () => {
           rooms: [{ type_name: "", price: 0, stock: 0 }],
           open_date: "",
           banner_url: "https://via.placeholder.com/600x400",
+          tags: [],
+          tagsInput: "",
         });
         setEditingId(null);
 
@@ -236,6 +242,66 @@ const HotelForm: React.FC = () => {
             />
           </div>
 
+          <div style={{ marginBottom: "1rem" }}>
+            <label>标签（最多10个，用逗号分隔）：</label>
+            <input
+              type="text"
+              name="tagsInput"
+              value={formData.tagsInput}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, tagsInput: e.target.value }))
+              }
+              placeholder="例如：商务,亲子,度假"
+              style={{ width: "100%", padding: "0.5rem" }}
+            />
+            <button
+              type="button"
+              onClick={() => {
+                if (formData.tagsInput.trim() && formData.tags.length < 10) {
+                  const newTags = [...formData.tags, formData.tagsInput.trim()];
+                  setFormData((prev) => ({
+                    ...prev,
+                    tags: newTags,
+                    tagsInput: "",
+                  }));
+                }
+              }}
+              style={{ marginTop: "0.5rem", marginRight: "0.5rem" }}
+            >
+              添加标签
+            </button>
+            {formData.tags.map((tag, index) => (
+              <span
+                key={index}
+                style={{
+                  marginRight: "0.5rem",
+                  padding: "0.2rem 0.5rem",
+                  backgroundColor: "#f0f0f0",
+                  borderRadius: "4px",
+                  display: "inline-block",
+                  marginBottom: "0.5rem",
+                }}
+              >
+                {tag}
+                <button
+                  type="button"
+                  onClick={() => {
+                    const newTags = formData.tags.filter((_, i) => i !== index);
+                    setFormData((prev) => ({ ...prev, tags: newTags }));
+                  }}
+                  style={{
+                    marginLeft: "0.5rem",
+                    border: "none",
+                    background: "none",
+                    cursor: "pointer",
+                  }}
+                >
+                  ×
+                </button>
+              </span>
+            ))}
+          </div>
+
           <h4>房型信息</h4>
           {(formData.rooms || []).map((room, index) => (
             <div
@@ -317,6 +383,8 @@ const HotelForm: React.FC = () => {
                   rooms: [{ type_name: "", price: 0, stock: 0 }],
                   open_date: "",
                   banner_url: "https://via.placeholder.com/600x400",
+                  tags: [],
+                  tagsInput: "",
                 });
               }}
               style={{ marginLeft: "1rem", padding: "0.5rem 1rem" }}
@@ -336,6 +404,7 @@ const HotelForm: React.FC = () => {
               <th style={{ padding: "0.5rem" }}>酒店名称</th>
               <th style={{ padding: "0.5rem" }}>星级</th>
               <th style={{ padding: "0.5rem" }}>地址</th>
+              <th style={{ padding: "0.5rem" }}>标签</th>
               <th style={{ padding: "0.5rem" }}>审核状态</th>
               <th style={{ padding: "0.5rem" }}>上线状态</th>
               <th style={{ padding: "0.5rem" }}>拒绝理由</th>
@@ -349,6 +418,22 @@ const HotelForm: React.FC = () => {
                     <td style={{ padding: "0.5rem" }}>{hotel.name_cn}</td>
                     <td style={{ padding: "0.5rem" }}>{hotel.star_level}星</td>
                     <td style={{ padding: "0.5rem" }}>{hotel.address}</td>
+                    <td style={{ padding: "0.5rem" }}>
+                      {hotel.tags && hotel.tags.length > 0
+                        ? hotel.tags.map((tag: string, index: number) => (
+                            <span
+                              key={index}
+                              style={{
+                                marginRight: "0.5rem",
+                                fontSize: "0.9rem",
+                                color: "#666",
+                              }}
+                            >
+                              {tag}
+                            </span>
+                          ))
+                        : "无"}
+                    </td>
                     <td style={{ padding: "0.5rem" }}>
                       {(hotel.audit_status === "pending" ||
                         hotel.audit_status === "Pending") &&

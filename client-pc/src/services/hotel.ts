@@ -65,6 +65,8 @@ export const createHotel = async (data: any): Promise<HotelResponse> => {
           typeof data.banner_url === "string"
             ? data.banner_url
             : "https://via.placeholder.com/600x400",
+        // 确保tags是数组
+        tags: Array.isArray(data.tags) ? data.tags : [],
         // 确保rooms是数组且至少有一个元素
         rooms:
           Array.isArray(data.rooms) && data.rooms.length > 0
@@ -236,25 +238,40 @@ export const auditHotel = async (
       // 审核通过时，需要同时设置上线状态
       const auditData = {
         action: action,
-        reason,
+        reason: status === "rejected" ? reason : "",
         // 审核通过时自动上线
         is_offline: status !== "approved",
-        // 保存拒绝理由
+        // 保存拒绝理由（使用后端期望的字段名）
+        fail_reason: status === "rejected" ? reason : null,
+        // 同时保留 reject_reason 以兼容前端
         reject_reason: status === "rejected" ? reason : null,
       };
 
       console.log("发送到后端的审核数据:", auditData);
 
+      console.log("发送到后端的审核数据:", auditData);
+      console.log("审核状态:", status);
+      console.log("拒绝理由:", reason);
+      console.log("API路径:", `/admin/audit/${id}`);
+
       const result = (await api.patch(
         `/admin/audit/${id}`,
         auditData,
       )) as unknown as HotelResponse;
+
+      console.log("后端返回的审核结果:", result);
+      console.log("后端返回的完整响应:", JSON.stringify(result, null, 2));
+
       return result;
     } catch (error: any) {
-      console.error("审核API调用错误:", error);
+      console.error("审核API调用失败:", error);
+      console.error("错误消息:", error.message);
+      console.error("错误响应:", error.response);
+
       return {
-        code: error.code || 500,
-        message: error.message || "服务器错误",
+        code: error.response?.status || 500,
+        message: error.response?.data?.message || "服务器错误",
+        data: null,
       };
     }
   }
@@ -366,13 +383,29 @@ export const getHotels = async (): Promise<HotelResponse> => {
         // 如果data不是数组，包装成数组
         result.data = [result.data];
       }
-      // 确保待审核的酒店显示为下线状态
+      // 确保酒店状态正确
       if (result && result.data && Array.isArray(result.data)) {
         result.data = result.data.map((hotel: any) => {
+          // 确保拒绝理由字段名正确
+          if (!hotel.reject_reason && hotel.reason) {
+            hotel.reject_reason = hotel.reason;
+          }
+          // 映射后端的fail_reason字段到前端的reject_reason
+          if (!hotel.reject_reason && hotel.fail_reason) {
+            hotel.reject_reason = hotel.fail_reason;
+          }
+
           // 如果酒店处于待审核状态，强制设置为下线
           if (
             hotel.audit_status === "pending" ||
             hotel.audit_status === "Pending"
+          ) {
+            return { ...hotel, is_offline: true };
+          }
+          // 如果酒店处于拒绝状态，强制设置为下线
+          if (
+            hotel.audit_status === "rejected" ||
+            hotel.audit_status === "Rejected"
           ) {
             return { ...hotel, is_offline: true };
           }

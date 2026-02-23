@@ -98,6 +98,7 @@ const PublishList: React.FC = () => {
             <th style={{ padding: "0.5rem" }}>酒店名称</th>
             <th style={{ padding: "0.5rem" }}>星级</th>
             <th style={{ padding: "0.5rem" }}>地址</th>
+            <th style={{ padding: "0.5rem" }}>标签</th>
             <th style={{ padding: "0.5rem" }}>状态</th>
             <th style={{ padding: "0.5rem" }}>房型信息</th>
             <th style={{ padding: "0.5rem" }}>操作</th>
@@ -109,6 +110,22 @@ const PublishList: React.FC = () => {
               <td style={{ padding: "0.5rem" }}>{hotel.name_cn}</td>
               <td style={{ padding: "0.5rem" }}>{hotel.star_level}星</td>
               <td style={{ padding: "0.5rem" }}>{hotel.address}</td>
+              <td style={{ padding: "0.5rem" }}>
+                {hotel.tags && hotel.tags.length > 0
+                  ? hotel.tags.map((tag: string, index: number) => (
+                      <span
+                        key={index}
+                        style={{
+                          marginRight: "0.5rem",
+                          fontSize: "0.9rem",
+                          color: "#666",
+                        }}
+                      >
+                        {tag}
+                      </span>
+                    ))
+                  : "无"}
+              </td>
               <td style={{ padding: "0.5rem" }}>
                 {hotel.is_offline ? "已下线" : "已上线"}
               </td>

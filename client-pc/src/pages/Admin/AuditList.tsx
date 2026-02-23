@@ -35,6 +35,9 @@ const AuditList: React.FC = () => {
       return;
     }
 
+    console.log("调用 auditHotel 前的拒绝理由:", reason);
+    console.log("调用 auditHotel 前的状态:", status);
+
     const result = await auditHotel(
       hotel.id,
       status,
@@ -118,6 +121,7 @@ const AuditList: React.FC = () => {
             <th style={{ padding: "0.5rem" }}>酒店名称</th>
             <th style={{ padding: "0.5rem" }}>星级</th>
             <th style={{ padding: "0.5rem" }}>地址</th>
+            <th style={{ padding: "0.5rem" }}>标签</th>
             <th style={{ padding: "0.5rem" }}>审核状态</th>
             <th style={{ padding: "0.5rem" }}>房型信息</th>
             <th style={{ padding: "0.5rem" }}>操作</th>
@@ -129,6 +133,22 @@ const AuditList: React.FC = () => {
               <td style={{ padding: "0.5rem" }}>{hotel.name_cn}</td>
               <td style={{ padding: "0.5rem" }}>{hotel.star_level}星</td>
               <td style={{ padding: "0.5rem" }}>{hotel.address}</td>
+              <td style={{ padding: "0.5rem" }}>
+                {hotel.tags && hotel.tags.length > 0
+                  ? hotel.tags.map((tag: string, index: number) => (
+                      <span
+                        key={index}
+                        style={{
+                          marginRight: "0.5rem",
+                          fontSize: "0.9rem",
+                          color: "#666",
+                        }}
+                      >
+                        {tag}
+                      </span>
+                    ))
+                  : "无"}
+              </td>
               <td style={{ padding: "0.5rem" }}>
                 <div>
                   {(hotel.audit_status === "pending" ||
@@ -149,7 +169,7 @@ const AuditList: React.FC = () => {
                       marginTop: "0.5rem",
                     }}
                   >
-                    拒绝理由: {hotel.reject_reason}
+                    拒绝理由: {hotel.fail_reason}
                   </div>
                 )}
               </td>
