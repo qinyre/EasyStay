@@ -19,23 +19,41 @@ const Register: React.FC = () => {
       }, 1000);
       return () => clearTimeout(timer);
     } else if (showSuccess && countdown === 0) {
-      // 倒计时结束，跳转到登录页面
-      navigate("/login");
+      window.location.href = "/login";
+      // // 倒计时结束，根据角色跳转到对应页面
+      // if (role === "admin") {
+      //   window.location.href = "/admin/audit";
+      // } else {
+      //   window.location.href = "/merchant/hotels";
+      // }
     }
-  }, [showSuccess, countdown, navigate]);
+  }, [showSuccess, countdown, role]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
-    const result = await register({ username, password, role });
-    if (result.code === 200 && result.data) {
-      // 保存用户名到localStorage
-      localStorage.setItem("username", username);
-      // 显示成功页面
-      setShowSuccess(true);
-    } else {
-      setError(result.message);
+    try {
+      const result = await register({ username, password, role });
+      console.log("注册结果:", result); // 添加调试信息
+      if (result.code === 200) {
+        // 保存用户信息到localStorage
+        localStorage.setItem("username", username);
+        localStorage.setItem("role", role);
+        // 如果有token，也保存下来
+        if (result.data && result.data.token) {
+          localStorage.setItem("token", result.data.token);
+        }
+        // 显示成功页面
+        setShowSuccess(true);
+        console.log("设置showSuccess为true"); // 添加调试信息
+      } else {
+        setError(result.message || "注册失败");
+        console.log("注册失败:", result.message); // 添加调试信息
+      }
+    } catch (error) {
+      console.error("注册过程出错:", error); // 添加调试信息
+      setError("注册过程中出现错误");
     }
   };
 
