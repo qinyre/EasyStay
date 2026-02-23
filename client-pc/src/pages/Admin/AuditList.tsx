@@ -13,9 +13,16 @@ const AuditList: React.FC = () => {
   // 获取酒店列表
   useEffect(() => {
     const fetchHotels = async () => {
-      const result = await getHotels();
-      if (result.code === 200 && result.data) {
-        setHotels(result.data);
+      try {
+        const result = await getHotels();
+        if (result.code === 200 && result.data) {
+          setHotels(Array.isArray(result.data) ? result.data : [result.data]);
+        } else {
+          setHotels([]);
+        }
+      } catch (error) {
+        console.error("获取酒店列表失败:", error);
+        setHotels([]);
       }
     };
     fetchHotels();
@@ -112,6 +119,7 @@ const AuditList: React.FC = () => {
             <th style={{ padding: "0.5rem" }}>星级</th>
             <th style={{ padding: "0.5rem" }}>地址</th>
             <th style={{ padding: "0.5rem" }}>审核状态</th>
+            <th style={{ padding: "0.5rem" }}>房型信息</th>
             <th style={{ padding: "0.5rem" }}>操作</th>
           </tr>
         </thead>
@@ -122,12 +130,48 @@ const AuditList: React.FC = () => {
               <td style={{ padding: "0.5rem" }}>{hotel.star_level}星</td>
               <td style={{ padding: "0.5rem" }}>{hotel.address}</td>
               <td style={{ padding: "0.5rem" }}>
-                {hotel.audit_status === "pending" && "待审核"}
-                {hotel.audit_status === "approved" && "已通过"}
-                {hotel.audit_status === "rejected" && "已拒绝"}
+                <div>
+                  {(hotel.audit_status === "pending" ||
+                    hotel.audit_status === "Pending") &&
+                    "待审核"}
+                  {(hotel.audit_status === "approved" ||
+                    hotel.audit_status === "Approved") &&
+                    "已通过"}
+                  {(hotel.audit_status === "rejected" ||
+                    hotel.audit_status === "Rejected") &&
+                    "已拒绝"}
+                </div>
+                {hotel.reject_reason && (
+                  <div
+                    style={{
+                      color: "red",
+                      fontSize: "0.9rem",
+                      marginTop: "0.5rem",
+                    }}
+                  >
+                    拒绝理由: {hotel.reject_reason}
+                  </div>
+                )}
               </td>
               <td style={{ padding: "0.5rem" }}>
-                {hotel.audit_status === "pending" && (
+                <div>
+                  {hotel.rooms && hotel.rooms.length > 0 ? (
+                    <>
+                      {(hotel.rooms || []).map((room: any, index: number) => (
+                        <div key={index} style={{ marginBottom: "0.5rem" }}>
+                          <strong>{room.type_name || room.type}</strong>: ¥
+                          {room.price} (库存:{room.stock})
+                        </div>
+                      ))}
+                    </>
+                  ) : (
+                    "无房型信息"
+                  )}
+                </div>
+              </td>
+              <td style={{ padding: "0.5rem" }}>
+                {(hotel.audit_status === "pending" ||
+                  hotel.audit_status === "Pending") && (
                   <>
                     <button
                       onClick={() => handleAudit(hotel, "approved")}

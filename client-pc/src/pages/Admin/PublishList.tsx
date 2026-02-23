@@ -11,9 +11,16 @@ const PublishList: React.FC = () => {
   // 获取酒店列表
   useEffect(() => {
     const fetchHotels = async () => {
-      const result = await getHotels();
-      if (result.code === 200 && result.data) {
-        setHotels(result.data);
+      try {
+        const result = await getHotels();
+        if (result.code === 200 && result.data) {
+          setHotels(Array.isArray(result.data) ? result.data : [result.data]);
+        } else {
+          setHotels([]);
+        }
+      } catch (error) {
+        console.error("获取酒店列表失败:", error);
+        setHotels([]);
       }
     };
     fetchHotels();
@@ -92,6 +99,7 @@ const PublishList: React.FC = () => {
             <th style={{ padding: "0.5rem" }}>星级</th>
             <th style={{ padding: "0.5rem" }}>地址</th>
             <th style={{ padding: "0.5rem" }}>状态</th>
+            <th style={{ padding: "0.5rem" }}>房型信息</th>
             <th style={{ padding: "0.5rem" }}>操作</th>
           </tr>
         </thead>
@@ -103,6 +111,22 @@ const PublishList: React.FC = () => {
               <td style={{ padding: "0.5rem" }}>{hotel.address}</td>
               <td style={{ padding: "0.5rem" }}>
                 {hotel.is_offline ? "已下线" : "已上线"}
+              </td>
+              <td style={{ padding: "0.5rem" }}>
+                <div>
+                  {hotel.rooms && hotel.rooms.length > 0 ? (
+                    <>
+                      {(hotel.rooms || []).map((room: any, index: number) => (
+                        <div key={index} style={{ marginBottom: "0.5rem" }}>
+                          <strong>{room.type_name || room.type}</strong>: ¥
+                          {room.price} (库存:{room.stock})
+                        </div>
+                      ))}
+                    </>
+                  ) : (
+                    "无房型信息"
+                  )}
+                </div>
               </td>
               <td style={{ padding: "0.5rem" }}>
                 {hotel.is_offline ? (

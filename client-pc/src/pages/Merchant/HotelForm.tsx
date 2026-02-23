@@ -7,8 +7,9 @@ const HotelForm: React.FC = () => {
     name_en: "",
     address: "",
     star_level: 3,
-    rooms: [{ type: "", price: 0, stock: 0 }],
+    rooms: [{ type_name: "", price: 0, stock: 0 }],
     open_date: "",
+    banner_url: "https://via.placeholder.com/600x400",
   });
   const [hotels, setHotels] = useState<any[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -17,9 +18,16 @@ const HotelForm: React.FC = () => {
   // 获取酒店列表
   useEffect(() => {
     const fetchHotels = async () => {
-      const result = await getHotels();
-      if (result.code === 200 && result.data) {
-        setHotels(result.data);
+      try {
+        const result = await getHotels();
+        if (result && result.code === 200 && Array.isArray(result.data)) {
+          setHotels(result.data);
+        } else {
+          setHotels([]); // 如果数据格式不正确，使用空数组
+        }
+      } catch (error) {
+        console.error("获取酒店列表失败:", error);
+        setHotels([]); // 出错时使用空数组
       }
     };
     fetchHotels();
@@ -40,7 +48,13 @@ const HotelForm: React.FC = () => {
     value: string | number,
   ) => {
     const newRooms = [...formData.rooms];
-    (newRooms[index] as any)[field] = value;
+    // 确保价格和库存是有效的数字
+    let processedValue = value;
+    if (field === "price" || field === "stock") {
+      const numValue = typeof value === "string" ? parseFloat(value) : value;
+      processedValue = isNaN(numValue) ? 0 : numValue;
+    }
+    (newRooms[index] as any)[field] = processedValue;
     setFormData((prev) => ({ ...prev, rooms: newRooms }));
   };
 
@@ -48,7 +62,7 @@ const HotelForm: React.FC = () => {
   const addRoom = () => {
     setFormData((prev) => ({
       ...prev,
-      rooms: [...prev.rooms, { type: "", price: 0, stock: 0 }],
+      rooms: [...prev.rooms, { type_name: "", price: 0, stock: 0 }],
     }));
   };
 
@@ -68,8 +82,9 @@ const HotelForm: React.FC = () => {
       name_en: hotel.name_en,
       address: hotel.address,
       star_level: hotel.star_level,
-      rooms: hotel.rooms,
+      rooms: hotel.rooms || [{ type_name: "", price: 0, stock: 0 }],
       open_date: hotel.open_date || "",
+      banner_url: hotel.banner_url || "https://via.placeholder.com/600x400",
     });
   };
 
@@ -86,7 +101,7 @@ const HotelForm: React.FC = () => {
         result = await createHotel(formData);
       }
 
-      if (result.code === 200) {
+      if (result && result.code === 200) {
         setMessage(editingId ? "酒店信息更新成功" : "酒店信息添加成功");
         // 重置表单
         setFormData({
@@ -94,21 +109,31 @@ const HotelForm: React.FC = () => {
           name_en: "",
           address: "",
           star_level: 3,
-          rooms: [{ type: "", price: 0, stock: 0 }],
+          rooms: [{ type_name: "", price: 0, stock: 0 }],
           open_date: "",
+          banner_url: "https://via.placeholder.com/600x400",
         });
         setEditingId(null);
 
         // 重新获取酒店列表
-        const hotelsResult = await getHotels();
-        if (hotelsResult.code === 200 && hotelsResult.data) {
-          setHotels(hotelsResult.data);
+        try {
+          const hotelsResult = await getHotels();
+          if (
+            hotelsResult &&
+            hotelsResult.code === 200 &&
+            Array.isArray(hotelsResult.data)
+          ) {
+            setHotels(hotelsResult.data);
+          }
+        } catch (error) {
+          console.error("获取酒店列表失败:", error);
+          // 保持当前酒店列表不变
         }
       } else {
-        setMessage("操作失败：" + result.message);
+        setMessage("操作失败：" + (result?.message || "未知错误"));
       }
-    } catch (error) {
-      setMessage("操作失败：" + error);
+    } catch (error: any) {
+      setMessage("操作失败：" + (error?.message || "网络错误"));
     }
   };
 
@@ -212,7 +237,7 @@ const HotelForm: React.FC = () => {
           </div>
 
           <h4>房型信息</h4>
-          {formData.rooms.map((room, index) => (
+          {(formData.rooms || []).map((room, index) => (
             <div
               key={index}
               style={{
@@ -225,9 +250,9 @@ const HotelForm: React.FC = () => {
                 <label>房型：</label>
                 <input
                   type="text"
-                  value={room.type}
+                  value={room.type_name}
                   onChange={(e) =>
-                    handleRoomChange(index, "type", e.target.value)
+                    handleRoomChange(index, "type_name", e.target.value)
                   }
                   style={{ width: "100%", padding: "0.5rem" }}
                   required
@@ -239,7 +264,7 @@ const HotelForm: React.FC = () => {
                   type="number"
                   value={room.price}
                   onChange={(e) =>
-                    handleRoomChange(index, "price", parseFloat(e.target.value))
+                    handleRoomChange(index, "price", e.target.value)
                   }
                   style={{ width: "100%", padding: "0.5rem" }}
                   required
@@ -251,7 +276,7 @@ const HotelForm: React.FC = () => {
                   type="number"
                   value={room.stock}
                   onChange={(e) =>
-                    handleRoomChange(index, "stock", parseInt(e.target.value))
+                    handleRoomChange(index, "stock", e.target.value)
                   }
                   style={{ width: "100%", padding: "0.5rem" }}
                   required
@@ -289,8 +314,9 @@ const HotelForm: React.FC = () => {
                   name_en: "",
                   address: "",
                   star_level: 3,
-                  rooms: [{ type: "", price: 0, stock: 0 }],
+                  rooms: [{ type_name: "", price: 0, stock: 0 }],
                   open_date: "",
+                  banner_url: "https://via.placeholder.com/600x400",
                 });
               }}
               style={{ marginLeft: "1rem", padding: "0.5rem 1rem" }}
@@ -317,36 +343,46 @@ const HotelForm: React.FC = () => {
             </tr>
           </thead>
           <tbody>
-            {hotels.map((hotel) => (
-              <tr key={hotel.id} style={{ borderBottom: "1px solid #eee" }}>
-                <td style={{ padding: "0.5rem" }}>{hotel.name_cn}</td>
-                <td style={{ padding: "0.5rem" }}>{hotel.star_level}星</td>
-                <td style={{ padding: "0.5rem" }}>{hotel.address}</td>
-                <td style={{ padding: "0.5rem" }}>
-                  {hotel.audit_status === "pending" && "待审核"}
-                  {hotel.audit_status === "approved" && "已通过"}
-                  {hotel.audit_status === "rejected" && "已拒绝"}
-                </td>
-                <td style={{ padding: "0.5rem" }}>
-                  {hotel.is_offline ? "已下线" : "已上线"}
-                </td>
-                <td style={{ padding: "0.5rem" }}>
-                  {hotel.audit_status === "rejected" && hotel.reject_reason && (
-                    <div style={{ color: "red", fontSize: "0.9rem" }}>
-                      拒绝理由: {hotel.reject_reason}
-                    </div>
-                  )}
-                </td>
-                <td style={{ padding: "0.5rem" }}>
-                  <button
-                    onClick={() => handleEdit(hotel)}
-                    style={{ marginRight: "0.5rem" }}
-                  >
-                    编辑
-                  </button>
-                </td>
-              </tr>
-            ))}
+            {Array.isArray(hotels)
+              ? hotels.map((hotel) => (
+                  <tr key={hotel.id} style={{ borderBottom: "1px solid #eee" }}>
+                    <td style={{ padding: "0.5rem" }}>{hotel.name_cn}</td>
+                    <td style={{ padding: "0.5rem" }}>{hotel.star_level}星</td>
+                    <td style={{ padding: "0.5rem" }}>{hotel.address}</td>
+                    <td style={{ padding: "0.5rem" }}>
+                      {(hotel.audit_status === "pending" ||
+                        hotel.audit_status === "Pending") &&
+                        "待审核"}
+                      {(hotel.audit_status === "approved" ||
+                        hotel.audit_status === "Approved") &&
+                        "已通过"}
+                      {(hotel.audit_status === "rejected" ||
+                        hotel.audit_status === "Rejected") &&
+                        "已拒绝"}
+                    </td>
+                    <td style={{ padding: "0.5rem" }}>
+                      {hotel.is_offline ? "已下线" : "已上线"}
+                    </td>
+                    <td style={{ padding: "0.5rem" }}>
+                      {(hotel.audit_status === "rejected" ||
+                        hotel.audit_status === "Rejected") &&
+                        hotel.reject_reason && (
+                          <div style={{ color: "red", fontSize: "0.9rem" }}>
+                            拒绝理由: {hotel.reject_reason}
+                          </div>
+                        )}
+                    </td>
+                    <td style={{ padding: "0.5rem" }}>
+                      <button
+                        onClick={() => handleEdit(hotel)}
+                        style={{ marginRight: "0.5rem" }}
+                      >
+                        编辑
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              : null}
           </tbody>
         </table>
       </div>

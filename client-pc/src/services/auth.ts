@@ -57,8 +57,11 @@ export const register = async (data: {
   } else {
     // 后端API调用
     try {
-      const result = await api.post("/auth/register", data);
-      return result.data;
+      const result = (await api.post(
+        "/auth/register",
+        data,
+      )) as unknown as AuthResponse;
+      return result;
     } catch (error: any) {
       return {
         code: error.code || 500,
@@ -103,8 +106,11 @@ export const login = async (data: {
   } else {
     // 后端API调用
     try {
-      const result = await api.post("/auth/login", data);
-      return result.data;
+      const result = (await api.post(
+        "/auth/login",
+        data,
+      )) as unknown as AuthResponse;
+      return result;
     } catch (error: any) {
       return {
         code: error.code || 500,

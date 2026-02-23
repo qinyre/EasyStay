@@ -1,7 +1,8 @@
-import axios from "axios";
+import axios, { type AxiosInstance } from "axios";
 import { API_BASE_URL } from "./config";
 
-const api = axios.create({
+// 创建axios实例
+const api: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
   timeout: 10000,
   headers: {
