@@ -1,6 +1,8 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
+const connectDB = require('./config/db');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -15,16 +17,23 @@ const authRoutes = require('./routes/auth');
 const mobileRoutes = require('./routes/mobile');
 const merchantRoutes = require('./routes/merchant');
 const adminRoutes = require('./routes/admin');
+const userRoutes = require('./routes/user');
+const orderRoutes = require('./routes/order');
 const setupSwagger = require('./utils/swagger');
 
 // 接入 Swagger 接口描述文档
 setupSwagger(app);
+
+// 暴露静态文件目录供前端访问上传的图片
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // 注册路由
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/mobile', mobileRoutes);
 app.use('/api/v1/merchant', merchantRoutes);
 app.use('/api/v1/admin', adminRoutes);
+app.use('/api/v1/user', userRoutes);
+app.use('/api/v1/order', orderRoutes);
 
 // 定义一个基础的测试路由
 app.get('/api/v1/ping', (req, res) => {
@@ -53,6 +62,8 @@ app.use((err, req, res, next) => {
 });
 
 // 启动服务器
-app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
+connectDB().then(() => {
+  app.listen(PORT, () => {
+    console.log(`Server is running on http://localhost:${PORT}`);
+  });
 });

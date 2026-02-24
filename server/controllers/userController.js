@@ -7,21 +7,13 @@ const User = require('../models/User');
  */
 const register = async (req, res) => {
     try {
-        const { username, password, role } = req.body;
+        const { username, password } = req.body;
 
         // 参数校验
-        if (!username || !password || !role) {
+        if (!username || !password) {
             return res.status(400).json({
                 code: 400,
-                message: '请提供完整的注册信息 (username, password, role)'
-            });
-        }
-
-        // 角色限制
-        if (!['user', 'merchant', 'admin'].includes(role)) {
-            return res.status(400).json({
-                code: 400,
-                message: '非法的角色类型，仅支持 user、merchant 或 admin'
+                message: '请提供用户名和密码'
             });
         }
 
@@ -34,8 +26,8 @@ const register = async (req, res) => {
             });
         }
 
-        // 保存新用户
-        const newUser = new User({ username, password, role });
+        // 保存新用户，默认角色为 user
+        const newUser = new User({ username, password, role: 'user' });
         await newUser.save();
 
         res.json({
@@ -103,7 +95,72 @@ const login = async (req, res) => {
     }
 };
 
+/**
+ * 获取用户个人信息
+ */
+const getProfile = async (req, res) => {
+    try {
+        const user = await User.findOne({ username: req.user.username });
+        if (!user) {
+            return res.status(404).json({
+                code: 404,
+                message: '用户不存在'
+            });
+        }
+
+        // 不返回密码
+        const { password, ...userInfo } = user.toObject();
+
+        res.json({
+            code: 200,
+            data: userInfo,
+            message: 'success'
+        });
+    } catch (error) {
+        res.status(500).json({
+            code: 500,
+            message: error.message
+        });
+    }
+};
+
+/**
+ * 更新用户个人信息
+ */
+const updateProfile = async (req, res) => {
+    try {
+        const { password } = req.body;
+
+        const user = await User.findOne({ username: req.user.username });
+        if (!user) {
+            return res.status(404).json({
+                code: 404,
+                message: '用户不存在'
+            });
+        }
+
+        // 更新密码（如果提供）
+        if (password) {
+            user.password = password; // 密码会在保存时自动加密
+        }
+
+        await user.save();
+
+        res.json({
+            code: 200,
+            message: '个人信息更新成功'
+        });
+    } catch (error) {
+        res.status(500).json({
+            code: 500,
+            message: error.message
+        });
+    }
+};
+
 module.exports = {
     register,
-    login
+    login,
+    getProfile,
+    updateProfile
 };

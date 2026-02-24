@@ -1,21 +1,34 @@
-const { readHotels } = require('../utils/file');
+const Hotel = require('../models/Hotel');
+const Room = require('../models/Room');
+const { Cache } = require('../config/redis');
 
 /**
  * 获取首页 Banner
  */
 const getBanners = async (req, res) => {
     try {
-        const hotels = await readHotels();
+        // 尝试从缓存获取
+        const cachedBanners = await Cache.get('banners');
+        if (cachedBanners) {
+            return res.json({
+                code: 200,
+                data: cachedBanners,
+                message: 'success (from cache)'
+            });
+        }
 
         // 筛选出有 banner 的精选酒店（已审核且未下线）
-        const banners = hotels
-            .filter(h => h.banner_url && !h.is_offline && h.audit_status === 'Approved')
-            .slice(0, 5) // 取前 5 个
-            .map(h => ({
-                id: h.id,
-                banner_url: h.banner_url,
-                title: h.name_cn
-            }));
+        const hotels = await Hotel.find({
+            banner_url: { $ne: null, $ne: '' },
+            is_offline: false,
+            audit_status: 'Approved'
+        }).limit(5);
+
+        const banners = hotels.map(h => ({
+            id: h._id,
+            banner_url: h.banner_url,
+            title: h.name_cn
+        }));
 
         // 若无真实数据则返回模拟 Banner
         if (banners.length === 0) {
@@ -25,6 +38,9 @@ const getBanners = async (req, res) => {
                 title: '欢迎来到 EasyStay'
             });
         }
+
+        // 缓存结果，设置过期时间为1小时
+        await Cache.set('banners', banners, 3600);
 
         res.json({
             code: 200,
@@ -43,55 +59,82 @@ const getHotels = async (req, res) => {
     try {
         const { location, keyword, startDate, endDate, starLevel, page = 1 } = req.query;
 
-        let hotels = await readHotels();
+        // 生成缓存键
+        const cacheKey = `hotels:${location || 'all'}:${keyword || 'none'}:${starLevel || 'all'}:${page}`;
 
-        // 移动端只能看到已通过且未下线的酒店
-        hotels = hotels.filter(h => !h.is_offline && h.audit_status === 'Approved');
+        // 尝试从缓存获取
+        const cachedData = await Cache.get(cacheKey);
+        if (cachedData) {
+            return res.json({
+                code: 200,
+                data: cachedData,
+                message: 'success (from cache)'
+            });
+        }
+
+        // 构建查询条件
+        const query = {
+            is_offline: false,
+            audit_status: 'Approved'
+        };
 
         // 应用筛选条件
         if (location) {
-            hotels = hotels.filter(h => h.address.includes(location));
+            query.address = { $regex: location, $options: 'i' };
         }
         if (keyword) {
-            hotels = hotels.filter(h =>
-                (h.name_cn?.includes(keyword) || h.name_en?.includes(keyword))
-            );
+            query.$or = [
+                { name_cn: { $regex: keyword, $options: 'i' } },
+                { name_en: { $regex: keyword, $options: 'i' } }
+            ];
         }
         if (starLevel) {
-            hotels = hotels.filter(h => h.star_level === parseInt(starLevel));
+            query.star_level = parseInt(starLevel);
         }
 
         // 分页处理
         const pageSize = 10;
-        const start = (page - 1) * pageSize;
-        const paginatedHotels = hotels.slice(start, start + pageSize);
+        const skip = (page - 1) * pageSize;
+
+        // 查询酒店总数
+        const total = await Hotel.countDocuments(query);
+        // 查询酒店列表
+        const hotels = await Hotel.find(query).skip(skip).limit(pageSize);
 
         // 对于列表页，计算一下每家酒店的最低价格用于展示
-        const listData = paginatedHotels.map(h => {
-            const minPrice = h.rooms?.length > 0
-                ? Math.min(...h.rooms.map(r => r.price))
-                : 0;
+        const listData = await Promise.all(
+            hotels.map(async (h) => {
+                const rooms = await Room.find({ hotelId: h._id });
+                const minPrice = rooms.length > 0
+                    ? Math.min(...rooms.map(r => r.price))
+                    : 0;
 
-            return {
-                id: h.id,
-                name_cn: h.name_cn,
-                name_en: h.name_en,
-                address: h.address,
-                star_level: h.star_level,
-                banner_url: h.banner_url,
-                tags: h.tags,
-                min_price: minPrice
-            };
-        });
+                return {
+                    id: h._id,
+                    name_cn: h.name_cn,
+                    name_en: h.name_en,
+                    address: h.address,
+                    star_level: h.star_level,
+                    banner_url: h.banner_url,
+                    tags: h.tags,
+                    min_price: minPrice
+                };
+            })
+        );
+
+        const responseData = {
+            list: listData,
+            total,
+            page: parseInt(page),
+            pageSize
+        };
+
+        // 缓存结果，设置过期时间为30分钟
+        await Cache.set(cacheKey, responseData, 1800);
 
         res.json({
             code: 200,
-            data: {
-                list: listData,
-                total: hotels.length,
-                page: parseInt(page),
-                pageSize
-            },
+            data: responseData,
             message: 'success'
         });
     } catch (error) {
@@ -105,24 +148,46 @@ const getHotels = async (req, res) => {
 const getHotelById = async (req, res) => {
     try {
         const { id } = req.params;
-        const hotels = await readHotels();
+
+        // 生成缓存键
+        const cacheKey = `hotel:${id}`;
+
+        // 尝试从缓存获取
+        const cachedHotel = await Cache.get(cacheKey);
+        if (cachedHotel) {
+            return res.json({
+                code: 200,
+                data: cachedHotel,
+                message: 'success (from cache)'
+            });
+        }
 
         // 允许查看的条件（即便下线了，但如果是根据ID精确查找，前端也自己判断，但最好后端过滤）
-        const hotel = hotels.find(h => h.id === id && h.audit_status === 'Approved' && !h.is_offline);
+        const hotel = await Hotel.findOne({ 
+            _id: id, 
+            audit_status: 'Approved', 
+            is_offline: false 
+        });
 
         if (!hotel) {
             return res.status(404).json({ code: 404, message: '酒店不存在或已下线' });
         }
 
-        // Agent.md 要求：对后端返回的房型数据进行价格由低到高排序
-        // 虽然前端会被要求处理，但后端也最好处理一下作为双重保障
-        if (hotel.rooms && hotel.rooms.length > 0) {
-            hotel.rooms.sort((a, b) => a.price - b.price);
-        }
+        // 获取房型数据并按价格由低到高排序
+        const rooms = await Room.find({ hotelId: hotel._id }).sort({ price: 1 });
+
+        // 构建完整的酒店信息
+        const hotelWithRooms = {
+            ...hotel.toObject(),
+            rooms
+        };
+
+        // 缓存结果，设置过期时间为1小时
+        await Cache.set(cacheKey, hotelWithRooms, 3600);
 
         res.json({
             code: 200,
-            data: hotel,
+            data: hotelWithRooms,
             message: 'success'
         });
     } catch (error) {
