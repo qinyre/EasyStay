@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { ChevronLeft, Star, DollarSign, X, Tag } from 'lucide-react';
 import { Dropdown, InfiniteScroll, NavBar, PullToRefresh, List, Button } from 'antd-mobile';
@@ -6,6 +6,7 @@ import { getHotels } from '../services/api';
 import { Hotel } from '../types';
 import { HotelCard } from '../components/HotelCard';
 import { useTranslation } from 'react-i18next';
+import { useVirtualList } from 'ahooks';
 
 const HotelList: React.FC = () => {
   const { t } = useTranslation();
@@ -30,6 +31,17 @@ const HotelList: React.FC = () => {
   // Local filter state for dropdown
   const [localStarLevel, setLocalStarLevel] = useState(starLevel);
   const [localTags, setLocalTags] = useState<string[]>(selectedTags);
+
+  // 虚拟列表所需 Refs
+  const containerRef = useRef<HTMLDivElement>(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+
+  const [list] = useVirtualList(hotels, {
+    containerTarget: containerRef,
+    wrapperTarget: wrapperRef,
+    itemHeight: 335, // 估算每个 HotelCard 的固定高度 (内容大体固定在 330px 左右)
+    overscan: 5,
+  });
 
   // Update URL params helper
   const updateFilter = (key: string, value: string | number | null) => {
@@ -162,7 +174,7 @@ const HotelList: React.FC = () => {
   ];
 
   return (
-    <div className="bg-slate-50 min-h-screen flex flex-col">
+    <div className="bg-slate-50 h-screen flex flex-col overflow-hidden">
       {/* Header */}
       <div className="bg-white sticky top-0 z-20 shadow-sm">
         <NavBar
@@ -216,8 +228,8 @@ const HotelList: React.FC = () => {
                   <button
                     key={range.label}
                     className={`px-3 py-2 rounded-xl text-sm transition-all text-left active:scale-[0.98] border border-transparent ${priceMin === range.min && priceMax === range.max
-                        ? 'bg-emerald-500 text-white font-medium shadow-[0_2px_8px_rgba(16,185,129,0.2)]'
-                        : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border-slate-100'
+                      ? 'bg-emerald-500 text-white font-medium shadow-[0_2px_8px_rgba(16,185,129,0.2)]'
+                      : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border-slate-100'
                       }`}
                     onClick={() => updatePriceRange(range.min, range.max)}
                   >
@@ -321,8 +333,8 @@ const HotelList: React.FC = () => {
                     <button
                       key={tag.id}
                       className={`px-3 py-2 rounded-xl text-sm transition-all flex items-center gap-2 text-left active:scale-[0.98] border border-transparent ${isSelected
-                          ? 'bg-indigo-500 text-white font-medium shadow-sm'
-                          : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border-slate-100'
+                        ? 'bg-indigo-500 text-white font-medium shadow-sm'
+                        : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border-slate-100'
                         }`}
                       onClick={() => {
                         const newTags = isSelected
@@ -384,7 +396,7 @@ const HotelList: React.FC = () => {
       </div>
 
       {/* List */}
-      <div className="flex-1">
+      <div className="flex-1 overflow-y-auto" ref={containerRef}>
         <PullToRefresh
           onRefresh={async () => {
             const data = await getHotels({ city, keyword, starLevel, priceMin, priceMax, tags: selectedTags });
@@ -392,9 +404,9 @@ const HotelList: React.FC = () => {
             setHasMore(true);
           }}
         >
-          <div className="p-4 flex flex-col gap-1">
+          <div className="flex flex-col gap-1">
             {hotels.length === 0 ? (
-              <div className="text-center py-12">
+              <div className="text-center py-12 p-4">
                 <div className="text-slate-400 mb-2">暂无符合条件的酒店</div>
                 {hasActiveFilters && (
                   <Button size="small" color="primary" onClick={clearFilters} className="rounded-xl shadow-sm">
@@ -404,13 +416,15 @@ const HotelList: React.FC = () => {
               </div>
             ) : (
               <>
-                {hotels.map((hotel) => (
-                  <HotelCard
-                    key={hotel.id}
-                    hotel={hotel}
-                    onClick={() => navigate(`/hotel/${hotel.id}`)}
-                  />
-                ))}
+                <div ref={wrapperRef} className="px-4 pt-4">
+                  {list.map((ele) => (
+                    <HotelCard
+                      key={ele.data.id}
+                      hotel={ele.data}
+                      onClick={() => navigate(`/hotel/${ele.data.id}`)}
+                    />
+                  ))}
+                </div>
                 <InfiniteScroll loadMore={loadMore} hasMore={hasMore} />
               </>
             )}
