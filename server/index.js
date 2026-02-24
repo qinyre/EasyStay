@@ -15,6 +15,7 @@ app.use(express.urlencoded({ extended: true })); // 解析 application/x-www-for
 // 导入路由
 const authRoutes = require('./routes/auth');
 const mobileRoutes = require('./routes/mobile');
+const mobileBookingRoutes = require('./routes/mobileBookings');
 const merchantRoutes = require('./routes/merchant');
 const adminRoutes = require('./routes/admin');
 const userRoutes = require('./routes/user');
@@ -30,6 +31,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // 注册路由
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/mobile', mobileRoutes);
+app.use('/api/v1/mobile', mobileBookingRoutes);
 app.use('/api/v1/merchant', merchantRoutes);
 app.use('/api/v1/admin', adminRoutes);
 app.use('/api/v1/user', userRoutes);

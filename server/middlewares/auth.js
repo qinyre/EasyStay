@@ -20,7 +20,7 @@ const authMiddleware = (req, res, next) => {
     try {
         // 验证 Token
         const decoded = jwt.verify(token, JWT_SECRET);
-        req.user = decoded;  // { username, role, iat, exp }
+        req.user = decoded;  // { phone, role, iat, exp }
         next();
     } catch (error) {
         return res.status(401).json({

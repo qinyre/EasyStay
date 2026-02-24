@@ -10,6 +10,13 @@ const mobileController = require('../controllers/mobileController');
 router.get('/home/banners', mobileController.getBanners);
 
 /**
+ * @route   GET /api/v1/mobile/home/popular-cities
+ * @desc    获取热门城市
+ * @access  Public
+ */
+router.get('/home/popular-cities', mobileController.getPopularCities);
+
+/**
  * @route   GET /api/v1/mobile/hotels
  * @desc    酒店列表查询 (带筛选、分页)
  * @access  Public
