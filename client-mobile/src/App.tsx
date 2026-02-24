@@ -26,6 +26,7 @@ import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
 import Settings from './pages/Settings';
 import About from './pages/About';
+import { ProtectedRoute } from './components/ProtectedRoute';
 
 function App() {
   return (
@@ -37,10 +38,26 @@ function App() {
               <Route index element={<Home />} />
               <Route path="hotels" element={<HotelList />} />
               <Route path="hotel/:id" element={<HotelDetail />} />
-              <Route path="hotel/:hotelId/booking/:roomId" element={<BookingConfirm />} />
-              <Route path="booking/success" element={<BookingSuccess />} />
-              <Route path="bookings" element={<Bookings />} />
-              <Route path="booking/:id" element={<BookingDetail />} />
+              <Route path="hotel/:hotelId/booking/:roomId" element={
+                <ProtectedRoute>
+                  <BookingConfirm />
+                </ProtectedRoute>
+              } />
+              <Route path="booking/success" element={
+                <ProtectedRoute>
+                  <BookingSuccess />
+                </ProtectedRoute>
+              } />
+              <Route path="bookings" element={
+                <ProtectedRoute>
+                  <Bookings />
+                </ProtectedRoute>
+              } />
+              <Route path="booking/:id" element={
+                <ProtectedRoute>
+                  <BookingDetail />
+                </ProtectedRoute>
+              } />
               <Route path="profile" element={<Me />} />
             </Route>
             <Route path="/login" element={<Login />} />

@@ -1,7 +1,9 @@
 import React from 'react';
 import { Button, Card, Image } from 'antd-mobile';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Room } from '../types';
 import { formatCurrency } from '../utils/format';
+import { useAuth } from '../contexts/AuthContext';
 
 interface RoomCardProps {
   room: Room;
@@ -10,6 +12,9 @@ interface RoomCardProps {
 }
 
 export const RoomCard: React.FC<RoomCardProps> = ({ room, nights = 1, onBook }) => {
+  const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
   const totalPrice = room.price * nights;
 
   return (
@@ -34,7 +39,11 @@ export const RoomCard: React.FC<RoomCardProps> = ({ room, nights = 1, onBook }) 
               size='mini'
               onClick={(e) => {
                 e.stopPropagation();
-                onBook();
+                if (!isAuthenticated) {
+                  navigate('/login', { state: { from: location.pathname } });
+                } else {
+                  onBook();
+                }
               }}
               className="font-bold px-4 rounded-xl shadow-sm active:scale-95 transition-transform"
             >

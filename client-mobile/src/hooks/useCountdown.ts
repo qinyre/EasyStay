@@ -11,7 +11,7 @@ export const useCountdown = ({
   onExpire,
   autoStart = true,
 }: UseCountdownOptions) => {
-  const [timeLeft, setTimeLeft] = useState(minutes * 60);
+  const [timeLeft, setTimeLeft] = useState(Math.floor(minutes * 60));
   const [isExpired, setIsExpired] = useState(false);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -41,7 +41,7 @@ export const useCountdown = ({
   const reset = (newMinutes?: number) => {
     stop();
     setIsExpired(false);
-    setTimeLeft((newMinutes ?? minutes) * 60);
+    setTimeLeft(Math.floor((newMinutes ?? minutes) * 60));
     if (autoStart) {
       start();
     }
@@ -56,7 +56,7 @@ export const useCountdown = ({
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
+    const secs = Math.floor(seconds % 60);
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
