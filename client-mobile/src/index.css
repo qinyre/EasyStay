@@ -7,6 +7,7 @@
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
+
   .hide-scrollbar::-webkit-scrollbar {
     display: none;
   }
@@ -14,4 +15,59 @@
   .safe-area-bottom {
     padding-bottom: env(safe-area-inset-bottom);
   }
+}
+
+/* Ant Design Mobile Toast 横向布局全局重写 */
+.adm-toast-main.adm-toast-main-icon,
+.adm-toast-main.adm-toast-main-text {
+  display: inline-flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  padding: 10px 16px !important;
+  min-width: unset !important;
+  min-height: unset !important;
+}
+
+.adm-toast-main.adm-toast-main-icon .adm-toast-icon {
+  margin: 0 !important;
+  padding: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 20px !important;
+  line-height: 1 !important;
+  width: auto !important;
+  height: auto !important;
+}
+
+.adm-toast-main.adm-toast-main-icon .adm-toast-text {
+  margin: 0 !important;
+  padding: 0 !important;
+  font-size: 14px !important;
+  line-height: inherit !important;
+}
+
+/* 全局微动效：页面淡入与平滑提升 */
+@keyframes pageFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-page-in {
+  animation: pageFadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* 统一轻量触控反馈 (补充全局未加 active 的地方) */
+.active-bounce:active {
+  transform: scale(0.96) !important;
+  opacity: 0.8 !important;
 }

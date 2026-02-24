@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ChevronLeft, Share2, Wifi, Coffee, Car, Star, Calendar } from 'lucide-react';
-import { Grid, Image, Swiper, Toast } from 'antd-mobile';
+import { Grid, Image, Swiper, Toast, Skeleton } from 'antd-mobile';
 import { getHotelById } from '../services/api';
 import { Hotel } from '../types';
 import { RoomCard } from '../components/RoomCard';
@@ -19,6 +19,17 @@ const HotelDetail: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showCalendar, setShowCalendar] = useState(false);
+  const [headerOpacity, setHeaderOpacity] = useState(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollY = window.scrollY;
+      const opacity = Math.min(scrollY / 150, 1);
+      setHeaderOpacity(opacity);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   useEffect(() => {
     const loadHotel = async () => {
@@ -38,7 +49,16 @@ const HotelDetail: React.FC = () => {
     loadHotel();
   }, [id]);
 
-  if (loading) return <div className="p-10 text-center text-slate-500">Loading...</div>;
+  if (loading) return (
+    <div className="bg-white min-h-screen">
+      <Skeleton.Title animated className="h-64 mb-4" />
+      <div className="px-4">
+        <Skeleton.Paragraph lineCount={3} animated />
+        <Skeleton.Title animated className="mt-8 mb-4 h-10 rounded-xl" />
+        <Skeleton.Paragraph lineCount={5} animated />
+      </div>
+    </div>
+  );
   if (!hotel) return <div className="p-10 text-center text-slate-500">Hotel not found</div>;
 
   const sortedRooms = [...hotel.rooms].sort((a, b) => a.price - b.price);
@@ -47,7 +67,38 @@ const HotelDetail: React.FC = () => {
   const images = hotel.images || [hotel.image, hotel.image, hotel.image];
 
   return (
-    <div className="bg-white min-h-screen pb-20">
+    <div className="bg-white min-h-screen pb-20 relative animate-page-in">
+      {/* Immersive Fixed Header */}
+      <div
+        className="fixed top-0 left-0 w-full z-50 flex items-center justify-between px-2 py-3 transition-colors duration-100"
+        style={{
+          backgroundColor: `rgba(255, 255, 255, ${headerOpacity})`,
+          boxShadow: headerOpacity > 0.8 ? '0 2px 10px rgba(0,0,0,0.05)' : 'none',
+        }}
+      >
+        <div
+          className={`p-2 rounded-full active:scale-90 transition-all cursor-pointer ${headerOpacity > 0.5 ? 'bg-transparent text-slate-800' : 'bg-black/30 backdrop-blur-sm text-white'
+            }`}
+          onClick={() => navigate(-1)}
+        >
+          <ChevronLeft size={24} />
+        </div>
+
+        <div
+          className="font-bold text-slate-900 absolute left-1/2 -translate-x-1/2 text-lg line-clamp-1 max-w-[50%] transition-opacity"
+          style={{ opacity: headerOpacity }}
+        >
+          {hotel.name_cn}
+        </div>
+
+        <div
+          className={`p-2 rounded-full active:scale-90 transition-all cursor-pointer ${headerOpacity > 0.5 ? 'bg-transparent text-slate-800' : 'bg-black/30 backdrop-blur-sm text-white'
+            }`}
+        >
+          <Share2 size={22} />
+        </div>
+      </div>
+
       {/* Header Image Swiper */}
       <div className="relative h-64">
         <Swiper
@@ -61,19 +112,6 @@ const HotelDetail: React.FC = () => {
             </Swiper.Item>
           ))}
         </Swiper>
-
-        {/* Absolute Nav Buttons */}
-        <div className="absolute top-0 left-0 w-full p-2 z-10 flex justify-between">
-          <div
-            className="bg-black/30 backdrop-blur-sm p-2 rounded-full text-white active:scale-90 transition-transform cursor-pointer"
-            onClick={() => navigate(-1)}
-          >
-            <ChevronLeft size={24} />
-          </div>
-          <div className="bg-black/30 backdrop-blur-sm p-2 rounded-full text-white active:scale-90 transition-transform cursor-pointer">
-            <Share2 size={20} />
-          </div>
-        </div>
 
         <div className="absolute bottom-4 right-4 bg-black/60 text-white text-xs px-3 py-1 rounded-full z-10">
           {currentImageIndex + 1}/{images.length} {t('hotelDetail.photos')}

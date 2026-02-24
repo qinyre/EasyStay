@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { ChevronLeft, Star, DollarSign, X, Tag } from 'lucide-react';
-import { Dropdown, InfiniteScroll, NavBar, PullToRefresh, List, Button } from 'antd-mobile';
+import { ChevronLeft, Star, DollarSign, X, Tag, ArrowUp } from 'lucide-react';
+import { Dropdown, InfiniteScroll, NavBar, PullToRefresh, List, Button, Skeleton } from 'antd-mobile';
 import { getHotels } from '../services/api';
 import { Hotel } from '../types';
 import { HotelCard } from '../components/HotelCard';
@@ -16,6 +16,7 @@ const HotelList: React.FC = () => {
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
+  const [showBackTop, setShowBackTop] = useState(false);
 
   // Filter state from URL
   const city = searchParams.get('city') || '';
@@ -130,6 +131,21 @@ const HotelList: React.FC = () => {
     setLocalStarLevel(starLevel);
   }, [starLevel]);
 
+  // Handle scroll for Back to Top
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+    const handleScroll = () => {
+      setShowBackTop(container.scrollTop > 300);
+    };
+    container.addEventListener('scroll', handleScroll);
+    return () => container.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const scrollToTop = () => {
+    containerRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   // Sort functions
   const sortByRecommended = () => {
     const sorted = [...hotels].sort((a, b) => b.rating - a.rating);
@@ -174,7 +190,7 @@ const HotelList: React.FC = () => {
   ];
 
   return (
-    <div className="bg-slate-50 h-screen flex flex-col overflow-hidden">
+    <div className="bg-slate-50 h-screen flex flex-col overflow-hidden animate-page-in">
       {/* Header */}
       <div className="bg-white sticky top-0 z-20 shadow-sm">
         <NavBar
@@ -406,14 +422,27 @@ const HotelList: React.FC = () => {
         >
           <div className="flex flex-col gap-1">
             {hotels.length === 0 ? (
-              <div className="text-center py-12 p-4">
-                <div className="text-slate-400 mb-2">暂无符合条件的酒店</div>
-                {hasActiveFilters && (
-                  <Button size="small" color="primary" onClick={clearFilters} className="rounded-xl shadow-sm">
-                    清除筛选条件
-                  </Button>
-                )}
-              </div>
+              loading ? (
+                <div className="p-4 space-y-4">
+                  {[...Array(5)].map((_, i) => (
+                    <div key={i} className="bg-white rounded-2xl p-0 shadow-sm border border-slate-100 overflow-hidden">
+                      <Skeleton.Title animated className="h-40 rounded-none m-0" />
+                      <div className="p-4">
+                        <Skeleton.Paragraph lineCount={2} animated />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12 p-4">
+                  <div className="text-slate-400 mb-2">暂无符合条件的酒店</div>
+                  {hasActiveFilters && (
+                    <Button size="small" color="primary" onClick={clearFilters} className="rounded-xl shadow-sm">
+                      清除筛选条件
+                    </Button>
+                  )}
+                </div>
+              )
             ) : (
               <>
                 <div ref={wrapperRef} className="px-4 pt-4">
@@ -431,6 +460,15 @@ const HotelList: React.FC = () => {
           </div>
         </PullToRefresh>
       </div>
+
+      {showBackTop && (
+        <div
+          className="fixed bottom-6 right-6 w-12 h-12 bg-white shadow-[0_4px_16px_rgba(0,0,0,0.12)] border border-slate-100 rounded-full flex items-center justify-center text-blue-600 transition-all active:scale-90 z-50 cursor-pointer"
+          onClick={scrollToTop}
+        >
+          <ArrowUp size={24} />
+        </div>
+      )}
     </div>
   );
 };

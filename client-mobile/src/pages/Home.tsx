@@ -85,7 +85,7 @@ const Home: React.FC = () => {
   ];
 
   return (
-    <div className="pb-20 bg-slate-50 min-h-screen">
+    <div className="pb-20 bg-slate-50 min-h-screen animate-page-in">
       {/* Top Hotel Banner Swiper */}
       <OptimizedSwiper
         hotels={featuredHotels.map(h => ({
