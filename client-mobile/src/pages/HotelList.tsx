@@ -162,19 +162,19 @@ const HotelList: React.FC = () => {
   ];
 
   return (
-    <div className="bg-gray-50 min-h-screen flex flex-col">
+    <div className="bg-slate-50 min-h-screen flex flex-col">
       {/* Header */}
       <div className="bg-white sticky top-0 z-20 shadow-sm">
         <NavBar
-            onBack={() => navigate(-1)}
-            backArrow={<ChevronLeft size={24} />}
+          onBack={() => navigate(-1)}
+          backArrow={<ChevronLeft size={24} className="text-slate-700" />}
         >
-            <div className="text-sm font-normal">
-                <div className="font-bold text-gray-900">{city || t('hotelList.all_cities')}</div>
-                <div className="text-xs text-gray-500">
-                    {checkIn && checkOut ? `${checkIn} - ${checkOut}` : t('hotelList.any_dates')}
-                </div>
+          <div className="text-sm font-normal">
+            <div className="font-bold text-slate-900">{city || t('hotelList.all_cities')}</div>
+            <div className="text-xs text-slate-500">
+              {checkIn && checkOut ? `${checkIn} - ${checkOut}` : t('hotelList.any_dates')}
             </div>
+          </div>
         </NavBar>
 
         {/* Filter Bar */}
@@ -193,8 +193,8 @@ const HotelList: React.FC = () => {
             <div style={{ padding: 12, minWidth: 280 }}>
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
-                  <DollarSign className="text-green-500" size={18} />
-                  <span className="font-medium text-gray-700">价格区间</span>
+                  <DollarSign className="text-emerald-500" size={18} />
+                  <span className="font-medium text-slate-700">价格区间</span>
                 </div>
                 {priceMin > 0 || priceMax < 5000 ? (
                   <Button
@@ -215,11 +215,10 @@ const HotelList: React.FC = () => {
                 {priceRanges.map((range) => (
                   <button
                     key={range.label}
-                    className={`px-3 py-2 rounded-lg text-sm transition-all text-left ${
-                      priceMin === range.min && priceMax === range.max
-                        ? 'bg-green-500 text-white font-medium'
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                    }`}
+                    className={`px-3 py-2 rounded-xl text-sm transition-all text-left active:scale-[0.98] border border-transparent ${priceMin === range.min && priceMax === range.max
+                        ? 'bg-emerald-500 text-white font-medium shadow-[0_2px_8px_rgba(16,185,129,0.2)]'
+                        : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border-slate-100'
+                      }`}
                     onClick={() => updatePriceRange(range.min, range.max)}
                   >
                     {range.label}
@@ -228,7 +227,7 @@ const HotelList: React.FC = () => {
               </div>
 
               {priceMin > 0 || priceMax < 5000 ? (
-                <div className="mt-3 text-center text-sm text-gray-600 bg-gray-50 rounded-lg py-2">
+                <div className="mt-3 text-center text-sm text-slate-600 bg-slate-50 rounded-xl py-2 font-medium">
                   当前选择: ¥{priceMin} - ¥{priceMax === 5000 ? '不限' : priceMax}
                 </div>
               ) : null}
@@ -239,7 +238,7 @@ const HotelList: React.FC = () => {
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
                   <Star className="text-yellow-500" size={18} />
-                  <span className="font-medium text-gray-700">星级</span>
+                  <span className="font-medium text-slate-700">星级</span>
                 </div>
                 {localStarLevel > 0 ? (
                   <Button
@@ -290,8 +289,8 @@ const HotelList: React.FC = () => {
             <div style={{ padding: 12, minWidth: 280 }}>
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
-                  <Tag className="text-purple-500" size={18} />
-                  <span className="font-medium text-gray-700">特色标签</span>
+                  <Tag className="text-indigo-500" size={18} />
+                  <span className="font-medium text-slate-700">特色标签</span>
                 </div>
                 {selectedTags.length > 0 ? (
                   <Button
@@ -321,11 +320,10 @@ const HotelList: React.FC = () => {
                   return (
                     <button
                       key={tag.id}
-                      className={`px-3 py-2 rounded-lg text-sm transition-all flex items-center gap-2 text-left ${
-                        isSelected
-                          ? 'bg-purple-500 text-white font-medium'
-                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                      }`}
+                      className={`px-3 py-2 rounded-xl text-sm transition-all flex items-center gap-2 text-left active:scale-[0.98] border border-transparent ${isSelected
+                          ? 'bg-indigo-500 text-white font-medium shadow-sm'
+                          : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border-slate-100'
+                        }`}
                       onClick={() => {
                         const newTags = isSelected
                           ? selectedTags.filter(t => t !== tag.id)
@@ -347,9 +345,9 @@ const HotelList: React.FC = () => {
 
         {/* Active filters bar */}
         {hasActiveFilters && (
-          <div className="px-4 py-2 bg-blue-50 border-t border-blue-100 flex items-center justify-between">
+          <div className="px-4 py-2 bg-blue-50/50 border-t border-blue-50 flex items-center justify-between">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-xs text-gray-600">已选:</span>
+              <span className="text-xs text-slate-500 font-medium">已选:</span>
               {starLevel > 0 && (
                 <span className="px-2 py-0.5 bg-yellow-100 text-yellow-700 rounded-full text-xs flex items-center gap-1">
                   ★{starLevel}星
@@ -376,7 +374,7 @@ const HotelList: React.FC = () => {
               ))}
             </div>
             <button
-              className="text-xs text-blue-600 font-medium"
+              className="text-xs text-blue-600 font-medium active:scale-95 transition-transform"
               onClick={clearFilters}
             >
               清除全部
@@ -394,29 +392,29 @@ const HotelList: React.FC = () => {
             setHasMore(true);
           }}
         >
-            <div className="p-4">
-                {hotels.length === 0 ? (
-                  <div className="text-center py-12">
-                    <div className="text-gray-400 mb-2">暂无符合条件的酒店</div>
-                    {hasActiveFilters && (
-                      <Button size="small" color="primary" onClick={clearFilters}>
-                        清除筛选条件
-                      </Button>
-                    )}
-                  </div>
-                ) : (
-                  <>
-                    {hotels.map((hotel) => (
-                        <HotelCard
-                            key={hotel.id}
-                            hotel={hotel}
-                            onClick={() => navigate(`/hotel/${hotel.id}`)}
-                        />
-                    ))}
-                    <InfiniteScroll loadMore={loadMore} hasMore={hasMore} />
-                  </>
+          <div className="p-4 flex flex-col gap-1">
+            {hotels.length === 0 ? (
+              <div className="text-center py-12">
+                <div className="text-slate-400 mb-2">暂无符合条件的酒店</div>
+                {hasActiveFilters && (
+                  <Button size="small" color="primary" onClick={clearFilters} className="rounded-xl shadow-sm">
+                    清除筛选条件
+                  </Button>
                 )}
-            </div>
+              </div>
+            ) : (
+              <>
+                {hotels.map((hotel) => (
+                  <HotelCard
+                    key={hotel.id}
+                    hotel={hotel}
+                    onClick={() => navigate(`/hotel/${hotel.id}`)}
+                  />
+                ))}
+                <InfiniteScroll loadMore={loadMore} hasMore={hasMore} />
+              </>
+            )}
+          </div>
         </PullToRefresh>
       </div>
     </div>

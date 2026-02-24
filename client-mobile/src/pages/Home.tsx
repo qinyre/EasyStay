@@ -85,7 +85,7 @@ const Home: React.FC = () => {
   ];
 
   return (
-    <div className="pb-20 bg-gray-50 min-h-screen">
+    <div className="pb-20 bg-slate-50 min-h-screen">
       {/* Top Hotel Banner Swiper */}
       <OptimizedSwiper
         hotels={featuredHotels.map(h => ({
@@ -103,15 +103,15 @@ const Home: React.FC = () => {
 
       {/* Search Box */}
       <div className="px-4 mt-4 relative z-10">
-        <Card className="shadow-lg rounded-xl">
+        <Card className="shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-slate-100 rounded-2xl mb-2">
           <Form layout='horizontal' footer={
             <div className="flex gap-2">
               <button
                 onClick={() => setShowFilterPanel(!showFilterPanel)}
-                className="flex-1 h-12 bg-gradient-to-r from-gray-50 to-gray-100 hover:from-gray-100 hover:to-gray-200 border border-gray-200 rounded-xl flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
+                className="flex-1 h-12 bg-gradient-to-r from-slate-50 to-slate-100 hover:from-slate-100 hover:to-slate-200 border border-slate-200 rounded-xl flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
               >
-                <SlidersHorizontal size={18} className="text-gray-600" />
-                <span className="text-gray-700 font-medium">筛选</span>
+                <SlidersHorizontal size={18} className="text-slate-600" />
+                <span className="text-slate-700 font-medium">筛选</span>
                 {(starLevel > 0 || priceRange.min > 0 || priceRange.max < 5000 || selectedTags.length > 0) && (
                   <span className="w-2 h-2 bg-blue-500 rounded-full" />
                 )}
@@ -148,20 +148,20 @@ const Home: React.FC = () => {
             </Form.Item>
 
             <Form.Item label={
-              <div className="flex items-center gap-2 bg-gray-50 rounded-lg px-2 py-1">
+              <div className="flex items-center gap-2 bg-slate-50 rounded-lg px-2 py-1">
                 <button
-                  className="w-7 h-7 flex items-center justify-center rounded-md bg-white shadow-sm text-gray-600 hover:text-blue-600 active:scale-95 transition-all disabled:opacity-50"
+                  className="w-7 h-7 flex items-center justify-center rounded-md bg-white shadow-sm text-slate-600 hover:text-blue-600 active:scale-90 transition-all disabled:opacity-50"
                   onClick={() => adjustNights(-1)}
                   disabled={differenceInDays(dateRange.end, dateRange.start) <= 1}
                 >
                   <Minus size={14} />
                 </button>
                 <div className="flex flex-col items-center min-w-[50px]">
-                  <span className="text-[10px] text-gray-400">间夜数</span>
-                  <span className="text-sm font-bold text-gray-800">{differenceInDays(dateRange.end, dateRange.start)}</span>
+                  <span className="text-[10px] text-slate-400">间夜数</span>
+                  <span className="text-sm font-bold text-slate-800">{differenceInDays(dateRange.end, dateRange.start)}</span>
                 </div>
                 <button
-                  className="w-7 h-7 flex items-center justify-center rounded-md bg-white shadow-sm text-gray-600 hover:text-blue-600 active:scale-95 transition-all disabled:opacity-50"
+                  className="w-7 h-7 flex items-center justify-center rounded-md bg-white shadow-sm text-slate-600 hover:text-blue-600 active:scale-90 transition-all disabled:opacity-50"
                   onClick={() => adjustNights(1)}
                   disabled={differenceInDays(dateRange.end, dateRange.start) >= 30}
                 >
@@ -171,15 +171,15 @@ const Home: React.FC = () => {
             }>
               <div className="flex justify-between items-center w-full">
                 {/* 日期选择区域 */}
-                <div className="flex-1 flex justify-between items-center" onClick={() => setShowCalendar(true)}>
+                <div className="flex-1 flex justify-between items-center transition-opacity active:opacity-70" onClick={() => setShowCalendar(true)}>
                   <div>
-                    <div className="text-xs text-gray-400">{t('home.check_in')}</div>
-                    <div className="font-medium text-base">{format(dateRange.start, 'MM-dd')}</div>
+                    <div className="text-xs text-slate-400">{t('home.check_in')}</div>
+                    <div className="font-medium text-base text-slate-900">{format(dateRange.start, 'MM-dd')}</div>
                   </div>
-                  <div className="px-3 text-gray-300">|</div>
+                  <div className="px-3 text-slate-200">|</div>
                   <div>
-                    <div className="text-xs text-gray-400">{t('home.check_out')}</div>
-                    <div className="font-medium text-base">{format(dateRange.end, 'MM-dd')}</div>
+                    <div className="text-xs text-slate-400">{t('home.check_out')}</div>
+                    <div className="font-medium text-base text-slate-900">{format(dateRange.end, 'MM-dd')}</div>
                   </div>
                 </div>
               </div>
@@ -197,22 +197,21 @@ const Home: React.FC = () => {
 
           {/* Filter Panel */}
           {showFilterPanel && (
-            <div className="border-t border-gray-100 pt-4 mt-4">
+            <div className="border-t border-slate-100 pt-4 mt-4">
               {/* 星级筛选 */}
               <div className="mb-4">
                 <div className="flex items-center gap-2 mb-3">
                   <Star className="text-yellow-500" size={16} />
-                  <span className="text-sm font-medium text-gray-700">星级</span>
+                  <span className="text-sm font-medium text-slate-700">星级</span>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {starLevels.map((level) => (
                     <button
                       key={level.value}
-                      className={`px-3 py-1.5 rounded-full text-sm transition-all ${
-                        starLevel === level.value
-                          ? 'bg-yellow-500 text-white font-medium'
-                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                      }`}
+                      className={`px-3 py-1.5 rounded-full text-sm transition-all border border-transparent active:scale-95 ${starLevel === level.value
+                        ? 'bg-yellow-500 text-white font-medium shadow-sm'
+                        : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border-slate-100'
+                        }`}
                       onClick={() => setStarLevel(level.value)}
                     >
                       {level.label}
@@ -224,18 +223,17 @@ const Home: React.FC = () => {
               {/* 价格筛选 */}
               <div className="mb-4">
                 <div className="flex items-center gap-2 mb-3">
-                  <DollarSign className="text-green-500" size={16} />
-                  <span className="text-sm font-medium text-gray-700">价格区间</span>
+                  <DollarSign className="text-emerald-500" size={16} />
+                  <span className="text-sm font-medium text-slate-700">价格区间</span>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {priceRanges.map((range) => (
                     <button
                       key={range.label}
-                      className={`px-3 py-1.5 rounded-full text-sm transition-all ${
-                        priceRange.min === range.min && priceRange.max === range.max
-                          ? 'bg-green-500 text-white font-medium'
-                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                      }`}
+                      className={`px-3 py-1.5 rounded-full text-sm transition-all border border-transparent active:scale-95 ${priceRange.min === range.min && priceRange.max === range.max
+                        ? 'bg-emerald-500 text-white font-medium shadow-sm'
+                        : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border-slate-100'
+                        }`}
                       onClick={() => setPriceRange({ min: range.min, max: range.max })}
                     >
                       {range.label}
@@ -247,10 +245,10 @@ const Home: React.FC = () => {
               {/* 快捷标签筛选 */}
               <div>
                 <div className="flex items-center gap-2 mb-3">
-                  <Tag className="text-purple-500" size={16} />
-                  <span className="text-sm font-medium text-gray-700">特色标签</span>
+                  <Tag className="text-indigo-500" size={16} />
+                  <span className="text-sm font-medium text-slate-700">特色标签</span>
                   {selectedTags.length > 0 && (
-                    <span className="ml-auto text-xs text-purple-600 bg-purple-50 px-2 py-0.5 rounded-full">
+                    <span className="ml-auto text-xs text-indigo-600 bg-indigo-50/50 px-2 py-0.5 rounded-full">
                       已选 {selectedTags.length} 项
                     </span>
                   )}
@@ -261,11 +259,10 @@ const Home: React.FC = () => {
                     return (
                       <button
                         key={tag.id}
-                        className={`px-3 py-1.5 rounded-full text-sm transition-all flex items-center gap-1 ${
-                          isSelected
-                            ? 'bg-purple-500 text-white font-medium'
-                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                        }`}
+                        className={`px-3 py-1.5 rounded-full text-sm transition-all flex items-center gap-1 border border-transparent active:scale-95 ${isSelected
+                          ? 'bg-indigo-500 text-white font-medium shadow-sm'
+                          : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border-slate-100'
+                          }`}
                         onClick={() => toggleTag(tag.id)}
                       >
                         <span>{tag.icon}</span>
@@ -297,24 +294,24 @@ const Home: React.FC = () => {
 
       {/* Popular Cities */}
       <div className="mt-8 px-4">
-        <h2 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+        <h2 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
           <Star className="text-yellow-500 fill-current" size={18} />
           {t('home.popular_destinations')}
         </h2>
 
         <div className="flex overflow-x-auto gap-4 pb-4 snap-x hide-scrollbar">
           {loading ? (
-             Array(4).fill(0).map((_, i) => (
-               <div key={i} className="w-32 h-40 bg-gray-200 rounded-lg animate-pulse flex-shrink-0" />
-             ))
+            Array(4).fill(0).map((_, i) => (
+              <div key={i} className="w-32 h-40 bg-slate-200 rounded-2xl animate-pulse flex-shrink-0" />
+            ))
           ) : (
             popularCities.map((cityItem) => (
               <div
                 key={cityItem.name}
-                className="relative w-32 h-40 rounded-lg overflow-hidden flex-shrink-0 snap-start shadow-sm active:opacity-80 transition-opacity cursor-pointer"
+                className="relative w-32 h-40 rounded-2xl overflow-hidden flex-shrink-0 snap-start shadow-[0_2px_8px_rgba(0,0,0,0.04)] active:scale-[0.98] transition-transform cursor-pointer"
                 onClick={() => {
-                    setCity(cityItem.name);
-                    Toast.show({ content: `已选择：${cityItem.name}`, duration: 1000 });
+                  setCity(cityItem.name);
+                  Toast.show({ content: `已选择：${cityItem.name}`, duration: 1000 });
                 }}
               >
                 <OptimizedImage
@@ -338,11 +335,10 @@ const Home: React.FC = () => {
             {['北京', '上海', '广州', '深圳', '成都', '杭州', '武汉', '西安', '南京', '重庆', '三亚', '新加坡'].map(cityName => (
               <button
                 key={cityName}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                  city === cityName
-                    ? 'bg-blue-600 text-white shadow-md'
-                    : 'bg-white text-gray-600 border border-gray-200 hover:border-blue-300 hover:text-blue-600'
-                }`}
+                className={`px-4 py-2 rounded-xl text-sm font-medium transition-all active:scale-95 border ${city === cityName
+                  ? 'bg-blue-600 text-white shadow-[0_2px_8px_rgba(37,99,235,0.2)] border-blue-600'
+                  : 'bg-white text-slate-600 border-slate-200 hover:border-blue-300 hover:text-blue-600 shadow-[0_2px_8px_rgba(0,0,0,0.02)]'
+                  }`}
                 onClick={() => {
                   setCity(cityName);
                   Toast.show({ content: `已选择：${cityName}`, duration: 1000 });
@@ -357,16 +353,16 @@ const Home: React.FC = () => {
 
       {/* Features */}
       <div className="mt-4 px-4 pb-4">
-        <h2 className="text-lg font-bold text-gray-800 mb-4">{t('home.why_choose_us')}</h2>
+        <h2 className="text-lg font-bold text-slate-800 mb-4">{t('home.why_choose_us')}</h2>
         <div className="grid grid-cols-2 gap-3">
-            <Card className="bg-blue-50 border-none shadow-none">
-                <div className="font-bold text-blue-700 text-sm mb-1">{t('home.best_price')}</div>
-                <div className="text-xs text-blue-500">{t('home.best_price_desc')}</div>
-            </Card>
-            <Card className="bg-green-50 border-none shadow-none">
-                <div className="font-bold text-green-700 text-sm mb-1">{t('home.support')}</div>
-                <div className="text-xs text-green-500">{t('home.support_desc')}</div>
-            </Card>
+          <Card className="bg-blue-50/50 border border-blue-100 shadow-none rounded-2xl">
+            <div className="font-bold text-blue-700 text-sm mb-1">{t('home.best_price')}</div>
+            <div className="text-xs text-blue-500">{t('home.best_price_desc')}</div>
+          </Card>
+          <Card className="bg-emerald-50/50 border border-emerald-100 shadow-none rounded-2xl">
+            <div className="font-bold text-emerald-700 text-sm mb-1">{t('home.support')}</div>
+            <div className="text-xs text-emerald-600">{t('home.support_desc')}</div>
+          </Card>
         </div>
       </div>
     </div>
