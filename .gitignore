@@ -40,7 +40,8 @@ logs
 # 4. AI 助手配置 (AI Assistant)
 # ==========================================
 CLAUDE.md
-.claude/ 
+.claude/
+skills/ 
 # ==========================================
 # 5. 系统与 IDE 文件 (System & IDE)
 # ==========================================
@@ -55,3 +56,4 @@ Thumbs.db
 *.swp
 *.sw?
 .claude/settings.local.json
+GEMINI.md

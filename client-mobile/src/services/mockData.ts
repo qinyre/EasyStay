@@ -123,7 +123,7 @@ export const MOCK_HOTELS: Hotel[] = [
     price_start: 3888,
     tags: ['度假村', '海滩', '亲子'],
   },
-    {
+  {
     id: '4',
     name_cn: '易宿古镇客栈',
     name_en: 'EasyStay Ancient Town Inn',
@@ -218,6 +218,8 @@ export const MOCK_BOOKINGS: Booking[] = [
     guestPhone: '13800138000',
     createdAt: '2023-09-25T10:00:00Z',
     hotelName: 'EasyStay Grand Hotel',
+    hotelNameEn: 'EasyStay Grand Hotel',
+    hotelNameCn: '易宿君悦大酒店',
     hotelImage: 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
     roomType: '豪华江景房'
   },
@@ -234,6 +236,8 @@ export const MOCK_BOOKINGS: Booking[] = [
     guestPhone: '13800138000',
     createdAt: '2023-09-10T14:30:00Z',
     hotelName: 'EasyStay City Inn',
+    hotelNameEn: 'EasyStay City Inn',
+    hotelNameCn: '易宿城市客栈',
     hotelImage: 'https://images.unsplash.com/photo-1582719508461-905c673771fd?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
     roomType: '标准双床房'
   },
@@ -250,6 +254,8 @@ export const MOCK_BOOKINGS: Booking[] = [
     guestPhone: '13912345678',
     createdAt: '2023-10-20T09:15:00Z',
     hotelName: 'EasyStay Seaview Resort',
+    hotelNameEn: 'EasyStay Seaview Resort',
+    hotelNameCn: '易宿海景度假村',
     hotelImage: 'https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
     roomType: '海景别墅'
   },
@@ -266,6 +272,8 @@ export const MOCK_BOOKINGS: Booking[] = [
     guestPhone: '13800138000',
     createdAt: '2023-07-28T11:00:00Z',
     hotelName: 'EasyStay Grand Hotel',
+    hotelNameEn: 'EasyStay Grand Hotel',
+    hotelNameCn: '易宿君悦大酒店',
     hotelImage: 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
     roomType: '行政套房'
   }

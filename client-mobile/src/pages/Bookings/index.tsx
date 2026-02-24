@@ -105,9 +105,9 @@ const Bookings: React.FC = () => {
   };
 
   return (
-    <div className="bg-gray-50 min-h-screen flex flex-col">
-      <div className="bg-white sticky top-0 z-10 shadow-sm">
-        <div className="p-4 pb-2 font-bold text-lg text-gray-900">{t('booking.title')}</div>
+    <div className="bg-slate-50 min-h-screen flex flex-col">
+      <div className="bg-white sticky top-0 z-10 border-b border-slate-100">
+        <div className="p-4 pb-2 font-bold text-lg text-slate-900">{t('booking.title')}</div>
         <Tabs activeKey={activeTab} onChange={setActiveTab}>
           <Tabs.Tab title={t('booking.tabs.all')} key='all' />
           <Tabs.Tab title={t('booking.tabs.pending')} key='pending' />
@@ -133,7 +133,7 @@ const Bookings: React.FC = () => {
                 />
               ))
             )}
-            <div className="h-safe-bottom" />
+            <div className="h-safe-bottom pb-4" />
           </div>
         </PullToRefresh>
       </div>

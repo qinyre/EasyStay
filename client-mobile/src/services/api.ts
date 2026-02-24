@@ -315,6 +315,8 @@ export const createBooking = async (params: CreateBookingParams): Promise<Bookin
     guestPhone: params.guestPhone,
     createdAt: new Date().toISOString(),
     hotelName: hotel?.name_cn || '',
+    hotelNameEn: hotel?.name_en || '',
+    hotelNameCn: hotel?.name_cn || '',
     hotelImage: hotel?.image || '',
     roomType: room?.type || '',
   };
@@ -380,6 +382,8 @@ export const saveBooking = async (params: CreateBookingParams): Promise<Booking>
     guestPhone: params.guestPhone,
     createdAt: new Date().toISOString(),
     hotelName: hotel?.name_cn || '',
+    hotelNameEn: hotel?.name_en || '',
+    hotelNameCn: hotel?.name_cn || '',
     hotelImage: hotel?.image || '',
     roomType: room?.type || '',
   };

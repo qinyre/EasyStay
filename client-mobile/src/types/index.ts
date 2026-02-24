@@ -47,7 +47,9 @@ export interface Booking {
   guestPhone: string;
   createdAt: string;
   // Computed or populated fields for UI
-  hotelName?: string;
+  hotelName?: string; // Fallback or current default
+  hotelNameEn?: string;
+  hotelNameCn?: string;
   hotelImage?: string;
   roomType?: string;
 }
