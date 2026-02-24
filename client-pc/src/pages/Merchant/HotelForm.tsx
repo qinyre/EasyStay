@@ -9,8 +9,9 @@ import {
   Typography,
   Card,
   Table,
+  Upload,
 } from "antd";
-import { PlusOutlined, MinusOutlined } from "@ant-design/icons";
+import { PlusOutlined, MinusOutlined, UploadOutlined } from "@ant-design/icons";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import AdminLayout from "../../layouts/Layout";
 
@@ -87,12 +88,16 @@ const HotelForm: React.FC = () => {
       // 确保 rooms 是数组
       const hotelRooms = Array.isArray(rooms) ? rooms : [];
 
+      // 获取当前登录的商户用户名
+      const merchantUsername = localStorage.getItem("username");
+
       const hotelData = {
         ...values,
         tags: tagsArray,
         rooms: hotelRooms,
         audit_status: "pending",
         is_offline: false,
+        merchant_username: merchantUsername,
       };
 
       let result;
@@ -174,9 +179,26 @@ const HotelForm: React.FC = () => {
               <Form.Item
                 name="banner_url"
                 label="酒店图片"
-                rules={[{ required: true, message: "请输入酒店图片URL" }]}
+                rules={[{ required: true, message: "请上传酒店图片" }]}
               >
-                <Input placeholder="请输入酒店图片URL" />
+                <Upload
+                  name="file"
+                  listType="picture"
+                  maxCount={1}
+                  action="/merchant/upload"
+                  onChange={(info) => {
+                    if (info.file.status === "done") {
+                      // 上传成功后，将返回的URL设置到表单字段
+                      if (info.file.response && info.file.response.data) {
+                        form.setFieldsValue({
+                          banner_url: info.file.response.data.url,
+                        });
+                      }
+                    }
+                  }}
+                >
+                  <Button icon={<UploadOutlined />}>上传图片</Button>
+                </Upload>
               </Form.Item>
             </div>
 

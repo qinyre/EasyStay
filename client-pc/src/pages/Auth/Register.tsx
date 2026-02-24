@@ -28,13 +28,18 @@ const Register: React.FC = () => {
     setRole(values.role);
     try {
       const result = await register({
-        username: values.username,
+        phone: values.phone,
+        email: values.email,
         password: values.password,
+        confirmPassword: values.confirmPassword,
+        name: values.name,
         role: values.role,
       });
       if (result.code === 200) {
         // 保存用户信息到localStorage
-        localStorage.setItem("username", values.username);
+        // 存储用户名（优先使用真实用户名，否则使用手机号）
+        const userName = result.data?.user?.name || values.name || values.phone;
+        localStorage.setItem("username", userName);
         localStorage.setItem("role", values.role);
         if (result.data && result.data.token) {
           localStorage.setItem("token", result.data.token);
@@ -80,7 +85,7 @@ const Register: React.FC = () => {
               注册成功
             </Title>
             <p className="text-lg mt-4" style={{ textAlign: "center" }}>
-              即将进入{role === "admin" ? "管理员" : "商户"}页面
+              即将返回登录页面
             </p>
             <p
               className="text-3xl mt-8 text-blue-500 font-bold"
@@ -137,7 +142,23 @@ const Register: React.FC = () => {
         >
           <Form form={form} layout="vertical" onFinish={handleSubmit}>
             <Form.Item
-              name="username"
+              name="phone"
+              label="手机号"
+              rules={[{ required: true, message: "请输入手机号" }]}
+            >
+              <Input placeholder="请输入手机号" size="large" />
+            </Form.Item>
+
+            <Form.Item
+              name="email"
+              label="邮箱"
+              rules={[{ required: true, message: "请输入邮箱" }]}
+            >
+              <Input placeholder="请输入邮箱" size="large" />
+            </Form.Item>
+
+            <Form.Item
+              name="name"
               label="用户名"
               rules={[{ required: true, message: "请输入用户名" }]}
             >
@@ -150,6 +171,14 @@ const Register: React.FC = () => {
               rules={[{ required: true, message: "请输入密码" }]}
             >
               <Input.Password placeholder="请输入密码" size="large" />
+            </Form.Item>
+
+            <Form.Item
+              name="confirmPassword"
+              label="确认密码"
+              rules={[{ required: true, message: "请确认密码" }]}
+            >
+              <Input.Password placeholder="请再次输入密码" size="large" />
             </Form.Item>
 
             <Form.Item

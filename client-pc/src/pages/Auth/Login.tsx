@@ -12,17 +12,20 @@ const Login: React.FC = () => {
     setLoading(true);
     try {
       const result = await login({
-        username: values.username,
+        phone: values.phone,
         password: values.password,
       });
       if (result.code === 200 && result.data) {
-        localStorage.setItem("username", values.username);
-        localStorage.setItem("role", result.data.role);
+        // 存储用户名（优先使用真实用户名，否则使用手机号）
+        const userName = result.data.user?.name || values.phone;
+        localStorage.setItem("username", userName);
+        const userRole = result.data.user?.role || result.data.role;
+        localStorage.setItem("role", userRole);
         if (result.data.token) {
           localStorage.setItem("token", result.data.token);
         }
         // 使用window.location.href确保跳转成功
-        if (result.data.role === "admin") {
+        if (userRole === "admin") {
           window.location.href = "/admin/audit";
         } else {
           window.location.href = "/merchant/hotels";
@@ -80,11 +83,11 @@ const Login: React.FC = () => {
         >
           <Form form={form} layout="vertical" onFinish={handleSubmit}>
             <Form.Item
-              name="username"
-              label="用户名"
-              rules={[{ required: true, message: "请输入用户名" }]}
+              name="phone"
+              label="手机号"
+              rules={[{ required: true, message: "请输入手机号" }]}
             >
-              <Input placeholder="请输入用户名" size="large" />
+              <Input placeholder="请输入手机号" size="large" />
             </Form.Item>
 
             <Form.Item
