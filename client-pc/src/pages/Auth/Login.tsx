@@ -1,73 +1,125 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { login } from "../../services/auth";
+import { Card, Form, Input, Button, message, Typography } from "antd";
+
+const { Title } = Typography;
 
 const Login: React.FC = () => {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const navigate = useNavigate();
+  const [form] = Form.useForm(); // 添加这一行
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-
+  const handleSubmit = async (values: any) => {
+    setLoading(true);
     try {
-      const result = await login({ username, password });
-      console.log("登录结果:", result); // 添加调试信息
-
+      const result = await login({
+        username: values.username,
+        password: values.password,
+      });
       if (result.code === 200 && result.data) {
-        // 保存token、角色和用户名
-        localStorage.setItem("token", result.data.token);
+        localStorage.setItem("username", values.username);
         localStorage.setItem("role", result.data.role);
-        localStorage.setItem("username", username); // 保存用户名
-        console.log("保存到localStorage成功"); // 添加调试信息
-
-        // 强制刷新页面
-        setTimeout(() => {
-          window.location.href = "/"; // 直接跳转到根路径
-        }, 1000);
+        if (result.data.token) {
+          localStorage.setItem("token", result.data.token);
+        }
+        // 使用window.location.href确保跳转成功
+        if (result.data.role === "admin") {
+          window.location.href = "/admin/audit";
+        } else {
+          window.location.href = "/merchant/hotels";
+        }
       } else {
-        setError(result.message);
+        message.error(result.message || "登录失败");
       }
     } catch (error) {
-      console.error("登录出错:", error);
-      setError("登录失败，请重试");
+      message.error("登录过程中出现错误");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div style={{ maxWidth: 400, margin: "0 auto", padding: "2rem" }}>
-      <h2>登录</h2>
-      {error && (
-        <div style={{ color: "red", marginBottom: "1rem" }}>{error}</div>
-      )}
-      <form onSubmit={handleSubmit}>
-        <div style={{ marginBottom: "1rem" }}>
-          <label>用户名：</label>
-          <input
-            type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            style={{ width: "100%", padding: "0.5rem" }}
-          />
-        </div>
-        <div style={{ marginBottom: "1rem" }}>
-          <label>密码：</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            style={{ width: "100%", padding: "0.5rem" }}
-          />
-        </div>
-        <button type="submit" style={{ padding: "0.5rem 1rem" }}>
-          登录
-        </button>
-        <p style={{ marginTop: "1rem" }}>
-          还没有账号？<a href="/register">立即注册</a>
-        </p>
-      </form>
+    <div
+      style={{
+        minHeight: "100vh",
+        width: "100%",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background:
+          "url(/src/images/background.png) no-repeat center center fixed" /* 替换为你的背景图片路径 */,
+        backgroundSize: "cover",
+        padding: "20px",
+      }}
+    >
+      <div
+        style={{
+          width: "100%",
+          maxWidth: "400px",
+        }}
+      >
+        <Card
+          title={
+            <div style={{ textAlign: "center" }}>
+              <Title
+                level={2}
+                style={{
+                  margin: "0 auto",
+                  color: "#1890ff",
+                  textAlign: "center",
+                }}
+              >
+                易宿酒店管理系统
+              </Title>
+              <p className="text-gray-500 mt-2" style={{ textAlign: "center" }}>
+                请登录您的账号
+              </p>
+            </div>
+          }
+          className="shadow-xl rounded-lg overflow-hidden"
+          style={{ width: "100%" }}
+        >
+          <Form form={form} layout="vertical" onFinish={handleSubmit}>
+            <Form.Item
+              name="username"
+              label="用户名"
+              rules={[{ required: true, message: "请输入用户名" }]}
+            >
+              <Input placeholder="请输入用户名" size="large" />
+            </Form.Item>
+
+            <Form.Item
+              name="password"
+              label="密码"
+              rules={[{ required: true, message: "请输入密码" }]}
+            >
+              <Input.Password placeholder="请输入密码" size="large" />
+            </Form.Item>
+
+            <Form.Item>
+              <Button
+                type="primary"
+                htmlType="submit"
+                size="large"
+                style={{ width: "100%", height: 48, fontSize: 16 }}
+                loading={loading}
+              >
+                登录
+              </Button>
+            </Form.Item>
+
+            <Form.Item>
+              <div className="text-center">
+                <a
+                  href="/register"
+                  className="text-blue-500 hover:text-blue-700 font-medium"
+                >
+                  注册新账号
+                </a>
+              </div>
+            </Form.Item>
+          </Form>
+        </Card>
+      </div>
     </div>
   );
 };

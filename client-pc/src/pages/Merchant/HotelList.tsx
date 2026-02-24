@@ -1,30 +1,30 @@
 import React, { useState, useEffect } from "react";
-import { getHotels, auditHotel } from "../../services/hotel";
+import { getHotels, deleteHotel } from "../../services/hotel";
 import {
   Table,
   Button,
   message,
   Typography,
-  Modal,
-  Input,
-  Tag,
   Empty,
+  Tag,
+  Modal,
   Descriptions,
   Card,
 } from "antd";
-import { CheckOutlined, CloseOutlined, EyeOutlined } from "@ant-design/icons";
+import { EditOutlined, DeleteOutlined, EyeOutlined } from "@ant-design/icons";
+import { useNavigate } from "react-router-dom";
 import AdminLayout from "../../layouts/Layout";
 
 const { Title } = Typography;
-const { TextArea } = Input;
 
-const AuditList: React.FC = () => {
+const HotelList: React.FC = () => {
   const [hotels, setHotels] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [visible, setVisible] = useState(false);
   const [detailVisible, setDetailVisible] = useState(false);
+  const [deleteVisible, setDeleteVisible] = useState(false);
   const [selectedHotel, setSelectedHotel] = useState<any>(null);
-  const [reason, setReason] = useState("");
+  const [hotelToDelete, setHotelToDelete] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchHotels();
@@ -34,48 +34,14 @@ const AuditList: React.FC = () => {
     try {
       setLoading(true);
       const result = await getHotels();
-      console.log("获取酒店列表结果:", result);
       if (result.code === 200 && result.data) {
-        // 过滤出待审核的酒店，同时处理大小写问题
-        const pendingHotels = result.data.filter(
-          (hotel: any) =>
-            hotel.audit_status === "pending" ||
-            hotel.audit_status === "Pending",
-        );
-        console.log("待审核酒店:", pendingHotels);
-        setHotels(pendingHotels);
+        setHotels(result.data);
       }
     } catch (error) {
-      console.error("获取酒店列表失败:", error);
       message.error("获取酒店列表失败");
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleAudit = async (hotel: any, status: string) => {
-    try {
-      const result = await auditHotel(
-        hotel.id,
-        status,
-        status === "rejected" ? reason : "",
-      );
-      if (result.code === 200) {
-        message.success(status === "approved" ? "审核通过" : "审核拒绝");
-        setVisible(false);
-        fetchHotels();
-      } else {
-        message.error("审核操作失败");
-      }
-    } catch (error) {
-      message.error("审核操作失败");
-    }
-  };
-
-  const showRejectModal = (hotel: any) => {
-    setSelectedHotel(hotel);
-    setReason("");
-    setVisible(true);
   };
 
   const columns = [
@@ -96,14 +62,58 @@ const AuditList: React.FC = () => {
       render: (starLevel: number) => "★".repeat(starLevel),
     },
     {
-      title: "标签",
-      dataIndex: "tags",
-      key: "tags",
-      render: (tags: string[]) => (
-        <div>
-          {tags && tags.map((tag, index) => <Tag key={index}>{tag}</Tag>)}
-        </div>
-      ),
+      title: "状态",
+      key: "status",
+      render: (_: any, record: any) => {
+        return (
+          <div className="flex flex-col gap-1">
+            {/* 审核状态 */}
+            <Tag
+              color={
+                record.audit_status === "pending" ||
+                record.audit_status === "Pending"
+                  ? "blue"
+                  : record.audit_status === "approved" ||
+                      record.audit_status === "Approved"
+                    ? "green"
+                    : record.audit_status === "rejected" ||
+                        record.audit_status === "Rejected"
+                      ? "red"
+                      : "gray"
+              }
+            >
+              {record.audit_status === "pending" ||
+              record.audit_status === "Pending"
+                ? "待审核"
+                : record.audit_status === "approved" ||
+                    record.audit_status === "Approved"
+                  ? "已通过"
+                  : record.audit_status === "rejected" ||
+                      record.audit_status === "Rejected"
+                    ? "已拒绝"
+                    : "未知"}
+            </Tag>
+            {/* 上下线状态 */}
+            {(record.audit_status === "approved" ||
+              record.audit_status === "Approved") && (
+              <Tag color={record.is_offline ? "red" : "green"}>
+                {record.is_offline ? "已下线" : "已上线"}
+              </Tag>
+            )}
+            {/* 拒绝原因 */}
+            {(record.audit_status === "rejected" ||
+              record.audit_status === "Rejected") &&
+              (record.reject_reason || record.fail_reason) && (
+                <div className="mt-1">
+                  <Tag color="orange">拒绝原因</Tag>
+                  <div className="text-sm text-gray-600 mt-1">
+                    {record.reject_reason || record.fail_reason}
+                  </div>
+                </div>
+              )}
+          </div>
+        );
+      },
     },
     {
       title: "操作",
@@ -111,20 +121,26 @@ const AuditList: React.FC = () => {
       render: (_: any, record: any) => (
         <div className="flex gap-2">
           <Button
-            type="primary"
-            icon={<CheckOutlined />}
-            onClick={() => handleAudit(record, "approved")}
+            type="link"
+            icon={<EditOutlined />}
+            onClick={() => {
+              // 将酒店数据转换为JSON字符串并编码
+              const hotelData = encodeURIComponent(JSON.stringify(record));
+              navigate(`/merchant/edit/${record.id}?data=${hotelData}`);
+            }}
           >
-            通过
+            编辑
           </Button>
           <Button
+            type="link"
             danger
-            icon={<CloseOutlined />}
-            onClick={() => showRejectModal(record)}
+            icon={<DeleteOutlined />}
+            onClick={() => handleDelete(record.id)}
           >
-            拒绝
+            删除
           </Button>
           <Button
+            type="link"
             icon={<EyeOutlined />}
             onClick={() => handleViewDetail(record)}
           >
@@ -135,6 +151,33 @@ const AuditList: React.FC = () => {
     },
   ];
 
+  const handleDelete = (id: string) => {
+    setHotelToDelete(id);
+    setDeleteVisible(true);
+  };
+
+  const confirmDelete = async () => {
+    if (hotelToDelete) {
+      try {
+        // 调用删除酒店的API
+        const result = await deleteHotel(hotelToDelete);
+        if (result.code === 200) {
+          message.success("酒店删除成功");
+          // 刷新酒店列表
+          fetchHotels();
+        } else {
+          message.error(result.message || "删除酒店失败");
+        }
+      } catch (error) {
+        console.error("删除酒店失败:", error);
+        message.error("删除酒店失败");
+      } finally {
+        setDeleteVisible(false);
+        setHotelToDelete(null);
+      }
+    }
+  };
+
   const handleViewDetail = (hotel: any) => {
     setSelectedHotel(hotel);
     setDetailVisible(true);
@@ -143,7 +186,12 @@ const AuditList: React.FC = () => {
   return (
     <AdminLayout>
       <div>
-        <Title level={4}>审核管理</Title>
+        <div className="flex justify-between items-center mb-6">
+          <Title level={4}>我的酒店</Title>
+          <Button type="primary" onClick={() => navigate("/merchant/add")}>
+            添加酒店
+          </Button>
+        </div>
 
         <Table
           columns={columns}
@@ -156,36 +204,11 @@ const AuditList: React.FC = () => {
             pageSizeOptions: ["10", "20", "50"],
           }}
           locale={{
-            emptyText: <Empty description="暂无待审核酒店" />,
+            emptyText: <Empty description="暂无酒店数据" />,
           }}
         />
 
-        <Modal
-          title="拒绝原因"
-          open={visible}
-          onCancel={() => setVisible(false)}
-          footer={[
-            <Button key="cancel" onClick={() => setVisible(false)}>
-              取消
-            </Button>,
-            <Button
-              key="submit"
-              danger
-              onClick={() =>
-                selectedHotel && handleAudit(selectedHotel, "rejected")
-              }
-            >
-              确认拒绝
-            </Button>,
-          ]}
-        >
-          <TextArea
-            rows={4}
-            placeholder="请输入拒绝原因"
-            value={reason}
-            onChange={(e) => setReason(e.target.value)}
-          />
-        </Modal>
+        {/* 酒店详情模态框 */}
         <Modal
           title="酒店详情"
           open={detailVisible}
@@ -242,6 +265,13 @@ const AuditList: React.FC = () => {
                           : "未知"}
                   </Tag>
                 </Descriptions.Item>
+                <Descriptions.Item label="上下线状态">
+                  {selectedHotel.is_offline !== undefined && (
+                    <Tag color={selectedHotel.is_offline ? "red" : "green"}>
+                      {selectedHotel.is_offline ? "已下线" : "已上线"}
+                    </Tag>
+                  )}
+                </Descriptions.Item>
                 <Descriptions.Item label="酒店标签" span={2}>
                   {selectedHotel.tags && selectedHotel.tags.length > 0
                     ? selectedHotel.tags.map((tag: string, index: number) => (
@@ -288,9 +318,26 @@ const AuditList: React.FC = () => {
             </div>
           )}
         </Modal>
+
+        {/* 删除确认模态框 */}
+        <Modal
+          title="确认删除"
+          open={deleteVisible}
+          onCancel={() => setDeleteVisible(false)}
+          footer={[
+            <Button key="cancel" onClick={() => setDeleteVisible(false)}>
+              取消
+            </Button>,
+            <Button key="confirm" danger onClick={confirmDelete}>
+              确认删除
+            </Button>,
+          ]}
+        >
+          <p>您确定要删除该酒店吗？此操作不可撤销。</p>
+        </Modal>
       </div>
     </AdminLayout>
   );
 };
 
-export default AuditList;
+export default HotelList;

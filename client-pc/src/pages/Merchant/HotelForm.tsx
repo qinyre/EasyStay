@@ -1,477 +1,280 @@
 import React, { useState, useEffect } from "react";
-import { createHotel, updateHotel, getHotels } from "../../services/hotel";
+import { createHotel, updateHotel, getHotelById } from "../../services/hotel";
+import {
+  Form,
+  Input,
+  Select,
+  Button,
+  message,
+  Typography,
+  Card,
+  Table,
+} from "antd";
+import { PlusOutlined, MinusOutlined } from "@ant-design/icons";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
+import AdminLayout from "../../layouts/Layout";
+
+const { Title } = Typography;
+const { Option } = Select;
 
 const HotelForm: React.FC = () => {
-  const [formData, setFormData] = useState({
-    name_cn: "",
-    name_en: "",
-    address: "",
-    star_level: 3,
-    rooms: [{ type_name: "", price: 0, stock: 0 }],
-    open_date: "",
-    banner_url: "https://via.placeholder.com/600x400",
-    tags: [] as string[],
-    tagsInput: "",
-  });
-  const [hotels, setHotels] = useState<any[]>([]);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [message, setMessage] = useState("");
+  const [form] = Form.useForm();
+  const [loading, setLoading] = useState(false);
+  const [rooms, setRooms] = useState([{ type_name: "", price: 0, stock: 0 }]);
+  const [initLoading, setInitLoading] = useState(false);
+  const navigate = useNavigate();
+  const { id } = useParams<{ id: string }>();
+  const location = useLocation();
 
-  // 获取酒店列表
+  const isEditMode = !!id;
+
+  // 从URL参数中获取酒店数据
   useEffect(() => {
-    const fetchHotels = async () => {
+    if (isEditMode) {
       try {
-        const result = await getHotels();
-        if (result && result.code === 200 && Array.isArray(result.data)) {
-          setHotels(result.data);
-        } else {
-          setHotels([]); // 如果数据格式不正确，使用空数组
+        const searchParams = new URLSearchParams(location.search);
+        const hotelDataStr = searchParams.get("data");
+        if (hotelDataStr) {
+          const hotel = JSON.parse(decodeURIComponent(hotelDataStr));
+          // 填充表单数据
+          form.setFieldsValue({
+            name_cn: hotel.name_cn,
+            name_en: hotel.name_en,
+            address: hotel.address,
+            star_level: hotel.star_level,
+            open_date: hotel.open_date,
+            banner_url: hotel.banner_url,
+            tags: hotel.tags ? hotel.tags.join(", ") : "",
+          });
+          // 填充房型数据
+          if (hotel.rooms && hotel.rooms.length > 0) {
+            setRooms(hotel.rooms);
+          }
         }
       } catch (error) {
-        console.error("获取酒店列表失败:", error);
-        setHotels([]); // 出错时使用空数组
+        console.error("解析酒店数据失败:", error);
       }
-    };
-    fetchHotels();
-  }, []);
-
-  // 处理表单输入变化
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
-  ) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  // 处理房型变化
-  const handleRoomChange = (
-    index: number,
-    field: string,
-    value: string | number,
-  ) => {
-    const newRooms = [...formData.rooms];
-    // 确保价格和库存是有效的数字
-    let processedValue = value;
-    if (field === "price" || field === "stock") {
-      const numValue = typeof value === "string" ? parseFloat(value) : value;
-      processedValue = isNaN(numValue) ? 0 : numValue;
     }
-    (newRooms[index] as any)[field] = processedValue;
-    setFormData((prev) => ({ ...prev, rooms: newRooms }));
+  }, [isEditMode, location.search, form]);
+
+  const handleAddRoom = () => {
+    setRooms([...rooms, { type_name: "", price: 0, stock: 0 }]);
   };
 
-  // 添加房型
-  const addRoom = () => {
-    setFormData((prev) => ({
-      ...prev,
-      rooms: [...prev.rooms, { type_name: "", price: 0, stock: 0 }],
-    }));
+  const handleRemoveRoom = (index: number) => {
+    const newRooms = [...rooms];
+    newRooms.splice(index, 1);
+    setRooms(newRooms);
   };
 
-  // 删除房型
-  const removeRoom = (index: number) => {
-    if (formData.rooms.length > 1) {
-      const newRooms = formData.rooms.filter((_, i) => i !== index);
-      setFormData((prev) => ({ ...prev, rooms: newRooms }));
-    }
+  const handleRoomChange = (index: number, field: string, value: any) => {
+    const newRooms = [...rooms];
+    newRooms[index] = { ...newRooms[index], [field]: value };
+    setRooms(newRooms);
   };
 
-  // 处理编辑
-  const handleEdit = (hotel: any) => {
-    setEditingId(hotel.id);
-    setFormData({
-      name_cn: hotel.name_cn,
-      name_en: hotel.name_en,
-      address: hotel.address,
-      star_level: hotel.star_level,
-      rooms: hotel.rooms || [{ type_name: "", price: 0, stock: 0 }],
-      open_date: hotel.open_date || "",
-      banner_url: hotel.banner_url || "https://via.placeholder.com/600x400",
-      tags: hotel.tags || [],
-      tagsInput: "",
-    });
-  };
-
-  // 处理提交
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setMessage("");
-
+  const handleSubmit = async (values: any) => {
+    setLoading(true);
     try {
+      // 处理标签数据，将字符串转换为数组
+      const tagsArray = values.tags
+        ? values.tags
+            .split(",")
+            .map((tag: string) => tag.trim())
+            .filter((tag: string) => tag)
+        : [];
+
+      // 确保 rooms 是数组
+      const hotelRooms = Array.isArray(rooms) ? rooms : [];
+
+      const hotelData = {
+        ...values,
+        tags: tagsArray,
+        rooms: hotelRooms,
+        audit_status: "pending",
+        is_offline: false,
+      };
+
       let result;
-      if (editingId) {
-        result = await updateHotel(editingId, formData);
+      if (isEditMode) {
+        result = await updateHotel(id!, hotelData);
       } else {
-        result = await createHotel(formData);
+        result = await createHotel(hotelData);
       }
 
-      if (result && result.code === 200) {
-        setMessage(editingId ? "酒店信息更新成功" : "酒店信息添加成功");
-        // 重置表单
-        setFormData({
-          name_cn: "",
-          name_en: "",
-          address: "",
-          star_level: 3,
-          rooms: [{ type_name: "", price: 0, stock: 0 }],
-          open_date: "",
-          banner_url: "https://via.placeholder.com/600x400",
-          tags: [],
-          tagsInput: "",
-        });
-        setEditingId(null);
-
-        // 重新获取酒店列表
-        try {
-          const hotelsResult = await getHotels();
-          if (
-            hotelsResult &&
-            hotelsResult.code === 200 &&
-            Array.isArray(hotelsResult.data)
-          ) {
-            setHotels(hotelsResult.data);
-          }
-        } catch (error) {
-          console.error("获取酒店列表失败:", error);
-          // 保持当前酒店列表不变
-        }
+      if (result.code === 200) {
+        message.success(isEditMode ? "酒店更新成功" : "酒店添加成功");
+        navigate("/merchant/hotels");
       } else {
-        setMessage("操作失败：" + (result?.message || "未知错误"));
+        message.error(
+          result.message || (isEditMode ? "酒店更新失败" : "酒店添加失败"),
+        );
       }
-    } catch (error: any) {
-      setMessage("操作失败：" + (error?.message || "网络错误"));
+    } catch (error) {
+      message.error("操作失败");
+    } finally {
+      setLoading(false);
     }
-  };
-
-  // 登出功能
-  const handleLogout = () => {
-    // 清除localStorage中的用户信息
-    localStorage.removeItem("token");
-    localStorage.removeItem("role");
-    // 跳转到登录页面
-    window.location.href = "/login";
   };
 
   return (
-    <div style={{ padding: "2rem" }}>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: "1rem",
-        }}
-      >
-        <h2>酒店信息管理</h2>
-        <button onClick={handleLogout} style={{ padding: "0.5rem 1rem" }}>
-          登出
-        </button>
-      </div>
-
-      {/* 表单区域 */}
-      <div
-        style={{
-          maxWidth: 800,
-          marginBottom: "2rem",
-          padding: "1rem",
-          border: "1px solid #ccc",
-        }}
-      >
-        <h3>{editingId ? "编辑酒店" : "添加酒店"}</h3>
-        {message && (
-          <div style={{ color: "green", marginBottom: "1rem" }}>{message}</div>
-        )}
-        <form onSubmit={handleSubmit}>
-          <div style={{ marginBottom: "1rem" }}>
-            <label>酒店中文名：</label>
-            <input
-              type="text"
-              name="name_cn"
-              value={formData.name_cn}
-              onChange={handleChange}
-              style={{ width: "100%", padding: "0.5rem" }}
-              required
-            />
-          </div>
-          <div style={{ marginBottom: "1rem" }}>
-            <label>酒店英文名：</label>
-            <input
-              type="text"
-              name="name_en"
-              value={formData.name_en}
-              onChange={handleChange}
-              style={{ width: "100%", padding: "0.5rem" }}
-              required
-            />
-          </div>
-          <div style={{ marginBottom: "1rem" }}>
-            <label>地址：</label>
-            <input
-              type="text"
-              name="address"
-              value={formData.address}
-              onChange={handleChange}
-              style={{ width: "100%", padding: "0.5rem" }}
-              required
-            />
-          </div>
-          <div style={{ marginBottom: "1rem" }}>
-            <label>星级：</label>
-            <select
-              name="star_level"
-              value={formData.star_level}
-              onChange={handleChange}
-              style={{ width: "100%", padding: "0.5rem" }}
-            >
-              {[1, 2, 3, 4, 5].map((star) => (
-                <option key={star} value={star}>
-                  {star}星
-                </option>
-              ))}
-            </select>
-          </div>
-          <div style={{ marginBottom: "1rem" }}>
-            <label>开业时间：</label>
-            <input
-              type="date"
-              name="open_date"
-              value={formData.open_date}
-              onChange={handleChange}
-              style={{ width: "100%", padding: "0.5rem" }}
-              required
-            />
-          </div>
-
-          <div style={{ marginBottom: "1rem" }}>
-            <label>标签（最多10个，用逗号分隔）：</label>
-            <input
-              type="text"
-              name="tagsInput"
-              value={formData.tagsInput}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, tagsInput: e.target.value }))
-              }
-              placeholder="例如：商务,亲子,度假"
-              style={{ width: "100%", padding: "0.5rem" }}
-            />
-            <button
-              type="button"
-              onClick={() => {
-                if (formData.tagsInput.trim() && formData.tags.length < 10) {
-                  const newTags = [...formData.tags, formData.tagsInput.trim()];
-                  setFormData((prev) => ({
-                    ...prev,
-                    tags: newTags,
-                    tagsInput: "",
-                  }));
-                }
-              }}
-              style={{ marginTop: "0.5rem", marginRight: "0.5rem" }}
-            >
-              添加标签
-            </button>
-            {formData.tags.map((tag, index) => (
-              <span
-                key={index}
-                style={{
-                  marginRight: "0.5rem",
-                  padding: "0.2rem 0.5rem",
-                  backgroundColor: "#f0f0f0",
-                  borderRadius: "4px",
-                  display: "inline-block",
-                  marginBottom: "0.5rem",
-                }}
-              >
-                {tag}
-                <button
-                  type="button"
-                  onClick={() => {
-                    const newTags = formData.tags.filter((_, i) => i !== index);
-                    setFormData((prev) => ({ ...prev, tags: newTags }));
-                  }}
-                  style={{
-                    marginLeft: "0.5rem",
-                    border: "none",
-                    background: "none",
-                    cursor: "pointer",
-                  }}
-                >
-                  ×
-                </button>
-              </span>
-            ))}
-          </div>
-
-          <h4>房型信息</h4>
-          {(formData.rooms || []).map((room, index) => (
-            <div
-              key={index}
-              style={{
-                marginBottom: "1rem",
-                padding: "1rem",
-                border: "1px solid #eee",
-              }}
-            >
-              <div style={{ marginBottom: "0.5rem" }}>
-                <label>房型：</label>
-                <input
-                  type="text"
-                  value={room.type_name}
-                  onChange={(e) =>
-                    handleRoomChange(index, "type_name", e.target.value)
-                  }
-                  style={{ width: "100%", padding: "0.5rem" }}
-                  required
-                />
-              </div>
-              <div style={{ marginBottom: "0.5rem" }}>
-                <label>价格：</label>
-                <input
-                  type="number"
-                  value={room.price}
-                  onChange={(e) =>
-                    handleRoomChange(index, "price", e.target.value)
-                  }
-                  style={{ width: "100%", padding: "0.5rem" }}
-                  required
-                />
-              </div>
-              <div style={{ marginBottom: "0.5rem" }}>
-                <label>库存：</label>
-                <input
-                  type="number"
-                  value={room.stock}
-                  onChange={(e) =>
-                    handleRoomChange(index, "stock", e.target.value)
-                  }
-                  style={{ width: "100%", padding: "0.5rem" }}
-                  required
-                />
-              </div>
-              {formData.rooms.length > 1 && (
-                <button
-                  type="button"
-                  onClick={() => removeRoom(index)}
-                  style={{ marginRight: "1rem" }}
-                >
-                  删除房型
-                </button>
-              )}
-            </div>
-          ))}
-          <button
-            type="button"
-            onClick={addRoom}
-            style={{ marginBottom: "1rem" }}
-          >
-            添加房型
-          </button>
-
-          <button type="submit" style={{ padding: "0.5rem 1rem" }}>
-            {editingId ? "更新酒店" : "添加酒店"}
-          </button>
-          {editingId && (
-            <button
-              type="button"
-              onClick={() => {
-                setEditingId(null);
-                setFormData({
-                  name_cn: "",
-                  name_en: "",
-                  address: "",
-                  star_level: 3,
-                  rooms: [{ type_name: "", price: 0, stock: 0 }],
-                  open_date: "",
-                  banner_url: "https://via.placeholder.com/600x400",
-                  tags: [],
-                  tagsInput: "",
-                });
-              }}
-              style={{ marginLeft: "1rem", padding: "0.5rem 1rem" }}
-            >
-              取消编辑
-            </button>
-          )}
-        </form>
-      </div>
-
-      {/* 酒店列表 */}
+    <AdminLayout>
       <div>
-        <h3>酒店列表</h3>
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
-          <thead>
-            <tr style={{ borderBottom: "1px solid #ccc" }}>
-              <th style={{ padding: "0.5rem" }}>酒店名称</th>
-              <th style={{ padding: "0.5rem" }}>星级</th>
-              <th style={{ padding: "0.5rem" }}>地址</th>
-              <th style={{ padding: "0.5rem" }}>标签</th>
-              <th style={{ padding: "0.5rem" }}>审核状态</th>
-              <th style={{ padding: "0.5rem" }}>上线状态</th>
-              <th style={{ padding: "0.5rem" }}>拒绝理由</th>
-              <th style={{ padding: "0.5rem" }}>操作</th>
-            </tr>
-          </thead>
-          <tbody>
-            {Array.isArray(hotels)
-              ? hotels.map((hotel) => (
-                  <tr key={hotel.id} style={{ borderBottom: "1px solid #eee" }}>
-                    <td style={{ padding: "0.5rem" }}>{hotel.name_cn}</td>
-                    <td style={{ padding: "0.5rem" }}>{hotel.star_level}星</td>
-                    <td style={{ padding: "0.5rem" }}>{hotel.address}</td>
-                    <td style={{ padding: "0.5rem" }}>
-                      {hotel.tags && hotel.tags.length > 0
-                        ? hotel.tags.map((tag: string, index: number) => (
-                            <span
-                              key={index}
-                              style={{
-                                marginRight: "0.5rem",
-                                fontSize: "0.9rem",
-                                color: "#666",
-                              }}
-                            >
-                              {tag}
-                            </span>
-                          ))
-                        : "无"}
-                    </td>
-                    <td style={{ padding: "0.5rem" }}>
-                      {(hotel.audit_status === "pending" ||
-                        hotel.audit_status === "Pending") &&
-                        "待审核"}
-                      {(hotel.audit_status === "approved" ||
-                        hotel.audit_status === "Approved") &&
-                        "已通过"}
-                      {(hotel.audit_status === "rejected" ||
-                        hotel.audit_status === "Rejected") &&
-                        "已拒绝"}
-                    </td>
-                    <td style={{ padding: "0.5rem" }}>
-                      {hotel.is_offline ? "已下线" : "已上线"}
-                    </td>
-                    <td style={{ padding: "0.5rem" }}>
-                      {(hotel.audit_status === "rejected" ||
-                        hotel.audit_status === "Rejected") &&
-                        hotel.reject_reason && (
-                          <div style={{ color: "red", fontSize: "0.9rem" }}>
-                            拒绝理由: {hotel.reject_reason}
-                          </div>
-                        )}
-                    </td>
-                    <td style={{ padding: "0.5rem" }}>
-                      <button
-                        onClick={() => handleEdit(hotel)}
-                        style={{ marginRight: "0.5rem" }}
+        <Title level={4}>{isEditMode ? "编辑酒店" : "添加酒店"}</Title>
+
+        <Card className="mt-4" loading={initLoading}>
+          <Form form={form} layout="vertical" onFinish={handleSubmit}>
+            <div className="grid grid-cols-2 gap-6">
+              <Form.Item
+                name="name_cn"
+                label="酒店中文名"
+                rules={[{ required: true, message: "请输入酒店中文名" }]}
+              >
+                <Input placeholder="请输入酒店中文名" />
+              </Form.Item>
+
+              <Form.Item
+                name="name_en"
+                label="酒店英文名"
+                rules={[{ required: true, message: "请输入酒店英文名" }]}
+              >
+                <Input placeholder="请输入酒店英文名" />
+              </Form.Item>
+
+              <Form.Item
+                name="address"
+                label="酒店地址"
+                rules={[{ required: true, message: "请输入酒店地址" }]}
+              >
+                <Input placeholder="请输入酒店地址" />
+              </Form.Item>
+
+              <Form.Item
+                name="star_level"
+                label="酒店星级"
+                rules={[{ required: true, message: "请选择酒店星级" }]}
+              >
+                <Select placeholder="请选择酒店星级">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <Option key={star} value={star}>
+                      {"★".repeat(star)}
+                    </Option>
+                  ))}
+                </Select>
+              </Form.Item>
+
+              <Form.Item
+                name="open_date"
+                label="开业时间"
+                rules={[{ required: true, message: "请输入开业时间" }]}
+              >
+                <Input type="date" />
+              </Form.Item>
+
+              <Form.Item
+                name="banner_url"
+                label="酒店图片"
+                rules={[{ required: true, message: "请输入酒店图片URL" }]}
+              >
+                <Input placeholder="请输入酒店图片URL" />
+              </Form.Item>
+            </div>
+
+            <Form.Item name="tags" label="酒店标签">
+              <Input placeholder="请输入酒店标签，用逗号分隔" />
+            </Form.Item>
+
+            <div className="mt-8">
+              <Title level={5}>房型信息</Title>
+
+              <div className="mt-4">
+                {rooms.map((room, index) => (
+                  <Card key={index} className="mb-4">
+                    <div className="flex justify-between items-center mb-4">
+                      <h4>房型 {index + 1}</h4>
+                      <Button
+                        danger
+                        icon={<MinusOutlined />}
+                        onClick={() => handleRemoveRoom(index)}
                       >
-                        编辑
-                      </button>
-                    </td>
-                  </tr>
-                ))
-              : null}
-          </tbody>
-        </table>
+                        删除房型
+                      </Button>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-4">
+                      <Form.Item
+                        label="房型名称"
+                        rules={[{ required: true, message: "请输入房型名称" }]}
+                      >
+                        <Input
+                          placeholder="请输入房型名称"
+                          value={room.type_name}
+                          onChange={(e) =>
+                            handleRoomChange(index, "type_name", e.target.value)
+                          }
+                        />
+                      </Form.Item>
+
+                      <Form.Item
+                        label="价格"
+                        rules={[{ required: true, message: "请输入价格" }]}
+                      >
+                        <Input
+                          type="number"
+                          placeholder="请输入价格"
+                          value={room.price}
+                          onChange={(e) =>
+                            handleRoomChange(
+                              index,
+                              "price",
+                              parseFloat(e.target.value) || 0,
+                            )
+                          }
+                        />
+                      </Form.Item>
+
+                      <Form.Item
+                        label="库存"
+                        rules={[{ required: true, message: "请输入库存" }]}
+                      >
+                        <Input
+                          type="number"
+                          placeholder="请输入库存"
+                          value={room.stock}
+                          onChange={(e) =>
+                            handleRoomChange(
+                              index,
+                              "stock",
+                              parseInt(e.target.value) || 0,
+                            )
+                          }
+                        />
+                      </Form.Item>
+                    </div>
+                  </Card>
+                ))}
+
+                <Button
+                  type="dashed"
+                  icon={<PlusOutlined />}
+                  onClick={handleAddRoom}
+                  className="w-full"
+                >
+                  添加房型
+                </Button>
+              </div>
+            </div>
+
+            <div className="mt-8 flex justify-end gap-4">
+              <Button onClick={() => navigate("/merchant/hotels")}>取消</Button>
+              <Button type="primary" htmlType="submit" loading={loading}>
+                {isEditMode ? "更新酒店" : "添加酒店"}
+              </Button>
+            </div>
+          </Form>
+        </Card>
       </div>
-    </div>
+    </AdminLayout>
   );
 };
 

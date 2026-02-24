@@ -1,166 +1,267 @@
-//管理员上下线酒店
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { getHotels, publishHotel } from "../../services/hotel";
+import {
+  Table,
+  Button,
+  message,
+  Typography,
+  Tag,
+  Empty,
+  Descriptions,
+  Card,
+  Modal,
+} from "antd";
+import {
+  UpCircleOutlined,
+  DownCircleOutlined,
+  EyeOutlined,
+} from "@ant-design/icons";
+import AdminLayout from "../../layouts/Layout";
+
+const { Title } = Typography;
 
 const PublishList: React.FC = () => {
   const [hotels, setHotels] = useState<any[]>([]);
-  const [message, setMessage] = useState("");
-  const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
+  const [detailVisible, setDetailVisible] = useState(false);
+  const [selectedHotel, setSelectedHotel] = useState<any>(null);
 
-  // 获取酒店列表
   useEffect(() => {
-    const fetchHotels = async () => {
-      try {
-        const result = await getHotels();
-        if (result.code === 200 && result.data) {
-          setHotels(Array.isArray(result.data) ? result.data : [result.data]);
-        } else {
-          setHotels([]);
-        }
-      } catch (error) {
-        console.error("获取酒店列表失败:", error);
-        setHotels([]);
-      }
-    };
     fetchHotels();
   }, []);
-  // 导航到审核页面
-  const navigateToAudit = () => {
-    navigate("/admin/audit");
-  };
-  // 导航到上下线页面
-  const navigateToPublish = () => {
-    navigate("/admin/publish");
-  };
-  // 处理上下线
-  const handlePublish = async (hotel: any, isOnline: boolean) => {
-    const result = await publishHotel(hotel.id, isOnline);
-    if (result.code === 200) {
-      setMessage(isOnline ? "酒店已上线" : "酒店已下线");
-      // 刷新列表
-      const hotelsResult = await getHotels();
-      if (hotelsResult.code === 200 && hotelsResult.data) {
-        setHotels(hotelsResult.data);
+
+  const fetchHotels = async () => {
+    try {
+      setLoading(true);
+      const result = await getHotels();
+      console.log("获取酒店列表结果:", result);
+      if (result.code === 200 && result.data) {
+        // 过滤出已通过审核的酒店，同时处理大小写问题
+        const approvedHotels = result.data.filter(
+          (hotel: any) =>
+            hotel.audit_status === "approved" ||
+            hotel.audit_status === "Approved",
+        );
+        console.log("已通过审核酒店:", approvedHotels);
+        setHotels(approvedHotels);
       }
-    } else {
-      setMessage("操作失败：" + (result.message || "未知错误"));
+    } catch (error) {
+      console.error("获取酒店列表失败:", error);
+      message.error("获取酒店列表失败");
+    } finally {
+      setLoading(false);
     }
   };
 
-  // 登出功能
-  const handleLogout = () => {
-    // 清除localStorage中的用户信息
-    localStorage.removeItem("token");
-    localStorage.removeItem("role");
-    // 跳转到登录页面
-    window.location.href = "/login";
+  const handleStatusChange = async (hotel: any, isOffline: boolean) => {
+    try {
+      const result = await publishHotel(hotel.id, isOffline);
+      if (result.code === 200) {
+        message.success(isOffline ? "酒店已下线" : "酒店已上线");
+        fetchHotels();
+      } else {
+        message.error("操作失败");
+      }
+    } catch (error) {
+      message.error("操作失败");
+    }
+  };
+
+  const columns = [
+    {
+      title: "酒店名称",
+      dataIndex: "name_cn",
+      key: "name_cn",
+    },
+    {
+      title: "地址",
+      dataIndex: "address",
+      key: "address",
+    },
+    {
+      title: "星级",
+      dataIndex: "star_level",
+      key: "star_level",
+      render: (starLevel: number) => "★".repeat(starLevel),
+    },
+    {
+      title: "状态",
+      dataIndex: "is_offline",
+      key: "is_offline",
+      render: (isOffline: boolean) => (
+        <Tag color={isOffline ? "red" : "green"}>
+          {isOffline ? "已下线" : "已上线"}
+        </Tag>
+      ),
+    },
+    {
+      title: "操作",
+      key: "action",
+      render: (_: any, record: any) => (
+        <div className="flex gap-2">
+          {record.is_offline ? (
+            <Button
+              type="primary"
+              icon={<UpCircleOutlined />}
+              onClick={() => handleStatusChange(record, true)}
+            >
+              上线
+            </Button>
+          ) : (
+            <Button
+              danger
+              icon={<DownCircleOutlined />}
+              onClick={() => handleStatusChange(record, false)}
+            >
+              下线
+            </Button>
+          )}
+          <Button
+            icon={<EyeOutlined />}
+            onClick={() => handleViewDetail(record)}
+          >
+            查看
+          </Button>
+        </div>
+      ),
+    },
+  ];
+
+  const handleViewDetail = (hotel: any) => {
+    setSelectedHotel(hotel);
+    setDetailVisible(true);
   };
 
   return (
-    <div style={{ padding: "2rem" }}>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: "1rem",
-        }}
-      >
-        <div>
-          <h2>酒店上下线管理</h2>
-          <div style={{ marginTop: "1rem" }}>
-            <button
-              onClick={navigateToAudit}
-              style={{ padding: "0.5rem 1rem", marginRight: "1rem" }}
-            >
-              审核
-            </button>
-            <button
-              onClick={navigateToPublish}
-              style={{ padding: "0.5rem 1rem" }}
-            >
-              上/下线
-            </button>
-          </div>
-        </div>
-        <button onClick={handleLogout} style={{ padding: "0.5rem 1rem" }}>
-          登出
-        </button>
-      </div>
-      {message && (
-        <div style={{ color: "green", marginBottom: "1rem" }}>{message}</div>
-      )}
+    <AdminLayout>
+      <div>
+        <Title level={4}>上下线管理</Title>
 
-      <table style={{ width: "100%", borderCollapse: "collapse" }}>
-        <thead>
-          <tr style={{ borderBottom: "1px solid #ccc" }}>
-            <th style={{ padding: "0.5rem" }}>酒店名称</th>
-            <th style={{ padding: "0.5rem" }}>星级</th>
-            <th style={{ padding: "0.5rem" }}>地址</th>
-            <th style={{ padding: "0.5rem" }}>标签</th>
-            <th style={{ padding: "0.5rem" }}>状态</th>
-            <th style={{ padding: "0.5rem" }}>房型信息</th>
-            <th style={{ padding: "0.5rem" }}>操作</th>
-          </tr>
-        </thead>
-        <tbody>
-          {hotels.map((hotel) => (
-            <tr key={hotel.id} style={{ borderBottom: "1px solid #eee" }}>
-              <td style={{ padding: "0.5rem" }}>{hotel.name_cn}</td>
-              <td style={{ padding: "0.5rem" }}>{hotel.star_level}星</td>
-              <td style={{ padding: "0.5rem" }}>{hotel.address}</td>
-              <td style={{ padding: "0.5rem" }}>
-                {hotel.tags && hotel.tags.length > 0
-                  ? hotel.tags.map((tag: string, index: number) => (
-                      <span
-                        key={index}
-                        style={{
-                          marginRight: "0.5rem",
-                          fontSize: "0.9rem",
-                          color: "#666",
-                        }}
-                      >
-                        {tag}
-                      </span>
+        <Table
+          columns={columns}
+          dataSource={hotels}
+          rowKey="id"
+          loading={loading}
+          pagination={{
+            pageSize: 10,
+            showSizeChanger: true,
+            pageSizeOptions: ["10", "20", "50"],
+          }}
+          locale={{
+            emptyText: <Empty description="暂无酒店数据" />,
+          }}
+        />
+      </div>
+
+      {/* 酒店详情模态框 */}
+      <Modal
+        title="酒店详情"
+        open={detailVisible}
+        onCancel={() => setDetailVisible(false)}
+        footer={[
+          <Button key="close" onClick={() => setDetailVisible(false)}>
+            关闭
+          </Button>,
+        ]}
+        width={800}
+      >
+        {selectedHotel && (
+          <div>
+            <Descriptions bordered column={2}>
+              <Descriptions.Item label="酒店名称">
+                {selectedHotel.name_cn}
+              </Descriptions.Item>
+              <Descriptions.Item label="英文名称">
+                {selectedHotel.name_en || "-"}
+              </Descriptions.Item>
+              <Descriptions.Item label="地址">
+                {selectedHotel.address}
+              </Descriptions.Item>
+              <Descriptions.Item label="星级">
+                {"★".repeat(selectedHotel.star_level)}
+              </Descriptions.Item>
+              <Descriptions.Item label="开业时间">
+                {selectedHotel.open_date || "-"}
+              </Descriptions.Item>
+              <Descriptions.Item label="审核状态">
+                <Tag
+                  color={
+                    selectedHotel.audit_status === "pending" ||
+                    selectedHotel.audit_status === "Pending"
+                      ? "blue"
+                      : selectedHotel.audit_status === "approved" ||
+                          selectedHotel.audit_status === "Approved"
+                        ? "green"
+                        : selectedHotel.audit_status === "rejected" ||
+                            selectedHotel.audit_status === "Rejected"
+                          ? "red"
+                          : "gray"
+                  }
+                >
+                  {selectedHotel.audit_status === "pending" ||
+                  selectedHotel.audit_status === "Pending"
+                    ? "待审核"
+                    : selectedHotel.audit_status === "approved" ||
+                        selectedHotel.audit_status === "Approved"
+                      ? "已通过"
+                      : selectedHotel.audit_status === "rejected" ||
+                          selectedHotel.audit_status === "Rejected"
+                        ? "已拒绝"
+                        : "未知"}
+                </Tag>
+              </Descriptions.Item>
+              <Descriptions.Item label="上下线状态">
+                <Tag color={selectedHotel.is_offline ? "red" : "green"}>
+                  {selectedHotel.is_offline ? "已下线" : "已上线"}
+                </Tag>
+              </Descriptions.Item>
+              <Descriptions.Item label="酒店标签" span={2}>
+                {selectedHotel.tags && selectedHotel.tags.length > 0
+                  ? selectedHotel.tags.map((tag: string, index: number) => (
+                      <Tag key={index}>{tag}</Tag>
                     ))
-                  : "无"}
-              </td>
-              <td style={{ padding: "0.5rem" }}>
-                {hotel.is_offline ? "已下线" : "已上线"}
-              </td>
-              <td style={{ padding: "0.5rem" }}>
-                <div>
-                  {hotel.rooms && hotel.rooms.length > 0 ? (
-                    <>
-                      {(hotel.rooms || []).map((room: any, index: number) => (
-                        <div key={index} style={{ marginBottom: "0.5rem" }}>
-                          <strong>{room.type_name || room.type}</strong>: ¥
-                          {room.price} (库存:{room.stock})
-                        </div>
-                      ))}
-                    </>
-                  ) : (
-                    "无房型信息"
-                  )}
-                </div>
-              </td>
-              <td style={{ padding: "0.5rem" }}>
-                {hotel.is_offline ? (
-                  <button onClick={() => handlePublish(hotel, true)}>
-                    上线
-                  </button>
-                ) : (
-                  <button onClick={() => handlePublish(hotel, false)}>
-                    下线
-                  </button>
-                )}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+                  : "-"}
+              </Descriptions.Item>
+            </Descriptions>
+
+            <Card title="房型信息" className="mt-4">
+              {selectedHotel.rooms && selectedHotel.rooms.length > 0 ? (
+                selectedHotel.rooms.map((room: any, index: number) => (
+                  <Descriptions
+                    key={index}
+                    bordered
+                    column={3}
+                    className="mb-4"
+                  >
+                    <Descriptions.Item label="房型名称">
+                      {room.type_name}
+                    </Descriptions.Item>
+                    <Descriptions.Item label="价格">
+                      ¥{room.price}
+                    </Descriptions.Item>
+                    <Descriptions.Item label="库存">
+                      {room.stock}间
+                    </Descriptions.Item>
+                  </Descriptions>
+                ))
+              ) : (
+                <Empty description="暂无房型信息" />
+              )}
+            </Card>
+
+            {(selectedHotel.audit_status === "rejected" ||
+              selectedHotel.audit_status === "Rejected") &&
+              (selectedHotel.reject_reason || selectedHotel.fail_reason) && (
+                <Card title="拒绝原因" className="mt-4">
+                  <p>
+                    {selectedHotel.reject_reason || selectedHotel.fail_reason}
+                  </p>
+                </Card>
+              )}
+          </div>
+        )}
+      </Modal>
+    </AdminLayout>
   );
 };
 
