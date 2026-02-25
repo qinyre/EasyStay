@@ -17,11 +17,14 @@ export const RoomCard: React.FC<RoomCardProps> = ({ room, nights = 1, onBook }) 
   const location = useLocation();
   const totalPrice = room.price * nights;
 
+  // 房型图片为空时使用默认占位符
+  const roomImage = room.image || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZTNlN2U4Ii8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtc2l6ZT0iMjQiIGZpbGw9IiM5NDkzYTgiIHRleHQtYW5jaG9yPSJtaWRkbGUiPueJhzwvdGV4dD48L3N2Zz4=';
+
   return (
     <Card className="mb-3 rounded-2xl border border-slate-100 shadow-[0_2px_8px_rgba(0,0,0,0.04)] active:scale-[0.98] transition-all" bodyStyle={{ padding: 12 }}>
       <div className="flex">
         <div className="w-24 h-24 rounded-xl overflow-hidden flex-shrink-0 bg-slate-100">
-          <Image src={room.image} alt={room.type} fit="cover" className="w-full h-full" />
+          <Image src={roomImage} alt={room.type} fit="cover" className="w-full h-full" />
         </div>
         <div className="ml-3 flex-1 flex flex-col justify-between">
           <div>

@@ -17,8 +17,21 @@ beforeAll(() => {
 
 // 清空测试数据
 beforeEach(() => {
-    // 清空用户表
-    db.prepare('DELETE FROM users').run();
+    // 临时禁用外键约束以便清理测试数据
+    db.pragma('foreign_keys = OFF');
+
+    // 清空所有相关表
+    const tables = ['rooms', 'hotels', 'bookings', 'users'];
+    tables.forEach(table => {
+        try {
+            db.prepare(`DELETE FROM ${table}`).run();
+        } catch (e) {
+            // 表不存在则忽略
+        }
+    });
+
+    // 重新启用外键约束
+    db.pragma('foreign_keys = ON');
 });
 
 describe('Auth Controller', () => {

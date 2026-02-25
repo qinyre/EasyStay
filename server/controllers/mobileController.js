@@ -251,6 +251,10 @@ const getHotelById = async (req, res) => {
         };
 
         const hotelTags = hotel.tags ? JSON.parse(hotel.tags) : [];
+        const hotelFacilities = hotel.facilities ? JSON.parse(hotel.facilities) : [];
+
+        // 调试：输出 description 的值
+        console.log(`[DEBUG] Hotel ${hotel.id} description from DB:`, hotel.description);
 
         const hotelDetails = {
             id: hotel.id,
@@ -263,7 +267,7 @@ const getHotelById = async (req, res) => {
             image: hotel.banner_url,
             images: [hotel.banner_url],
             tags: hotelTags,
-            facilities: ['健身房', '游泳池', 'WiFi', '停车场'],
+            facilities: hotelFacilities.length > 0 ? hotelFacilities : ['健身房', '游泳池', 'WiFi', '停车场'],
             rooms: rooms.map(room => ({
                 id: room.id,
                 type: room.name,

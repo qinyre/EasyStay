@@ -14,6 +14,8 @@ import { PlusOutlined, MinusOutlined, UploadOutlined } from "@ant-design/icons";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import AdminLayout from "../../layouts/Layout";
 import { API_ORIGIN } from "../../services/config";
+import { HOTEL_FACILITIES } from "../../constants/facilities";
+import { HOTEL_TAGS } from "../../constants/hotelTags";
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -53,7 +55,9 @@ const HotelForm: React.FC = () => {
             star_level: hotel.star_level,
             open_date: hotel.open_date,
             banner_url: hotel.banner_url,
-            tags: hotel.tags ? hotel.tags.join(", ") : "",
+            tags: hotel.tags || [],
+            description: hotel.description || "",
+            facilities: hotel.facilities || [],
           });
           // 填充房型数据
           if (hotel.rooms && hotel.rooms.length > 0) {
@@ -103,13 +107,8 @@ const HotelForm: React.FC = () => {
   const handleSubmit = async (values: any) => {
     setLoading(true);
     try {
-      // 处理标签数据，将字符串转换为数组
-      const tagsArray = values.tags
-        ? values.tags
-            .split(",")
-            .map((tag: string) => tag.trim())
-            .filter((tag: string) => tag)
-        : [];
+      // tags 已经是数组（来自 Select multiple）
+      const tagsArray = Array.isArray(values.tags) ? values.tags : [];
 
       // 确保 rooms 是数组
       const hotelRooms = Array.isArray(rooms) ? rooms : [];
@@ -241,7 +240,30 @@ const HotelForm: React.FC = () => {
             </div>
 
             <Form.Item name="tags" label="酒店标签">
-              <Input placeholder="请输入酒店标签，用逗号分隔" />
+              <Select
+                mode="multiple"
+                placeholder="请选择酒店标签（用户可通过这些标签筛选酒店）"
+                options={HOTEL_TAGS.map(t => ({ label: `${t.icon} ${t.label}`, value: t.id }))}
+                maxTagCount="responsive"
+              />
+            </Form.Item>
+
+            <Form.Item name="description" label="关于酒店">
+              <Input.TextArea
+                rows={4}
+                placeholder="请输入酒店描述，如地理位置、周边环境、服务特色等"
+                maxLength={500}
+                showCount
+              />
+            </Form.Item>
+
+            <Form.Item name="facilities" label="酒店设施">
+              <Select
+                mode="multiple"
+                placeholder="请选择酒店提供的设施"
+                options={HOTEL_FACILITIES.map(f => ({ label: `${f.icon} ${f.label}`, value: f.id }))}
+                maxTagCount="responsive"
+              />
             </Form.Item>
 
             <div className="mt-8">
@@ -310,6 +332,24 @@ const HotelForm: React.FC = () => {
                           }
                         />
                       </Form.Item>
+                    </div>
+
+                    <div className="mb-4">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">房型图片</label>
+                      <Upload
+                        name="file"
+                        listType="picture"
+                        maxCount={1}
+                        action={`${API_ORIGIN}/merchant/upload`}
+                        fileList={room.image_url ? [{ uid: room.image_url, name: 'image.png', status: 'done', url: room.image_url }] : []}
+                        onChange={(info) => {
+                          if (info.file.status === "done") {
+                            handleRoomChange(index, "image_url", info.file.response.data.url);
+                          }
+                        }}
+                      >
+                        <Button icon={<UploadOutlined />}>上传图片</Button>
+                      </Upload>
                     </div>
                   </Card>
                 ))}

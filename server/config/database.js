@@ -67,6 +67,13 @@ const initDatabase = () => {
     console.log('open_date字段已经存在，跳过添加');
   }
 
+  // 如果酒店表已经存在但缺少facilities字段，则添加该字段
+  try {
+    db.exec(`ALTER TABLE hotels ADD COLUMN facilities TEXT`);
+  } catch (error) {
+    console.log('facilities字段已经存在，跳过添加');
+  }
+
   // 房型表
   db.exec(`
         CREATE TABLE IF NOT EXISTS rooms (

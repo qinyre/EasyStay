@@ -23,8 +23,8 @@ const createHotel = async (req, res) => {
     // 创建酒店
     db.prepare(
       `
-            INSERT INTO hotels (id, name_cn, name_en, address, star_level, open_date, banner_url, tags, audit_status, is_offline, merchant_username, createdAt, updatedAt)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Pending', 0, ?, ?, ?)
+            INSERT INTO hotels (id, name_cn, name_en, address, star_level, open_date, banner_url, description, facilities, tags, audit_status, is_offline, merchant_username, createdAt, updatedAt)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pending', 0, ?, ?, ?)
         `
     ).run(
       hotelId,
@@ -34,6 +34,8 @@ const createHotel = async (req, res) => {
       hotelData.star_level || null,
       hotelData.open_date || null,
       hotelData.banner_url || null,
+      hotelData.description || null,
+      hotelData.facilities ? JSON.stringify(hotelData.facilities) : null,
       hotelData.tags ? JSON.stringify(hotelData.tags) : null,
       req.user?.phone || req.user?.username || null,
       now,
@@ -95,12 +97,19 @@ const updateHotel = async (req, res) => {
 
     const now = new Date().toISOString();
 
+    // 调试：输出接收到的数据
+    console.log('[DEBUG] updateHotel received data:', {
+      description: updateData.description,
+      facilities: updateData.facilities,
+      tags: updateData.tags
+    });
+
     // 更新酒店基本信息
     db.prepare(
       `
             UPDATE hotels SET
                 name_cn = ?, name_en = ?, address = ?, star_level = ?,
-                banner_url = ?, tags = ?, open_date = ?, audit_status = 'Pending', updatedAt = ?
+                banner_url = ?, description = ?, tags = ?, facilities = ?, open_date = ?, audit_status = 'Pending', updatedAt = ?
             WHERE id = ?
         `
     ).run(
@@ -109,11 +118,21 @@ const updateHotel = async (req, res) => {
       updateData.address || hotel.address,
       updateData.star_level || hotel.star_level,
       updateData.banner_url || hotel.banner_url,
+      updateData.description !== undefined ? updateData.description : hotel.description,
       updateData.tags ? JSON.stringify(updateData.tags) : hotel.tags,
+      updateData.facilities ? JSON.stringify(updateData.facilities) : hotel.facilities,
       updateData.open_date || hotel.open_date,
       now,
       id
     );
+
+    // 调试：输出更新后的数据
+    const updatedHotel = db.prepare('SELECT * FROM hotels WHERE id = ?').get(id);
+    console.log('[DEBUG] Hotel after update:', {
+      id: updatedHotel.id,
+      description: updatedHotel.description,
+      facilities: updatedHotel.facilities
+    });
 
     // 更新房型信息
     if (updateData.rooms && updateData.rooms.length > 0) {
@@ -142,7 +161,9 @@ const updateHotel = async (req, res) => {
 
     // 清除相关缓存
     await Cache.del('banners');
-    await Cache.del(`hotel:${id}`);
+    await Cache.del(`hotel:v2:${id}`);
+    // 清除所有酒店列表缓存（使用通配符）
+    await Cache.del(/^hotels:v2:/);
 
     res.json({
       code: 200,
@@ -171,6 +192,8 @@ const getMyHotels = async (req, res) => {
         ...hotel,
         is_offline: !!hotel.is_offline,
         tags: hotel.tags ? JSON.parse(hotel.tags) : [],
+        facilities: hotel.facilities ? JSON.parse(hotel.facilities) : [],
+        description: hotel.description || '',
         rooms: rooms.map((r) => ({
           ...r,
           type_name: r.name, // 兼容 PC
@@ -214,7 +237,9 @@ const getHotelById = async (req, res) => {
       data: {
         ...hotel,
         is_offline: !!hotel.is_offline,
+        description: hotel.description || '',
         tags: hotel.tags ? JSON.parse(hotel.tags) : [],
+        facilities: hotel.facilities ? JSON.parse(hotel.facilities) : [],
         rooms: rooms.map((r) => ({
           ...r,
           type_name: r.name, // 兼容 PC
