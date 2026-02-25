@@ -1,6 +1,5 @@
-const Hotel = require('../models/Hotel');
-const Room = require('../models/Room');
-const { Cache } = require('../config/redis');
+const { db } = require('../config/database');
+const { Cache } = require('../config/cache');
 
 /**
  * 获取首页 Banner
@@ -18,17 +17,18 @@ const getBanners = async (req, res) => {
         }
 
         // 筛选出有 banner 的精选酒店（已审核且未下线）
-        const hotels = await Hotel.find({
-            banner_url: { $ne: null, $ne: '' },
-            is_offline: false,
-            audit_status: 'Approved'
-        }).limit(5);
+        const hotels = db.prepare(`
+            SELECT * FROM hotels
+            WHERE banner_url IS NOT NULL AND banner_url != ''
+            AND is_offline = 0 AND audit_status = 'Approved'
+            LIMIT 5
+        `).all();
 
         const banners = hotels.map(h => ({
-            id: `banner_${h._id}`,
+            id: `banner_${h.id}`,
             name: h.name_cn,
             image: h.banner_url,
-            hotelId: h._id
+            hotelId: h.id
         }));
 
         // 若无真实数据则返回模拟 Banner
@@ -79,29 +79,13 @@ const getPopularCities = async (req, res) => {
 
         // 模拟热门城市数据
         const popularCities = [
-            {
-                name: '上海',
-                image: 'https://images.unsplash.com/photo-1548092372-0d1bd40894a3?auto=format&fit=crop&q=80&w=1000'
-            },
-            {
-                name: '北京',
-                image: 'https://images.unsplash.com/photo-1544037835-7f51363191f5?auto=format&fit=crop&q=80&w=1000'
-            },
-            {
-                name: '三亚',
-                image: 'https://images.unsplash.com/photo-1568850362944-036d337a2756?auto=format&fit=crop&q=80&w=1000'
-            },
-            {
-                name: '杭州',
-                image: 'https://images.unsplash.com/photo-1584273258445-fb11a250d87e?auto=format&fit=crop&q=80&w=1000'
-            },
-            {
-                name: '成都',
-                image: 'https://images.unsplash.com/photo-1588298723524-1509f144010d?auto=format&fit=crop&q=80&w=1000'
-            }
+            { name: '上海', image: 'https://images.unsplash.com/photo-1548092372-0d1bd40894a3?auto=format&fit=crop&q=80&w=1000' },
+            { name: '北京', image: 'https://images.unsplash.com/photo-1544037835-7f51363191f5?auto=format&fit=crop&q=80&w=1000' },
+            { name: '三亚', image: 'https://images.unsplash.com/photo-1568850362944-036d337a2756?auto=format&fit=crop&q=80&w=1000' },
+            { name: '杭州', image: 'https://images.unsplash.com/photo-1584273258445-fb11a250d87e?auto=format&fit=crop&q=80&w=1000' },
+            { name: '成都', image: 'https://images.unsplash.com/photo-1588298723524-1509f144010d?auto=format&fit=crop&q=80&w=1000' }
         ];
 
-        // 缓存结果，设置过期时间为24小时
         await Cache.set('popular_cities', popularCities, 86400);
 
         res.json({
@@ -116,12 +100,6 @@ const getPopularCities = async (req, res) => {
 
 /**
  * 酒店列表查询 (支持多条件筛选、分页)
- * 
- * 优化点:
- * 1. 使用 MongoDB 聚合管道 $lookup 联查房型，避免 N+1 查询
- * 2. 价格/标签筛选在分页之前完成，保证每页数据数量正确
- * 3. total 统计基于过滤后的结果，分页信息准确
- * 4. checkIn/checkOut 纳入缓存键，为后续房态筛选预留
  */
 const getHotels = async (req, res) => {
     try {
@@ -129,10 +107,9 @@ const getHotels = async (req, res) => {
         const pageNum = parseInt(page);
         const pageSizeNum = parseInt(pageSize);
 
-        // 生成缓存键（包含所有筛选条件）
+        // 生成缓存键
         const cacheKey = `hotels:${city || 'all'}:${keyword || 'none'}:${checkIn || 'any'}:${checkOut || 'any'}:${starLevel || 'all'}:${priceMin || '0'}:${priceMax || '99999'}:${tags || 'none'}:${pageNum}:${pageSizeNum}`;
 
-        // 尝试从缓存获取
         const cachedData = await Cache.get(cacheKey);
         if (cachedData) {
             return res.json({
@@ -142,123 +119,78 @@ const getHotels = async (req, res) => {
             });
         }
 
-        // ============ 构建聚合管道 ============
-
-        const pipeline = [];
-
-        // 阶段 1: 基础筛选（已审核 + 未下线）
-        const matchStage = {
-            is_offline: false,
-            audit_status: 'Approved'
-        };
+        // 构建动态 SQL 查询
+        let whereClauses = ["is_offline = 0", "audit_status = 'Approved'"];
+        let params = [];
 
         if (city) {
-            matchStage.address = { $regex: city, $options: 'i' };
+            whereClauses.push("address LIKE ?");
+            params.push(`%${city}%`);
         }
         if (keyword) {
-            matchStage.$or = [
-                { name_cn: { $regex: keyword, $options: 'i' } },
-                { name_en: { $regex: keyword, $options: 'i' } }
-            ];
+            whereClauses.push("(name_cn LIKE ? OR name_en LIKE ?)");
+            params.push(`%${keyword}%`, `%${keyword}%`);
         }
         if (starLevel && starLevel !== '0') {
-            matchStage.star_level = parseInt(starLevel);
+            whereClauses.push("star_level = ?");
+            params.push(parseInt(starLevel));
         }
-        // 标签筛选（在 DB 层完成）
+
+        const whereSQL = whereClauses.join(' AND ');
+
+        // 获取所有符合基准条件的酒店
+        let hotels = db.prepare(`SELECT * FROM hotels WHERE ${whereSQL} ORDER BY createdAt DESC`).all(...params);
+
+        // 对每个酒店联查房型，计算最低价格和标签筛选
+        let result = hotels.map(h => {
+            const rooms = db.prepare('SELECT * FROM rooms WHERE hotelId = ? ORDER BY price ASC').all(h.id);
+            const minPrice = rooms.length > 0 ? Math.min(...rooms.map(r => r.price)) : 0;
+            const hotelTags = h.tags ? JSON.parse(h.tags) : [];
+
+            return {
+                id: h.id,
+                name_cn: h.name_cn,
+                name_en: h.name_en,
+                star_level: h.star_level,
+                location: {
+                    province: '上海市',
+                    city: '上海市',
+                    address: h.address,
+                    latitude: 31.2397,
+                    longitude: 121.4997
+                },
+                address: h.address,
+                image: h.banner_url,
+                rating: 4.5,
+                tags: hotelTags,
+                price_start: minPrice,
+                is_offline: !!h.is_offline,
+                audit_status: h.audit_status.toLowerCase(),
+                created_at: h.createdAt
+            };
+        });
+
+        // 价格区间筛选
+        if (priceMin) {
+            result = result.filter(h => h.price_start >= parseInt(priceMin));
+        }
+        if (priceMax && priceMax !== '99999') {
+            result = result.filter(h => h.price_start <= parseInt(priceMax));
+        }
+
+        // 标签筛选
         if (tags) {
             const tagArray = tags.split(',').map(t => t.trim()).filter(Boolean);
             if (tagArray.length > 0) {
-                matchStage.tags = { $in: tagArray };
+                result = result.filter(h => tagArray.some(tag => h.tags.includes(tag)));
             }
         }
 
-        pipeline.push({ $match: matchStage });
+        const total = result.length;
 
-        // 阶段 2: 联查房型表，获取每个酒店的所有房型
-        pipeline.push({
-            $lookup: {
-                from: 'rooms',
-                localField: '_id',
-                foreignField: 'hotelId',
-                as: 'roomList'
-            }
-        });
-
-        // 阶段 3: 计算最低价格
-        pipeline.push({
-            $addFields: {
-                price_start: {
-                    $cond: {
-                        if: { $gt: [{ $size: '$roomList' }, 0] },
-                        then: { $min: '$roomList.price' },
-                        else: 0
-                    }
-                }
-            }
-        });
-
-        // 阶段 4: 价格区间筛选（在分页之前！）
-        const priceMatch = {};
-        if (priceMin) {
-            priceMatch.price_start = { ...priceMatch.price_start, $gte: parseInt(priceMin) };
-        }
-        if (priceMax && priceMax !== '99999') {
-            priceMatch.price_start = { ...priceMatch.price_start, $lte: parseInt(priceMax) };
-        }
-        if (Object.keys(priceMatch).length > 0) {
-            pipeline.push({ $match: priceMatch });
-        }
-
-        // 阶段 5: 使用 $facet 同时获取 total 和分页数据
-        pipeline.push({
-            $facet: {
-                metadata: [{ $count: 'total' }],
-                list: [
-                    { $skip: (pageNum - 1) * pageSizeNum },
-                    { $limit: pageSizeNum },
-                    {
-                        $project: {
-                            _id: 1,
-                            name_cn: 1,
-                            name_en: 1,
-                            star_level: 1,
-                            address: 1,
-                            banner_url: 1,
-                            tags: 1,
-                            is_offline: 1,
-                            audit_status: 1,
-                            price_start: 1,
-                            createdAt: 1
-                        }
-                    }
-                ]
-            }
-        });
-
-        const [result] = await Hotel.aggregate(pipeline);
-
-        const total = result.metadata.length > 0 ? result.metadata[0].total : 0;
-        const filteredList = result.list.map(h => ({
-            id: h._id,
-            name_cn: h.name_cn,
-            name_en: h.name_en,
-            star_level: h.star_level,
-            location: {
-                province: '上海市', // TODO: 实际应从数据库获取
-                city: '上海市',     // TODO: 实际应从数据库获取
-                address: h.address,
-                latitude: 31.2397, // TODO: 实际应从数据库获取
-                longitude: 121.4997 // TODO: 实际应从数据库获取
-            },
-            address: h.address,
-            image: h.banner_url,
-            rating: 4.5, // TODO: 后续可从评论系统聚合真实评分
-            tags: h.tags,
-            price_start: h.price_start,
-            is_offline: h.is_offline,
-            audit_status: h.audit_status.toLowerCase(),
-            created_at: h.createdAt
-        }));
+        // 分页
+        const start = (pageNum - 1) * pageSizeNum;
+        const filteredList = result.slice(start, start + pageSizeNum);
 
         const responseData = {
             list: filteredList,
@@ -267,7 +199,6 @@ const getHotels = async (req, res) => {
             pageSize: pageSizeNum
         };
 
-        // 缓存结果，设置过期时间为30分钟
         await Cache.set(cacheKey, responseData, 1800);
 
         res.json({
@@ -287,10 +218,7 @@ const getHotelById = async (req, res) => {
     try {
         const { id } = req.params;
 
-        // 生成缓存键
         const cacheKey = `hotel:${id}`;
-
-        // 尝试从缓存获取
         const cachedHotel = await Cache.get(cacheKey);
         if (cachedHotel) {
             return res.json({
@@ -300,57 +228,53 @@ const getHotelById = async (req, res) => {
             });
         }
 
-        // 允许查看的条件（即便下线了，但如果是根据ID精确查找，前端也自己判断，但最好后端过滤）
-        const hotel = await Hotel.findOne({
-            _id: id,
-            audit_status: 'Approved',
-            is_offline: false
-        });
+        const hotel = db.prepare(`
+            SELECT * FROM hotels WHERE id = ? AND audit_status = 'Approved' AND is_offline = 0
+        `).get(id);
 
         if (!hotel) {
             return res.status(404).json({ code: 404, message: '酒店不存在或已下线' });
         }
 
         // 获取房型数据并按价格由低到高排序
-        const rooms = await Room.find({ hotelId: hotel._id }).sort({ price: 1 });
+        const rooms = db.prepare('SELECT * FROM rooms WHERE hotelId = ? ORDER BY price ASC').all(hotel.id);
 
-        // 构建位置信息
         const location = {
-            province: '上海市', // 模拟数据，实际应该从酒店数据中获取
-            city: '上海市',     // 模拟数据，实际应该从酒店数据中获取
+            province: '上海市',
+            city: '上海市',
             address: hotel.address,
-            latitude: 31.2397, // 模拟数据，实际应该从酒店数据中获取
-            longitude: 121.4997 // 模拟数据，实际应该从酒店数据中获取
+            latitude: 31.2397,
+            longitude: 121.4997
         };
 
-        // 构建完整的酒店信息
+        const hotelTags = hotel.tags ? JSON.parse(hotel.tags) : [];
+
         const hotelDetails = {
-            id: hotel._id,
+            id: hotel.id,
             name_cn: hotel.name_cn,
             name_en: hotel.name_en,
             star_level: hotel.star_level,
             location,
-            description: hotel.description || '酒店位于市中心，交通便利，设施齐全', // 模拟数据
-            rating: 4.8, // 模拟数据
+            description: hotel.description || '酒店位于市中心，交通便利，设施齐全',
+            rating: 4.8,
             image: hotel.banner_url,
-            images: [hotel.banner_url], // 模拟数据，实际应该从酒店数据中获取
-            tags: hotel.tags || [],
-            facilities: ['健身房', '游泳池', 'WiFi', '停车场'], // 模拟数据
+            images: [hotel.banner_url],
+            tags: hotelTags,
+            facilities: ['健身房', '游泳池', 'WiFi', '停车场'],
             rooms: rooms.map(room => ({
-                id: room._id,
+                id: room.id,
                 type: room.name,
                 price: room.price,
-                stock: 10, // 模拟数据
+                stock: 10,
                 description: room.description,
                 image: room.image_url
             })),
             price_start: rooms.length > 0 ? Math.min(...rooms.map(r => r.price)) : 0,
-            is_offline: hotel.is_offline,
+            is_offline: !!hotel.is_offline,
             audit_status: hotel.audit_status.toLowerCase(),
             created_at: hotel.createdAt
         };
 
-        // 缓存结果，设置过期时间为1小时
         await Cache.set(cacheKey, hotelDetails, 3600);
 
         res.json({

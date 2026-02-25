@@ -45,10 +45,11 @@ The system implements a complete information audit workflow—hotel information 
 
 ### Technical Highlights
 - Frontend-backend separation architecture, RESTful API design
-- JSON file persistence storage
+- **SQLite lightweight local database**, no external database installation required
 - Permission hierarchy and role management
 - Virtual deletion mechanism for data safety
 - Intelligent room type sorting (price ascending)
+- In-memory caching for frequently accessed data
 
 ---
 
@@ -121,11 +122,16 @@ The system implements a complete information audit workflow—hotel information 
 EasyStay/
 ├── client-mobile/          # Mobile frontend application (React)
 ├── client-pc/              # PC management frontend application (React)
-├── server/                 # Backend service (Node.js)
-│   ├── data/               # JSON data storage
-│   │   ├── hotels.json     # Hotel information data
-│   │   └── users.json      # User account data
-│   └── routes/             # API route handlers
+├── server/                 # Backend service (Node.js + SQLite)
+│   ├── config/             # Configuration files
+│   │   ├── database.js     # SQLite connection & table initialization
+│   │   └── cache.js        # In-memory cache
+│   ├── controllers/        # Controllers (business logic)
+│   ├── data/               # SQLite database file (auto-generated)
+│   │   └── easystay.db     # SQLite database
+│   ├── routes/             # API route handlers
+│   ├── uploads/            # Uploaded image files
+│   └── middlewares/        # Middleware (auth, upload, validation)
 ├── common/                 # Shared utilities and type definitions
 ├── docs/                   # Project documentation
 │   ├── product/            # Product requirement documents
@@ -148,8 +154,10 @@ EasyStay/
 ### Backend
 - **Runtime**: Node.js
 - **Web Framework**: Express.js
-- **Data Storage**: JSON files (fs module)
+- **Data Storage**: SQLite (better-sqlite3)
+- **Caching**: In-memory Map cache
 - **Authentication**: JWT Token
+- **Password Hashing**: bcryptjs
 
 ### Development Tools
 - Git (Version Control)
@@ -183,33 +191,28 @@ The system uses RESTful API design with base path `/api/v1`
 
 ## Data Structure
 
-### Hotel Information (hotels.json)
-```json
-{
-  "id": "string",
-  "name_cn": "上海陆家嘴禧酒店",
-  "name_en": "Joy Hotel Lujiazui",
-  "address": "上海市浦东新区...",
-  "star_level": 5,
-  "open_date": "2012-01-01",
-  "audit_status": "Approved",
-  "is_offline": false,
-  "banner_url": "https://...",
-  "tags": ["Family", "Luxury"],
-  "rooms": [
-    { "type_name": "Classic Twin Room", "price": 936, "stock": 10 }
-  ]
-}
-```
+The system uses SQLite database (`server/data/easystay.db`) with four tables: `users`, `hotels`, `rooms`, and `orders`.
 
-### User Accounts (users.json)
-```json
-{
-  "username": "merchant001",
-  "password": "hashed_password",
-  "role": "merchant"
-}
-```
+### Hotels Table
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | TEXT | Unique hotel ID (UUID) |
+| `name_cn` | TEXT | Hotel name (Chinese) |
+| `name_en` | TEXT | Hotel name (English) |
+| `address` | TEXT | Hotel address |
+| `star_level` | INTEGER | Star rating (1-5) |
+| `audit_status` | TEXT | Audit status (Pending/Approved/Rejected) |
+| `is_offline` | INTEGER | Offline flag (0/1) |
+| `tags` | TEXT | Tags (JSON array) |
+
+### Users Table
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | TEXT | Unique user ID |
+| `phone` | TEXT | Phone number (mobile) |
+| `username` | TEXT | Username (PC) |
+| `password` | TEXT | Hashed password |
+| `role` | TEXT | Role (user/merchant/admin) |
 
 > See [docs/technical/data_schema.md](docs/technical/data_schema.md) for complete schema
 

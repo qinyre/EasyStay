@@ -1,9 +1,11 @@
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
 const { JWT_SECRET } = require('../middlewares/auth');
-const User = require('../models/User');
+const { db } = require('../config/database');
+const crypto = require('crypto');
 
 /**
- * 用户注册逻辑
+ * 用户注册逻辑 (PC端)
  */
 const register = async (req, res) => {
     try {
@@ -18,7 +20,7 @@ const register = async (req, res) => {
         }
 
         // 检查用户名是否重复
-        const existingUser = await User.findOne({ username });
+        const existingUser = db.prepare('SELECT id FROM users WHERE username = ?').get(username);
         if (existingUser) {
             return res.status(400).json({
                 code: 400,
@@ -27,8 +29,14 @@ const register = async (req, res) => {
         }
 
         // 保存新用户，默认角色为 user
-        const newUser = new User({ username, password, role: 'user' });
-        await newUser.save();
+        const hashedPassword = bcrypt.hashSync(password, 10);
+        const userId = crypto.randomUUID();
+        const now = new Date().toISOString();
+
+        db.prepare(`
+            INSERT INTO users (id, username, password, role, createdAt)
+            VALUES (?, ?, ?, 'user', ?)
+        `).run(userId, username, hashedPassword, now);
 
         res.json({
             code: 200,
@@ -43,7 +51,7 @@ const register = async (req, res) => {
 };
 
 /**
- * 用户登录逻辑
+ * 用户登录逻辑 (PC端)
  */
 const login = async (req, res) => {
     try {
@@ -57,7 +65,7 @@ const login = async (req, res) => {
         }
 
         // 查找用户
-        const user = await User.findOne({ username });
+        const user = db.prepare('SELECT * FROM users WHERE username = ?').get(username);
         if (!user) {
             return res.status(401).json({
                 code: 401,
@@ -66,7 +74,7 @@ const login = async (req, res) => {
         }
 
         // 验证密码
-        const isPasswordValid = await user.comparePassword(password);
+        const isPasswordValid = bcrypt.compareSync(password, user.password);
         if (!isPasswordValid) {
             return res.status(401).json({
                 code: 401,
@@ -96,11 +104,11 @@ const login = async (req, res) => {
 };
 
 /**
- * 获取用户个人信息
+ * 获取用户个人信息 (PC端)
  */
 const getProfile = async (req, res) => {
     try {
-        const user = await User.findOne({ username: req.user.username });
+        const user = db.prepare('SELECT * FROM users WHERE username = ?').get(req.user.username);
         if (!user) {
             return res.status(404).json({
                 code: 404,
@@ -109,7 +117,7 @@ const getProfile = async (req, res) => {
         }
 
         // 不返回密码
-        const { password, ...userInfo } = user.toObject();
+        const { password, ...userInfo } = user;
 
         res.json({
             code: 200,
@@ -125,13 +133,13 @@ const getProfile = async (req, res) => {
 };
 
 /**
- * 更新用户个人信息
+ * 更新用户个人信息 (PC端)
  */
 const updateProfile = async (req, res) => {
     try {
         const { password } = req.body;
 
-        const user = await User.findOne({ username: req.user.username });
+        const user = db.prepare('SELECT * FROM users WHERE username = ?').get(req.user.username);
         if (!user) {
             return res.status(404).json({
                 code: 404,
@@ -141,10 +149,9 @@ const updateProfile = async (req, res) => {
 
         // 更新密码（如果提供）
         if (password) {
-            user.password = password; // 密码会在保存时自动加密
+            const hashedPassword = bcrypt.hashSync(password, 10);
+            db.prepare('UPDATE users SET password = ? WHERE username = ?').run(hashedPassword, req.user.username);
         }
-
-        await user.save();
 
         res.json({
             code: 200,

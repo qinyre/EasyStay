@@ -13,10 +13,10 @@ const validate = (schema) => {
 
             next(); // 数据合规，放行到对应的 Controller
         } catch (error) {
-            // 捕获到 Zod 的错误并返回给前端
-            const errorMessages = error.errors.map(err => {
-                return `${err.path.join('.')}: ${err.message}`;
-            });
+            const issues = error?.issues || error?.errors;
+            const errorMessages = Array.isArray(issues)
+                ? issues.map(err => `${(err.path || []).join('.')}: ${err.message}`)
+                : ['unknown: 数据格式校验失败'];
 
             return res.status(400).json({
                 code: 400,

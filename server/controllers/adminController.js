@@ -1,24 +1,25 @@
-const Hotel = require('../models/Hotel');
-const Room = require('../models/Room');
-const { Cache } = require('../config/redis');
+const { db } = require('../config/database');
+const { Cache } = require('../config/cache');
 
 /**
  * 获取所有酒店列表 (管理员后台视角 - 不分类别)
  */
 const getAllHotels = async (req, res) => {
     try {
-        const hotels = await Hotel.find();
+        const hotels = db.prepare('SELECT * FROM hotels').all();
 
-        // 为每个酒店获取对应的房型信息
-        const hotelsWithRooms = await Promise.all(
-            hotels.map(async (hotel) => {
-                const rooms = await Room.find({ hotelId: hotel._id });
-                return {
-                    ...hotel.toObject(),
-                    rooms
-                };
-            })
-        );
+        const hotelsWithRooms = hotels.map(hotel => {
+            const rooms = db.prepare('SELECT * FROM rooms WHERE hotelId = ?').all(hotel.id);
+            return {
+                ...hotel,
+                is_offline: !!hotel.is_offline,
+                tags: hotel.tags ? JSON.parse(hotel.tags) : [],
+                rooms: rooms.map(r => ({
+                    ...r,
+                    amenities: r.amenities ? JSON.parse(r.amenities) : []
+                }))
+            };
+        });
 
         res.json({
             code: 200,
@@ -37,32 +38,34 @@ const getAllHotels = async (req, res) => {
 const auditHotel = async (req, res) => {
     try {
         const { hotelId } = req.params;
-        const { action, fail_reason } = req.body; // action: 'approve' 或 'reject'
+        const { action, fail_reason } = req.body;
 
-        const hotel = await Hotel.findById(hotelId);
+        const hotel = db.prepare('SELECT * FROM hotels WHERE id = ?').get(hotelId);
         if (!hotel) {
             return res.status(404).json({ code: 404, message: '酒店不存在' });
         }
 
+        let newStatus, newReason;
         if (action === 'approve') {
-            hotel.audit_status = 'Approved';
-            hotel.fail_reason = '';
+            newStatus = 'Approved';
+            newReason = '';
         } else if (action === 'reject') {
-            hotel.audit_status = 'Rejected';
-            hotel.fail_reason = fail_reason || '管理员未提供原因';
+            newStatus = 'Rejected';
+            newReason = fail_reason || '管理员未提供原因';
         } else {
             return res.status(400).json({ code: 400, message: '无效的审核操作(action只能是 approve 或 reject)' });
         }
 
-        await hotel.save();
+        db.prepare('UPDATE hotels SET audit_status = ?, fail_reason = ?, updatedAt = ? WHERE id = ?')
+            .run(newStatus, newReason, new Date().toISOString(), hotelId);
 
         // 清除相关缓存
         await Cache.del('banners');
-        await Cache.del(`hotel:${hotel._id}`);
+        await Cache.del(`hotel:${hotelId}`);
 
         res.json({
             code: 200,
-            message: `酒店已标识为 ${hotel.audit_status}`
+            message: `酒店已标识为 ${newStatus}`
         });
     } catch (error) {
         res.status(500).json({ code: 500, message: error.message });
@@ -76,32 +79,32 @@ const auditHotel = async (req, res) => {
 const publishHotel = async (req, res) => {
     try {
         const { hotelId } = req.params;
-        const { action } = req.body;  // 'publish' (上线) 或 'unpublish' (下线)
+        const { action } = req.body;
 
-        const hotel = await Hotel.findById(hotelId);
+        const hotel = db.prepare('SELECT * FROM hotels WHERE id = ?').get(hotelId);
         if (!hotel) {
             return res.status(404).json({ code: 404, message: '酒店不存在' });
         }
 
-        // 只有审核通过的酒店才能操作上线下线
         if (hotel.audit_status !== 'Approved') {
             return res.status(400).json({ code: 400, message: '只有审核通过的酒店支持上下线操作' });
         }
 
-        // 虚拟删除：仅修改标志位
+        let isOffline;
         if (action === 'unpublish') {
-            hotel.is_offline = true;
+            isOffline = 1;
         } else if (action === 'publish') {
-            hotel.is_offline = false;
+            isOffline = 0;
         } else {
             return res.status(400).json({ code: 400, message: '无效的发布操作(action必须是 publish 或 unpublish)' });
         }
 
-        await hotel.save();
+        db.prepare('UPDATE hotels SET is_offline = ?, updatedAt = ? WHERE id = ?')
+            .run(isOffline, new Date().toISOString(), hotelId);
 
         // 清除相关缓存
         await Cache.del('banners');
-        await Cache.del(`hotel:${hotel._id}`);
+        await Cache.del(`hotel:${hotelId}`);
 
         res.json({
             code: 200,

@@ -1,6 +1,6 @@
 # EasyStay 后端服务 (Server)
 
-这是 EasyStay 酒店预订平台的核心后端接口服务，使用 Node.js + Express 搭建，现已升级为 MongoDB 数据库存储，并集成了 Redis 缓存以提升性能。
+这是 EasyStay 酒店预订平台的核心后端接口服务，使用 Node.js + Express 搭建，采用 **SQLite** 轻量级本地数据库存储，内置内存缓存机制。无需安装任何外部数据库服务，开箱即用。
 
 ## 🚀 快速启动指南
 
@@ -9,8 +9,8 @@
 ### 1. 环境要求
 - Node.js >= 16
 - npm >= 8
-- MongoDB >= 4.0
-- Redis >= 6.0（可选，用于缓存）
+
+> 无需安装 MongoDB、Redis 或任何其他数据库服务！
 
 ### 2. 启动步骤
 
@@ -24,39 +24,29 @@
 2. **配置环境变量（可选）：**
    创建 `.env` 文件，可配置以下环境变量：
    ```
-   # 数据库连接字符串
-   MONGODB_URI=mongodb://localhost:27017/easystay
-   
-   # Redis连接字符串
-   REDIS_URL=redis://localhost:6379
-   
    # JWT密钥
    JWT_SECRET=your_jwt_secret_key
-   
+
    # 服务器端口
    PORT=3000
    ```
 
-3. **数据迁移（首次启动）：**
-   将现有 JSON 数据导入 MongoDB：
-   ```bash
-   node scripts/migrateData.js
-   ```
-
-4. **启动开发服务器：**
+3. **启动开发服务器：**
    （支持热更新，修改代码后自动重启）
    ```bash
    npm run dev
    ```
    *如果不支持 nodemon 环境，也可以使用备用启动方式：`npm start`*
 
-5. **验证启动：**
-   看到终端底部输出以下绿色文字即代表启动成功：
+4. **验证启动：**
+   看到终端底部输出以下文字即代表启动成功：
    ```
-   MongoDB connected successfully
+   SQLite database initialized successfully
    Server is running on http://localhost:3000
    ```
    **注意：启动成功后，请不要关闭该命令行窗口！**
+
+   首次启动时，SQLite 数据库文件会自动创建在 `server/data/easystay.db`。
 
 ---
 
@@ -69,7 +59,7 @@
 👉 **[http://localhost:3000/api-docs](http://localhost:3000/api-docs)**
 
 - 所有的**必传参数**及**类型约束**（利用 Zod 做了严格限制）都在文档上标明。
-- 对于打着“小锁头”标志的接口，你需要先调用 `/auth/login` 并在右上方的 `Authorize` 按钮输入你换到的 Token。
+- 对于打着"小锁头"标志的接口，你需要先调用 `/auth/login` 并在右上方的 `Authorize` 按钮输入你换到的 Token。
 
 ## 🆕 新增功能
 
@@ -99,8 +89,9 @@
      "message": "success"
    }
    ```
-4. **性能优化**：热点数据（如首页 Banner、酒店列表、酒店详情）已添加 Redis 缓存，缓存过期时间为 30 分钟至 1 小时。
-5. **安全性**：用户密码已使用 bcrypt 加密存储，确保数据安全。
+4. **性能优化**：热点数据（如首页 Banner、酒店列表、酒店详情）已添加内存缓存，缓存过期时间为 30 分钟至 1 小时。
+5. **安全性**：用户密码已使用 bcryptjs 加密存储，确保数据安全。
+6. **数据库文件**：所有数据存储在 `server/data/easystay.db` 单文件中，方便备份和迁移。
 
 ## 🔧 开发工具
 
@@ -118,39 +109,35 @@
 server/
 ├── controllers/          # 控制器
 │   ├── adminController.js    # 管理端控制器
-│   ├── authController.js     # 认证控制器
+│   ├── authController.js     # 认证控制器（移动端）
 │   ├── merchantController.js # 商户端控制器
 │   ├── mobileController.js   # 移动端控制器
-│   ├── orderController.js    # 订单控制器
-│   └── userController.js     # 用户控制器
-├── models/              # 数据模型
-│   ├── Hotel.js         # 酒店模型
-│   ├── Order.js         # 订单模型
-│   ├── Room.js          # 房型模型
-│   └── User.js          # 用户模型
+│   ├── mobileBookingController.js # 移动端订单控制器
+│   ├── orderController.js    # 订单控制器（PC端）
+│   └── userController.js     # 用户控制器（PC端）
+├── config/              # 配置
+│   ├── database.js      # SQLite 数据库连接与建表
+│   └── cache.js         # 内存缓存（替代 Redis）
+├── data/                # 数据存储
+│   └── easystay.db      # SQLite 数据库文件（自动生成）
 ├── routes/              # 路由
 │   ├── admin.js         # 管理端路由
 │   ├── auth.js          # 认证路由
 │   ├── merchant.js      # 商户端路由
 │   ├── mobile.js        # 移动端路由
+│   ├── mobileBookings.js # 移动端订单路由
 │   ├── order.js         # 订单路由
 │   └── user.js          # 用户路由
-├── config/              # 配置
-│   ├── db.js            # 数据库配置
-│   └── redis.js         # Redis配置
 ├── middlewares/         # 中间件
 │   ├── auth.js          # 认证中间件
 │   ├── upload.js        # 文件上传中间件
 │   └── validate.js      # 数据验证中间件
+├── uploads/             # 上传的图片文件
 ├── utils/               # 工具函数
 │   ├── file.js          # 文件操作工具
 │   └── swagger.js       # Swagger配置
 ├── validators/          # 验证模式
 │   └── schemas.js       # 验证模式定义
-├── scripts/             # 脚本
-│   └── migrateData.js   # 数据迁移脚本
-├── tests/               # 测试文件
-│   └── authController.test.js # 认证控制器测试
 ├── index.js             # 服务器入口
 └── package.json         # 项目配置
 ```

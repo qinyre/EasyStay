@@ -2,7 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
-const connectDB = require('./config/db');
+const { initDatabase } = require('./config/database');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -63,9 +63,8 @@ app.use((err, req, res, next) => {
   });
 });
 
-// 启动服务器
-connectDB().then(() => {
-  app.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
-  });
+// 初始化 SQLite 数据库并启动服务器
+initDatabase();
+app.listen(PORT, () => {
+  console.log(`Server is running on http://localhost:${PORT}`);
 });

@@ -57,3 +57,10 @@ Thumbs.db
 *.sw?
 .claude/settings.local.json
 GEMINI.md
+
+# ==========================================
+# 6. 数据库文件 (Databases)
+# ==========================================
+server/data/easystay.db
+server/data/easystay.db-wal
+server/data/easystay.db-shm

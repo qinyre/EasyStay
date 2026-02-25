@@ -1,0 +1,110 @@
+
+> server@1.0.0 test
+> jest
+
+  console.log
+    SQLite database initialized successfully
+
+      at log (config/database.js:101:13)
+
+FAIL tests/authController.test.js
+  Auth Controller
+    POST /api/v1/auth/register
+      脳 should register a new user successfully (26 ms)
+      鈭?should return 400 if username, password or role is missing (6 ms)
+      脳 should return 400 if username already exists (5 ms)
+    POST /api/v1/auth/login
+      脳 should login successfully with valid credentials (5 ms)
+      脳 should return 400 if username or password is missing (3 ms)
+      脳 should return 401 if username or password is incorrect (2 ms)
+
+  鈼?Auth Controller 鈥?POST /api/v1/auth/register 鈥?should register a new user successfully
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 400
+
+      33 |                 });
+      34 |
+    > 35 |             expect(response.statusCode).toBe(200);
+         |                                         ^
+      36 |             expect(response.body.message).toBe('娉ㄥ唽鎴愬姛');
+      37 |         });
+      38 |
+
+      at Object.toBe (tests/authController.test.js:35:41)
+
+  鈼?Auth Controller 鈥?POST /api/v1/auth/register 鈥?should return 400 if username already exists
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: "鐢ㄦ埛鍚嶅凡瀛樺湪"
+    Received: "璇锋彁渚涘畬鏁寸殑娉ㄥ唽淇℃伅 (phone, email, password, confirmPassword)"
+
+      67 |
+      68 |             expect(response.statusCode).toBe(400);
+    > 69 |             expect(response.body.message).toBe('鐢ㄦ埛鍚嶅凡瀛樺湪');
+         |                                           ^
+      70 |         });
+      71 |     });
+      72 |
+
+      at Object.toBe (tests/authController.test.js:69:43)
+
+  鈼?Auth Controller 鈥?POST /api/v1/auth/login 鈥?should login successfully with valid credentials
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 400
+
+      90 |                 });
+      91 |
+    > 92 |             expect(response.statusCode).toBe(200);
+         |                                         ^
+      93 |             expect(response.body.message).toBe('鐧诲綍鎴愬姛');
+      94 |             expect(response.body.data).toHaveProperty('token');
+      95 |             expect(response.body.data).toHaveProperty('role');
+
+      at Object.toBe (tests/authController.test.js:92:41)
+
+  鈼?Auth Controller 鈥?POST /api/v1/auth/login 鈥?should return 400 if username or password is missing
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: "璇锋彁渚涚敤鎴峰悕鍜屽瘑鐮?
+    Received: "璇锋彁渚涙墜鏈哄彿鍜屽瘑鐮?
+
+      105 |
+      106 |             expect(response.statusCode).toBe(400);
+    > 107 |             expect(response.body.message).toBe('璇锋彁渚涚敤鎴峰悕鍜屽瘑鐮?);
+          |                                           ^
+      108 |         });
+      109 |
+      110 |         it('should return 401 if username or password is incorrect', async () => {
+
+      at Object.toBe (tests/authController.test.js:107:43)
+
+  鈼?Auth Controller 鈥?POST /api/v1/auth/login 鈥?should return 401 if username or password is incorrect
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 401
+    Received: 400
+
+      116 |                 });
+      117 |
+    > 118 |             expect(response.statusCode).toBe(401);
+          |                                         ^
+      119 |             expect(response.body.message).toBe('鐢ㄦ埛鍚嶆垨瀵嗙爜閿欒');
+      120 |         });
+      121 |     });
+
+      at Object.toBe (tests/authController.test.js:118:41)
+
+Test Suites: 1 failed, 1 total
+Tests:       5 failed, 1 passed, 6 total
+Snapshots:   0 total
+Time:        0.916 s, estimated 1 s
+Ran all test suites.

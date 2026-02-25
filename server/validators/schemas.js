@@ -14,28 +14,28 @@ const registerSchema = z.object({
 
 /**
  * 房型的数据校验规范
+ * 字段名与 merchantController 中的读取逻辑保持一致
  */
 const roomSchema = z.object({
-    type_name: z.string().min(1, "房型名称不能为空"),
+    name: z.string().min(1, "房型名称不能为空"),
     price: z.number().positive("价格必须是大于0的数字"),
-    stock: z.number().int("库存必须是整数").nonnegative("库存不能为负数")
+    capacity: z.number().int("容纳人数必须是整数").nonnegative("容纳人数不能为负数").optional(),
+    description: z.string().optional(),
+    image_url: z.string().optional(),
+    amenities: z.array(z.string()).optional()
 });
 
 /**
  * 商户录入/修改酒店的数据校验规范
- * 严格按照 Agent.md 约定的数据结构
  * 对应 POST/PUT /merchant/hotels
  */
 const hotelSchema = z.object({
     name_cn: z.string().min(2, "中文名至少 2 个字符").max(50, "中文名最多 50 个字符"),
     name_en: z.string().min(2, "英文名至少 2 个字符").optional(),
     address: z.string().min(5, "地址至少 5 个字符"),
-    star_level: z.number().int().min(1, "星级最低为 1").max(5, "星级最高为 5"),
-    open_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "开业时间格式必须为 YYYY-MM-DD"),
-    banner_url: z.string().url("Banner必须是合法的URL地址"),
+    star_level: z.number().int().min(1, "星级最低为 1").max(5, "星级最高为 5").optional(),
+    banner_url: z.string().optional(),
     tags: z.array(z.string()).max(10, "标签最多10个").optional(),
-    attractions: z.string().optional(),
-    discount_info: z.string().optional(),
     // 必须包含至少一个房型
     rooms: z.array(roomSchema).min(1, "至少需要包含一种房型信息")
 });

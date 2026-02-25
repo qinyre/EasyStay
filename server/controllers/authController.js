@@ -1,6 +1,8 @@
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 const { JWT_SECRET } = require('../middlewares/auth');
-const User = require('../models/User');
+const { db } = require('../config/database');
 
 /**
  * 用户注册逻辑
@@ -34,7 +36,7 @@ const register = async (req, res) => {
         }
 
         // 检查手机号是否重复
-        const existingPhone = await User.findOne({ phone });
+        const existingPhone = db.prepare('SELECT id FROM users WHERE phone = ?').get(phone);
         if (existingPhone) {
             return res.status(400).json({
                 code: 400,
@@ -43,7 +45,7 @@ const register = async (req, res) => {
         }
 
         // 检查邮箱是否重复
-        const existingEmail = await User.findOne({ email });
+        const existingEmail = db.prepare('SELECT id FROM users WHERE email = ?').get(email);
         if (existingEmail) {
             return res.status(400).json({
                 code: 400,
@@ -51,31 +53,32 @@ const register = async (req, res) => {
             });
         }
 
+        // 密码加密
+        const hashedPassword = bcrypt.hashSync(password, 10);
+        const userId = crypto.randomUUID();
+        const now = new Date().toISOString();
+
         // 保存新用户
-        const newUser = new User({
-            phone,
-            email,
-            password,
-            name,
-            role
-        });
-        await newUser.save();
+        db.prepare(`
+            INSERT INTO users (id, phone, email, password, name, role, createdAt)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        `).run(userId, phone, email, hashedPassword, name || null, role, now);
 
         // 生成token
-        const tokenPayload = { phone: newUser.phone, role: newUser.role };
+        const tokenPayload = { phone, role };
         const token = jwt.sign(tokenPayload, JWT_SECRET, { expiresIn: '7d' });
 
         res.json({
             code: 200,
             data: {
                 user: {
-                    id: newUser._id,
-                    phone: newUser.phone,
-                    email: newUser.email,
-                    name: newUser.name,
-                    avatar: newUser.avatar,
-                    role: newUser.role,
-                    createdAt: newUser.createdAt
+                    id: userId,
+                    phone,
+                    email,
+                    name: name || null,
+                    avatar: null,
+                    role,
+                    createdAt: now
                 },
                 token
             },
@@ -104,7 +107,7 @@ const login = async (req, res) => {
         }
 
         // 查找用户
-        const user = await User.findOne({ phone });
+        const user = db.prepare('SELECT * FROM users WHERE phone = ?').get(phone);
         if (!user) {
             return res.status(401).json({
                 code: 401,
@@ -113,7 +116,7 @@ const login = async (req, res) => {
         }
 
         // 验证密码
-        const isPasswordValid = await user.comparePassword(password);
+        const isPasswordValid = bcrypt.compareSync(password, user.password);
         if (!isPasswordValid) {
             return res.status(401).json({
                 code: 401,
@@ -121,7 +124,7 @@ const login = async (req, res) => {
             });
         }
 
-        // 签发 token, 有效期设为 7天
+        // 签发 token
         const tokenPayload = { phone: user.phone, role: user.role };
         const token = jwt.sign(tokenPayload, JWT_SECRET, { expiresIn: '7d' });
 
@@ -129,7 +132,7 @@ const login = async (req, res) => {
             code: 200,
             data: {
                 user: {
-                    id: user._id,
+                    id: user.id,
                     phone: user.phone,
                     email: user.email,
                     name: user.name,
@@ -154,11 +157,7 @@ const login = async (req, res) => {
  */
 const getCurrentUser = async (req, res) => {
     try {
-        // 从请求中获取用户信息（由authMiddleware设置）
-        const { phone } = req.user;
-
-        // 查找用户
-        const user = await User.findOne({ phone });
+        const user = db.prepare('SELECT * FROM users WHERE phone = ?').get(req.user.phone);
         if (!user) {
             return res.status(404).json({
                 code: 404,
@@ -169,7 +168,7 @@ const getCurrentUser = async (req, res) => {
         res.json({
             code: 200,
             data: {
-                id: user._id,
+                id: user.id,
                 phone: user.phone,
                 email: user.email,
                 name: user.name,
@@ -201,8 +200,8 @@ const sendResetCode = async (req, res) => {
             });
         }
 
-        // 查找用户
-        const user = await User.findOne({ email });
+        // 检查用户是否存在
+        const user = db.prepare('SELECT id FROM users WHERE email = ?').get(email);
         if (!user) {
             return res.status(404).json({
                 code: 404,
@@ -210,7 +209,7 @@ const sendResetCode = async (req, res) => {
             });
         }
 
-        // 生成验证码
+        // 生成6位随机验证码
         const code = Math.floor(100000 + Math.random() * 900000).toString();
 
         // 在开发模式下，直接返回验证码
@@ -290,7 +289,7 @@ const resetPasswordWithCode = async (req, res) => {
         }
 
         // 查找用户
-        const user = await User.findOne({ email });
+        const user = db.prepare('SELECT id FROM users WHERE email = ?').get(email);
         if (!user) {
             return res.status(404).json({
                 code: 404,
@@ -298,19 +297,10 @@ const resetPasswordWithCode = async (req, res) => {
             });
         }
 
-        // 开发模式下，直接重置密码
-        if (process.env.NODE_ENV === 'development' || true) {
-            user.password = newPassword;
-            await user.save();
-            return res.json({
-                code: 200,
-                data: true,
-                message: '密码重置成功'
-            });
-        }
+        // 加密新密码并更新
+        const hashedPassword = bcrypt.hashSync(newPassword, 10);
+        db.prepare('UPDATE users SET password = ? WHERE email = ?').run(hashedPassword, email);
 
-        // 实际生产环境中，这里应该验证存储的验证码
-        // 暂时模拟重置成功
         res.json({
             code: 200,
             data: true,

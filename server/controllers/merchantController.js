@@ -1,13 +1,6 @@
-const Hotel = require('../models/Hotel');
-const Room = require('../models/Room');
-const { Cache } = require('../config/redis');
-
-/**
- * 生成唯一ID的简单方法 (实际生产中应该用 uuid)
- */
-const generateId = () => {
-    return 'hotel_' + Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
-};
+const { db } = require('../config/database');
+const { Cache } = require('../config/cache');
+const crypto = require('crypto');
 
 /**
  * 商户录入酒店信息
@@ -24,34 +17,44 @@ const createHotel = async (req, res) => {
             });
         }
 
-        // 创建酒店
-        const newHotel = new Hotel({
-            name_cn: hotelData.name_cn,
-            name_en: hotelData.name_en,
-            address: hotelData.address,
-            star_level: hotelData.star_level,
-            banner_url: hotelData.banner_url,
-            tags: hotelData.tags,
-            audit_status: 'Pending', // 新录入状态必为待审核
-            is_offline: false,       // 默认在线（但由于是Pending，也不会展现在移动端）
-            merchant_username: req.user?.username // 记录是哪个商户创建的
-        });
+        const hotelId = crypto.randomUUID();
+        const now = new Date().toISOString();
 
-        const savedHotel = await newHotel.save();
+        // 创建酒店
+        db.prepare(`
+            INSERT INTO hotels (id, name_cn, name_en, address, star_level, banner_url, tags, audit_status, is_offline, merchant_username, createdAt, updatedAt)
+            VALUES (?, ?, ?, ?, ?, ?, ?, 'Pending', 0, ?, ?, ?)
+        `).run(
+            hotelId,
+            hotelData.name_cn,
+            hotelData.name_en || null,
+            hotelData.address,
+            hotelData.star_level || null,
+            hotelData.banner_url || null,
+            hotelData.tags ? JSON.stringify(hotelData.tags) : null,
+            req.user?.phone || req.user?.username || null,
+            now,
+            now
+        );
 
         // 保存房型信息
         if (hotelData.rooms && hotelData.rooms.length > 0) {
+            const insertRoom = db.prepare(`
+                INSERT INTO rooms (id, name, price, capacity, description, image_url, amenities, hotelId)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            `);
+
             for (const roomData of hotelData.rooms) {
-                const room = new Room({
-                    name: roomData.name,
-                    price: roomData.price,
-                    capacity: roomData.capacity,
-                    description: roomData.description,
-                    image_url: roomData.image_url,
-                    amenities: roomData.amenities,
-                    hotelId: savedHotel._id
-                });
-                await room.save();
+                insertRoom.run(
+                    crypto.randomUUID(),
+                    roomData.name,
+                    roomData.price,
+                    roomData.capacity || 2,
+                    roomData.description || null,
+                    roomData.image_url || null,
+                    roomData.amenities ? JSON.stringify(roomData.amenities) : null,
+                    hotelId
+                );
             }
         }
 
@@ -60,7 +63,7 @@ const createHotel = async (req, res) => {
 
         res.json({
             code: 200,
-            data: { id: savedHotel._id },
+            data: { id: hotelId },
             message: '酒店录入成功，等待管理员审核'
         });
     } catch (error) {
@@ -76,50 +79,64 @@ const updateHotel = async (req, res) => {
         const { id } = req.params;
         const updateData = req.body;
 
-        // 查找酒店
-        const hotel = await Hotel.findById(id);
+        const hotel = db.prepare('SELECT * FROM hotels WHERE id = ?').get(id);
         if (!hotel) {
             return res.status(404).json({ code: 404, message: '找不到该酒店数据' });
         }
 
-        // 检查权限：该酒店是否属于当前商户
-        if (hotel.merchant_username && hotel.merchant_username !== req.user.username) {
+        // 检查权限
+        const merchantId = req.user?.phone || req.user?.username;
+        if (hotel.merchant_username && hotel.merchant_username !== merchantId) {
             return res.status(403).json({ code: 403, message: '无权修改他人的酒店' });
         }
 
-        // 更新酒店基本信息
-        hotel.name_cn = updateData.name_cn || hotel.name_cn;
-        hotel.name_en = updateData.name_en || hotel.name_en;
-        hotel.address = updateData.address || hotel.address;
-        hotel.star_level = updateData.star_level || hotel.star_level;
-        hotel.banner_url = updateData.banner_url || hotel.banner_url;
-        hotel.tags = updateData.tags || hotel.tags;
-        hotel.audit_status = 'Pending'; // 重新审核
+        const now = new Date().toISOString();
 
-        await hotel.save();
+        // 更新酒店基本信息
+        db.prepare(`
+            UPDATE hotels SET
+                name_cn = ?, name_en = ?, address = ?, star_level = ?,
+                banner_url = ?, tags = ?, audit_status = 'Pending', updatedAt = ?
+            WHERE id = ?
+        `).run(
+            updateData.name_cn || hotel.name_cn,
+            updateData.name_en || hotel.name_en,
+            updateData.address || hotel.address,
+            updateData.star_level || hotel.star_level,
+            updateData.banner_url || hotel.banner_url,
+            updateData.tags ? JSON.stringify(updateData.tags) : hotel.tags,
+            now,
+            id
+        );
 
         // 更新房型信息
         if (updateData.rooms && updateData.rooms.length > 0) {
             // 删除旧房型
-            await Room.deleteMany({ hotelId: hotel._id });
+            db.prepare('DELETE FROM rooms WHERE hotelId = ?').run(id);
+
             // 创建新房型
+            const insertRoom = db.prepare(`
+                INSERT INTO rooms (id, name, price, capacity, description, image_url, amenities, hotelId)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            `);
+
             for (const roomData of updateData.rooms) {
-                const room = new Room({
-                    name: roomData.name,
-                    price: roomData.price,
-                    capacity: roomData.capacity,
-                    description: roomData.description,
-                    image_url: roomData.image_url,
-                    amenities: roomData.amenities,
-                    hotelId: hotel._id
-                });
-                await room.save();
+                insertRoom.run(
+                    crypto.randomUUID(),
+                    roomData.name,
+                    roomData.price,
+                    roomData.capacity || 2,
+                    roomData.description || null,
+                    roomData.image_url || null,
+                    roomData.amenities ? JSON.stringify(roomData.amenities) : null,
+                    id
+                );
             }
         }
 
         // 清除相关缓存
         await Cache.del('banners');
-        await Cache.del(`hotel:${hotel._id}`);
+        await Cache.del(`hotel:${id}`);
 
         res.json({
             code: 200,
@@ -131,22 +148,25 @@ const updateHotel = async (req, res) => {
 };
 
 /**
- * 获取属于该商户的所有酒店（商户后台视角）
+ * 获取属于该商户的所有酒店
  */
 const getMyHotels = async (req, res) => {
     try {
-        const myHotels = await Hotel.find({ merchant_username: req.user.username });
+        const merchantId = req.user?.phone || req.user?.username;
+        const myHotels = db.prepare('SELECT * FROM hotels WHERE merchant_username = ?').all(merchantId);
 
-        // 为每个酒店获取对应的房型信息
-        const hotelsWithRooms = await Promise.all(
-            myHotels.map(async (hotel) => {
-                const rooms = await Room.find({ hotelId: hotel._id });
-                return {
-                    ...hotel.toObject(),
-                    rooms
-                };
-            })
-        );
+        const hotelsWithRooms = myHotels.map(hotel => {
+            const rooms = db.prepare('SELECT * FROM rooms WHERE hotelId = ?').all(hotel.id);
+            return {
+                ...hotel,
+                is_offline: !!hotel.is_offline,
+                tags: hotel.tags ? JSON.parse(hotel.tags) : [],
+                rooms: rooms.map(r => ({
+                    ...r,
+                    amenities: r.amenities ? JSON.parse(r.amenities) : []
+                }))
+            };
+        });
 
         res.json({
             code: 200,
@@ -162,12 +182,10 @@ const getMyHotels = async (req, res) => {
  * 上传酒店图片
  */
 const uploadImage = (req, res) => {
-    // 经过 multer 处理，文件信息会挂载在 req.file 上
     if (!req.file) {
         return res.status(400).json({ code: 400, message: '请选择要上传的图片' });
     }
 
-    // 拼接可在浏览器里访问的静态资源 URL
     const fileUrl = `/uploads/${req.file.filename}`;
 
     res.json({
