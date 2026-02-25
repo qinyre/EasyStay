@@ -22,8 +22,8 @@ const createHotel = async (req, res) => {
 
         // 创建酒店
         db.prepare(`
-            INSERT INTO hotels (id, name_cn, name_en, address, star_level, banner_url, tags, audit_status, is_offline, merchant_username, createdAt, updatedAt)
-            VALUES (?, ?, ?, ?, ?, ?, ?, 'Pending', 0, ?, ?, ?)
+            INSERT INTO hotels (id, name_cn, name_en, address, star_level, banner_url, tags, open_date, audit_status, is_offline, merchant_username, createdAt, updatedAt)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Pending', 0, ?, ?, ?)
         `).run(
             hotelId,
             hotelData.name_cn,
@@ -32,6 +32,7 @@ const createHotel = async (req, res) => {
             hotelData.star_level || null,
             hotelData.banner_url || null,
             hotelData.tags ? JSON.stringify(hotelData.tags) : null,
+            hotelData.open_date || null,
             req.user?.phone || req.user?.username || null,
             now,
             now
@@ -96,7 +97,7 @@ const updateHotel = async (req, res) => {
         db.prepare(`
             UPDATE hotels SET
                 name_cn = ?, name_en = ?, address = ?, star_level = ?,
-                banner_url = ?, tags = ?, audit_status = 'Pending', updatedAt = ?
+                banner_url = ?, tags = ?, open_date = ?, audit_status = 'Pending', updatedAt = ?
             WHERE id = ?
         `).run(
             updateData.name_cn || hotel.name_cn,
@@ -105,6 +106,7 @@ const updateHotel = async (req, res) => {
             updateData.star_level || hotel.star_level,
             updateData.banner_url || hotel.banner_url,
             updateData.tags ? JSON.stringify(updateData.tags) : hotel.tags,
+            updateData.open_date || hotel.open_date,
             now,
             id
         );
@@ -163,6 +165,8 @@ const getMyHotels = async (req, res) => {
                 tags: hotel.tags ? JSON.parse(hotel.tags) : [],
                 rooms: rooms.map(r => ({
                     ...r,
+                    type_name: r.name, // 兼容 PC
+                    stock: r.capacity, // 兼容 PC
                     amenities: r.amenities ? JSON.parse(r.amenities) : []
                 }))
             };
@@ -172,6 +176,79 @@ const getMyHotels = async (req, res) => {
             code: 200,
             data: hotelsWithRooms,
             message: 'success'
+        });
+    } catch (error) {
+        res.status(500).json({ code: 500, message: error.message });
+    }
+};
+
+/**
+ * 商户获取单个酒店详情
+ */
+const getHotelById = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const merchantId = req.user?.phone || req.user?.username;
+
+        const hotel = db.prepare('SELECT * FROM hotels WHERE id = ?').get(id);
+        if (!hotel) {
+            return res.status(404).json({ code: 404, message: '找不到该酒店数据' });
+        }
+
+        if (hotel.merchant_username && hotel.merchant_username !== merchantId) {
+            return res.status(403).json({ code: 403, message: '无权查看他人的酒店' });
+        }
+
+        const rooms = db.prepare('SELECT * FROM rooms WHERE hotelId = ?').all(id);
+
+        res.json({
+            code: 200,
+            data: {
+                ...hotel,
+                is_offline: !!hotel.is_offline,
+                tags: hotel.tags ? JSON.parse(hotel.tags) : [],
+                rooms: rooms.map(r => ({
+                    ...r,
+                    type_name: r.name, // 兼容 PC
+                    stock: r.capacity, // 兼容 PC
+                    amenities: r.amenities ? JSON.parse(r.amenities) : []
+                }))
+            },
+            message: 'success'
+        });
+    } catch (error) {
+        res.status(500).json({ code: 500, message: error.message });
+    }
+};
+
+/**
+ * 商户删除单个酒店
+ */
+const deleteHotel = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const merchantId = req.user?.phone || req.user?.username;
+
+        const hotel = db.prepare('SELECT * FROM hotels WHERE id = ?').get(id);
+        if (!hotel) {
+            return res.status(404).json({ code: 404, message: '找不到该酒店数据' });
+        }
+
+        if (hotel.merchant_username && hotel.merchant_username !== merchantId) {
+            return res.status(403).json({ code: 403, message: '无权删除他人的酒店' });
+        }
+
+        // 物理删除房型和酒店
+        db.prepare('DELETE FROM rooms WHERE hotelId = ?').run(id);
+        db.prepare('DELETE FROM hotels WHERE id = ?').run(id);
+
+        // 清理缓存
+        await Cache.del('banners');
+        await Cache.del(`hotel:${id}`);
+
+        res.json({
+            code: 200,
+            message: '酒店删除成功'
         });
     } catch (error) {
         res.status(500).json({ code: 500, message: error.message });
@@ -202,5 +279,7 @@ module.exports = {
     createHotel,
     updateHotel,
     getMyHotels,
-    uploadImage
+    uploadImage,
+    getHotelById,
+    deleteHotel
 };

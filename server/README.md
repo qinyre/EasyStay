@@ -98,6 +98,15 @@
 ### 测试
 - **运行测试**：`npm test`
 - **测试监视模式**：`npm run test:watch`
+- **接口冒烟测试（推荐）**：运行端到端脚本验证主要接口是否可用
+  - 脚本位置：`server/scripts/smoke.ps1`
+  - 覆盖范围：认证（移动端）、商户上传与酒店录入、管理员审核发布、移动端酒店与订单、PC 端用户与订单
+  - 运行方式（需先启动后端服务并保持运行）：
+    ```powershell
+    pwsh -NoProfile -ExecutionPolicy Bypass -File ./scripts/smoke.ps1
+    ```
+  - 通过标识：输出 `ALL_SMOKE_TESTS_PASSED`
+  - 注意：脚本会在本地 SQLite 中写入测试数据（用户/酒店/房型/订单），属于正常现象
 
 ### 代码质量
 - **代码 lint**：`npm run lint`

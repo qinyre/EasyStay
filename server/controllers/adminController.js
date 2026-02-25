@@ -16,6 +16,8 @@ const getAllHotels = async (req, res) => {
                 tags: hotel.tags ? JSON.parse(hotel.tags) : [],
                 rooms: rooms.map(r => ({
                     ...r,
+                    type_name: r.name, // 兼容 PC
+                    stock: r.capacity, // 兼容 PC
                     amenities: r.amenities ? JSON.parse(r.amenities) : []
                 }))
             };
@@ -115,8 +117,43 @@ const publishHotel = async (req, res) => {
     }
 };
 
+/**
+ * 获取单个酒店详情 (管理员后台视角)
+ */
+const getHotelById = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const hotel = db.prepare('SELECT * FROM hotels WHERE id = ?').get(id);
+        if (!hotel) {
+            return res.status(404).json({ code: 404, message: '找不到该酒店数据' });
+        }
+
+        const rooms = db.prepare('SELECT * FROM rooms WHERE hotelId = ?').all(id);
+
+        res.json({
+            code: 200,
+            data: {
+                ...hotel,
+                is_offline: !!hotel.is_offline,
+                tags: hotel.tags ? JSON.parse(hotel.tags) : [],
+                rooms: rooms.map(r => ({
+                    ...r,
+                    type_name: r.name, // 兼容 PC
+                    stock: r.capacity, // 兼容 PC
+                    amenities: r.amenities ? JSON.parse(r.amenities) : []
+                }))
+            },
+            message: 'success'
+        });
+    } catch (error) {
+        res.status(500).json({ code: 500, message: error.message });
+    }
+};
+
 module.exports = {
     getAllHotels,
+    getHotelById,
     auditHotel,
     publishHotel
 };

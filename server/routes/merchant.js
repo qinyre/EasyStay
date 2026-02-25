@@ -32,6 +32,20 @@ router.post('/hotels', validate(hotelSchema), merchantController.createHotel);
 router.put('/hotels/:id', validate(hotelSchema), merchantController.updateHotel);
 
 /**
+ * @route   GET /api/v1/merchant/hotels/:id
+ * @desc    商户获取自己名下的酒店详情
+ * @access  Private (Merchant)
+ */
+router.get('/hotels/:id', merchantController.getHotelById);
+
+/**
+ * @route   DELETE /api/v1/merchant/hotels/:id
+ * @desc    商户删除自己名下的酒店
+ * @access  Private (Merchant)
+ */
+router.delete('/hotels/:id', merchantController.deleteHotel);
+
+/**
  * @route   POST /api/v1/merchant/upload
  * @desc    商户上传图片
  * @access  Private (Merchant)

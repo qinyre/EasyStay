@@ -28,6 +28,19 @@ setupSwagger(app);
 // 暴露静态文件目录供前端访问上传的图片
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+// 兼容 PC 端硬编码的无鉴权图片上传 (action="/merchant/upload")
+const upload = require('./middlewares/upload');
+app.post('/merchant/upload', (req, res, next) => {
+  upload.single('file')(req, res, (err) => {
+    if (err) {
+      if (err.message === 'INVALID_TYPE') return res.status(400).json({ code: 400, message: '只允许上传图片' });
+      if (err.code === 'LIMIT_FILE_SIZE') return res.status(400).json({ code: 400, message: '文件不能超过50MB' });
+      return res.status(500).json({ code: 500, message: '图片上传失败' });
+    }
+    next();
+  });
+}, require('./controllers/merchantController').uploadImage);
+
 // 注册路由
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/mobile', mobileRoutes);

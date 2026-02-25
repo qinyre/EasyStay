@@ -9,7 +9,7 @@ const validate = (schema) => {
             const parsedData = schema.parse(req.body);
 
             // 如果需要，可以通过这一步把多余的无用字段过滤掉
-            // req.body = parsedData; 
+            req.body = parsedData; 
 
             next(); // 数据合规，放行到对应的 Controller
         } catch (error) {

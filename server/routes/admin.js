@@ -15,6 +15,13 @@ router.use(roleCheck(['admin']));
 router.get('/hotels', adminController.getAllHotels);
 
 /**
+ * @route   GET /api/v1/admin/hotels/:id
+ * @desc    获取单个酒店详情用于审核
+ * @access  Private (Admin)
+ */
+router.get('/hotels/:id', adminController.getHotelById);
+
+/**
  * @route   PATCH /api/v1/admin/audit/:hotelId
  * @desc    审核酒店信息 (通过/拒绝)
  * @access  Private (Admin)

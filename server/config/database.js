@@ -46,6 +46,7 @@ const initDatabase = () => {
             name_en             TEXT,
             address             TEXT NOT NULL,
             star_level          INTEGER,
+            open_date           TEXT,
             banner_url          TEXT,
             description         TEXT,
             tags                TEXT,
