@@ -17,7 +17,7 @@ const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
   const handleLogout = () => {
     localStorage.clear();
-    window.location.href = "/login";
+    navigate("/login", { replace: true });
   };
 
   const menuItems =
@@ -67,7 +67,7 @@ const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           theme="light"
           mode="inline"
           items={menuItems}
-          onClick={(e) => (window.location.href = e.key)}
+          onClick={(e) => navigate(e.key)}
           style={{ borderRight: 0 }}
         />
       </Sider>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { createHotel, updateHotel, getHotelById } from "../../services/hotel";
+import { createHotel, updateHotel } from "../../services/hotel";
 import {
   Form,
   Input,
@@ -8,12 +8,12 @@ import {
   message,
   Typography,
   Card,
-  Table,
   Upload,
 } from "antd";
 import { PlusOutlined, MinusOutlined, UploadOutlined } from "@ant-design/icons";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import AdminLayout from "../../layouts/Layout";
+import { API_ORIGIN } from "../../services/config";
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -31,7 +31,6 @@ const HotelForm: React.FC = () => {
       amenities: [],
     },
   ]);
-  const [initLoading, setInitLoading] = useState(false);
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const location = useLocation();
@@ -166,7 +165,7 @@ const HotelForm: React.FC = () => {
       <div>
         <Title level={4}>{isEditMode ? "编辑酒店" : "添加酒店"}</Title>
 
-        <Card className="mt-4" loading={initLoading}>
+        <Card className="mt-4">
           <Form form={form} layout="vertical" onFinish={handleSubmit}>
             <div className="grid grid-cols-2 gap-6">
               <Form.Item
@@ -224,7 +223,7 @@ const HotelForm: React.FC = () => {
                   name="file"
                   listType="picture"
                   maxCount={1}
-                  action="/merchant/upload"
+                  action={`${API_ORIGIN}/merchant/upload`}
                   onChange={(info) => {
                     if (info.file.status === "done") {
                       // 上传成功后，将返回的URL设置到表单字段

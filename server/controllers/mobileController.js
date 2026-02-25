@@ -1,5 +1,6 @@
 const { db } = require('../config/database');
 const { Cache } = require('../config/cache');
+const { parseProvinceCity } = require('../utils/location');
 
 /**
  * 获取首页 Banner
@@ -108,7 +109,7 @@ const getHotels = async (req, res) => {
         const pageSizeNum = parseInt(pageSize);
 
         // 生成缓存键
-        const cacheKey = `hotels:${city || 'all'}:${keyword || 'none'}:${checkIn || 'any'}:${checkOut || 'any'}:${starLevel || 'all'}:${priceMin || '0'}:${priceMax || '99999'}:${tags || 'none'}:${pageNum}:${pageSizeNum}`;
+        const cacheKey = `hotels:v2:${city || 'all'}:${keyword || 'none'}:${checkIn || 'any'}:${checkOut || 'any'}:${starLevel || 'all'}:${priceMin || '0'}:${priceMax || '99999'}:${tags || 'none'}:${pageNum}:${pageSizeNum}`;
 
         const cachedData = await Cache.get(cacheKey);
         if (cachedData) {
@@ -146,6 +147,7 @@ const getHotels = async (req, res) => {
             const rooms = db.prepare('SELECT * FROM rooms WHERE hotelId = ? ORDER BY price ASC').all(h.id);
             const minPrice = rooms.length > 0 ? Math.min(...rooms.map(r => r.price)) : 0;
             const hotelTags = h.tags ? JSON.parse(h.tags) : [];
+            const parsed = parseProvinceCity(h.address);
 
             return {
                 id: h.id,
@@ -153,8 +155,8 @@ const getHotels = async (req, res) => {
                 name_en: h.name_en,
                 star_level: h.star_level,
                 location: {
-                    province: '上海市',
-                    city: '上海市',
+                    province: parsed.province,
+                    city: parsed.city,
                     address: h.address,
                     latitude: 31.2397,
                     longitude: 121.4997
@@ -218,7 +220,7 @@ const getHotelById = async (req, res) => {
     try {
         const { id } = req.params;
 
-        const cacheKey = `hotel:${id}`;
+        const cacheKey = `hotel:v2:${id}`;
         const cachedHotel = await Cache.get(cacheKey);
         if (cachedHotel) {
             return res.json({
@@ -239,9 +241,10 @@ const getHotelById = async (req, res) => {
         // 获取房型数据并按价格由低到高排序
         const rooms = db.prepare('SELECT * FROM rooms WHERE hotelId = ? ORDER BY price ASC').all(hotel.id);
 
+        const parsed = parseProvinceCity(hotel.address);
         const location = {
-            province: '上海市',
-            city: '上海市',
+            province: parsed.province,
+            city: parsed.city,
             address: hotel.address,
             latitude: 31.2397,
             longitude: 121.4997

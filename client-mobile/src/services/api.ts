@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { Hotel, Booking } from '../types';
 import { MOCK_HOTELS, MOCK_BOOKINGS } from './mockData';
+import { getImageUrl } from '../utils/url';
 
 // Axios 实例配置
 const apiClient = axios.create({
@@ -153,7 +154,7 @@ export const getHotels = async (params?: GetHotelsParams): Promise<Hotel[]> => {
           city: '',
           address: h.address || ''
         },
-        image: h.image,
+        image: getImageUrl(h.image),
         rating: h.rating || 4.5,
         tags: h.tags || [],
         price_start: h.price_start,
@@ -230,7 +231,22 @@ export const getHotelById = async (id: string): Promise<Hotel | undefined> => {
   if (USE_REAL_API) {
     try {
       const response = await apiClient.get(`/mobile/hotels/${id}`);
-      return response as unknown as Hotel;
+      const hotel = response as unknown as Hotel;
+
+      // format images
+      if (hotel) {
+        if (hotel.image) hotel.image = getImageUrl(hotel.image);
+        if (hotel.images && Array.isArray(hotel.images)) {
+          hotel.images = hotel.images.map(img => getImageUrl(img));
+        }
+        if (hotel.rooms && Array.isArray(hotel.rooms)) {
+          hotel.rooms = hotel.rooms.map(room => ({
+            ...room,
+            image: getImageUrl(room.image)
+          }));
+        }
+      }
+      return hotel;
     } catch (error) {
       console.error('获取酒店详情失败，回退到 Mock 数据:', error);
     }
@@ -285,7 +301,11 @@ export const getBookings = async (status?: string, page = 1, pageSize = 10): Pro
       }
       const response = await apiClient.get('/mobile/bookings', { params });
       const responseData = response as any;
-      return responseData?.list || (Array.isArray(responseData) ? responseData : []);
+      const list = responseData?.list || (Array.isArray(responseData) ? responseData : []);
+      return list.map((b: any) => ({
+        ...b,
+        hotelImage: getImageUrl(b.hotelImage)
+      }));
     } catch (error) {
       console.error('获取订单列表失败，回退到 Mock 数据:', error);
     }
@@ -302,7 +322,11 @@ export const getBookingById = async (id: string): Promise<Booking | undefined> =
   if (USE_REAL_API) {
     try {
       const response = await apiClient.get(`/mobile/bookings/${id}`);
-      return response as unknown as Booking;
+      const booking = response as unknown as Booking;
+      if (booking && booking.hotelImage) {
+        booking.hotelImage = getImageUrl(booking.hotelImage);
+      }
+      return booking;
     } catch (error) {
       console.error('获取订单详情失败，回退到 Mock 数据:', error);
     }

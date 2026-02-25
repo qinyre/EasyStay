@@ -185,7 +185,7 @@ const BookingConfirm: React.FC = () => {
             />
             <div className="flex-1">
               <h3 className="font-bold text-gray-900">{hotel.name_cn}</h3>
-              <p className="text-sm text-gray-500 mt-1">{hotel.star_level}星级 · {hotel.location.city}</p>
+              <p className="text-sm text-gray-500 mt-1">{hotel.star_level}星级 · {hotel.location.city || hotel.location.address}</p>
               <div className="flex items-center gap-1 mt-2">
                 <span className="text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded">{room.type}</span>
                 <span className="text-xs text-gray-400">最多入住{room.stock}人</span>

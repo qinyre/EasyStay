@@ -5,3 +5,4 @@ export const DATA_SOURCE: string = "backend";
 
 // 后端 API 基础 URL
 export const API_BASE_URL = "http://localhost:3000/api/v1";
+export const API_ORIGIN = new URL(API_BASE_URL).origin;
