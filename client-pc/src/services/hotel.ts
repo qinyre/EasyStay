@@ -257,8 +257,6 @@ export const auditHotel = async (
       const auditData = {
         action: action,
         reason: status === "rejected" ? reason : "",
-        // 审核通过时自动上线
-        is_offline: status !== "approved",
         // 保存拒绝理由（使用后端期望的字段名）
         fail_reason: status === "rejected" ? reason : null,
         // 同时保留 reject_reason 以兼容前端
