@@ -51,7 +51,16 @@ class Cache {
      */
     static async del(key) {
         try {
-            cacheStore.delete(key);
+            if (key instanceof RegExp) {
+                // 支持正则表达式批量删除
+                for (const k of cacheStore.keys()) {
+                    if (key.test(k)) {
+                        cacheStore.delete(k);
+                    }
+                }
+            } else {
+                cacheStore.delete(key);
+            }
             return true;
         } catch (error) {
             console.error('Cache del error:', error);
