@@ -71,3 +71,4 @@ server/data/easystay.db-shm
 server/uploads/*
 !server/uploads/.gitkeep
 !server/uploads/file-1771998373744-208236319.png
+.trae/documents/EasyStay 后端系统改进计划.md
