@@ -8,7 +8,7 @@ const DB_PATH = path.join(__dirname, '..', 'data', 'easystay.db');
 const fs = require('fs');
 const dataDir = path.dirname(DB_PATH);
 if (!fs.existsSync(dataDir)) {
-    fs.mkdirSync(dataDir, { recursive: true });
+  fs.mkdirSync(dataDir, { recursive: true });
 }
 
 // 创建数据库连接（同步 API，无需 await）
@@ -23,8 +23,8 @@ db.pragma('foreign_keys = ON');
  * 初始化数据库表结构
  */
 const initDatabase = () => {
-    // 用户表
-    db.exec(`
+  // 用户表
+  db.exec(`
         CREATE TABLE IF NOT EXISTS users (
             id          TEXT PRIMARY KEY,
             phone       TEXT UNIQUE,
@@ -38,8 +38,8 @@ const initDatabase = () => {
         )
     `);
 
-    // 酒店表
-    db.exec(`
+  // 酒店表
+  db.exec(`
         CREATE TABLE IF NOT EXISTS hotels (
             id                  TEXT PRIMARY KEY,
             name_cn             TEXT NOT NULL,
@@ -59,8 +59,16 @@ const initDatabase = () => {
         )
     `);
 
-    // 房型表
-    db.exec(`
+  // 如果酒店表已经存在但缺少open_date字段，则添加该字段
+  try {
+    db.exec(`ALTER TABLE hotels ADD COLUMN open_date TEXT`);
+  } catch (error) {
+    // 如果字段已经存在，忽略错误
+    console.log('open_date字段已经存在，跳过添加');
+  }
+
+  // 房型表
+  db.exec(`
         CREATE TABLE IF NOT EXISTS rooms (
             id          TEXT PRIMARY KEY,
             name        TEXT NOT NULL,
@@ -74,8 +82,8 @@ const initDatabase = () => {
         )
     `);
 
-    // 订单表
-    db.exec(`
+  // 订单表
+  db.exec(`
         CREATE TABLE IF NOT EXISTS orders (
             id              TEXT PRIMARY KEY,
             user_id         TEXT NOT NULL,
@@ -99,7 +107,7 @@ const initDatabase = () => {
         )
     `);
 
-    console.log('SQLite database initialized successfully');
+  console.log('SQLite database initialized successfully');
 };
 
 module.exports = { db, initDatabase };

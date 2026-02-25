@@ -55,7 +55,7 @@ const PublishList: React.FC = () => {
 
   const handleStatusChange = async (hotel: any, isOffline: boolean) => {
     try {
-      const result = await publishHotel(hotel.id, isOffline);
+      const result = await publishHotel(hotel.id, !isOffline);
       if (result.code === 200) {
         message.success(isOffline ? "酒店已下线" : "酒店已上线");
         fetchHotels();
@@ -103,7 +103,7 @@ const PublishList: React.FC = () => {
             <Button
               type="primary"
               icon={<UpCircleOutlined />}
-              onClick={() => handleStatusChange(record, true)}
+              onClick={() => handleStatusChange(record, false)}
             >
               上线
             </Button>
@@ -111,7 +111,7 @@ const PublishList: React.FC = () => {
             <Button
               danger
               icon={<DownCircleOutlined />}
-              onClick={() => handleStatusChange(record, false)}
+              onClick={() => handleStatusChange(record, true)}
             >
               下线
             </Button>

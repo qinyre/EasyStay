@@ -73,29 +73,45 @@ export const createHotel = async (data: any): Promise<HotelResponse> => {
         rooms:
           Array.isArray(data.rooms) && data.rooms.length > 0
             ? data.rooms.map((room: any) => ({
-                type_name:
-                  typeof room.type_name === "string"
-                    ? room.type_name
-                    : typeof room.type === "string"
-                      ? room.type
-                      : "",
+                name:
+                  typeof room.name === "string"
+                    ? room.name
+                    : typeof room.type_name === "string"
+                      ? room.type_name
+                      : typeof room.type === "string"
+                        ? room.type
+                        : "",
                 price:
                   typeof room.price === "number" && !isNaN(room.price)
                     ? room.price
                     : 0,
-                stock:
-                  typeof room.stock === "number" && !isNaN(room.stock)
-                    ? room.stock
-                    : 0,
+                capacity:
+                  typeof room.capacity === "number" && !isNaN(room.capacity)
+                    ? room.capacity
+                    : typeof room.stock === "number" && !isNaN(room.stock)
+                      ? room.stock
+                      : 0,
+                description: "",
+                image_url: "",
+                amenities: [],
               }))
-            : [{ type_name: "", price: 0, stock: 0 }],
+            : [
+                {
+                  name: "",
+                  price: 0,
+                  capacity: 0,
+                  description: "",
+                  image_url: "",
+                  amenities: [],
+                },
+              ],
       };
 
       // 添加默认状态到请求数据
       const hotelData = {
         ...validatedData,
-        audit_status: "pending", // 默认为待审核状态
-        is_offline: true, // 默认为下线状态，等待审核
+        audit_status: "Pending", // 默认为待审核状态
+        is_offline: 0, // 默认为下线状态，等待审核
       };
 
       console.log("发送到后端的数据:", hotelData);
