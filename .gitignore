@@ -64,3 +64,10 @@ GEMINI.md
 server/data/easystay.db
 server/data/easystay.db-wal
 server/data/easystay.db-shm
+
+# ==========================================
+# 7. 用户上传的文件 (User Uploads)
+# ==========================================
+server/uploads/*
+!server/uploads/.gitkeep
+!server/uploads/file-1771998373744-208236319.png
