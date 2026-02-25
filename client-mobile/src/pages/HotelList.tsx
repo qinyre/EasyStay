@@ -82,6 +82,8 @@ const HotelList: React.FC = () => {
         starLevel,
         priceMin,
         priceMax,
+        checkIn: checkIn || undefined,
+        checkOut: checkOut || undefined,
         tags: selectedTags,
         page: nextPage
       });
@@ -110,6 +112,8 @@ const HotelList: React.FC = () => {
           starLevel,
           priceMin,
           priceMax,
+          checkIn: checkIn || undefined,
+          checkOut: checkOut || undefined,
           tags: selectedTags,
           page: 1
         });
@@ -415,7 +419,7 @@ const HotelList: React.FC = () => {
       <div className="flex-1 overflow-y-auto" ref={containerRef}>
         <PullToRefresh
           onRefresh={async () => {
-            const data = await getHotels({ city, keyword, starLevel, priceMin, priceMax, tags: selectedTags });
+            const data = await getHotels({ city, keyword, starLevel, priceMin, priceMax, checkIn: checkIn || undefined, checkOut: checkOut || undefined, tags: selectedTags });
             setHotels(data);
             setHasMore(true);
           }}

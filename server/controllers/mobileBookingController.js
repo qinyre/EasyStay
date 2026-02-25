@@ -81,6 +81,8 @@ const createBooking = async (req, res) => {
             guestPhone: order.guestPhone,
             createdAt: order.createdAt,
             hotelName: hotel.name_cn,
+            hotelNameCn: hotel.name_cn,
+            hotelNameEn: hotel.name_en,
             hotelImage: hotel.banner_url,
             roomType: room.name
         };
@@ -137,7 +139,11 @@ const getBookings = async (req, res) => {
                 return {
                     id: order._id,
                     hotelId: order.hotel_id,
+                    roomId: order.room_id,
+                    userId: order.user_id,
                     hotelName: hotel ? hotel.name_cn : '',
+                    hotelNameCn: hotel ? hotel.name_cn : '',
+                    hotelNameEn: hotel ? hotel.name_en : '',
                     hotelImage: hotel ? hotel.banner_url : '',
                     roomType: room ? room.name : '',
                     checkIn: order.check_in_date,
@@ -226,10 +232,12 @@ const getBookingById = async (req, res) => {
             guestPhone: order.guestPhone,
             createdAt: order.createdAt,
             hotelName: hotel ? hotel.name_cn : '',
+            hotelNameCn: hotel ? hotel.name_cn : '',
+            hotelNameEn: hotel ? hotel.name_en : '',
             hotelImage: hotel ? hotel.banner_url : '',
-            roomType: room ? room.name : '',
             hotelAddress: hotel ? hotel.address : '',
-            nights
+            roomType: room ? room.name : '',
+            nights: nights
         };
 
         res.json({
@@ -288,10 +296,28 @@ const cancelBooking = async (req, res) => {
         order.status = 'cancelled';
         await order.save();
 
-        // 构建响应数据
+        // 查找关联的酒店和房型数据以构建完整响应
+        const hotel = await Hotel.findById(order.hotel_id);
+        const room = await Room.findById(order.room_id);
+
+        // 构建完整的响应数据（与 getBookings 列表结构一致）
         const responseData = {
             id: order._id,
-            status: order.status
+            hotelId: order.hotel_id,
+            roomId: order.room_id,
+            userId: order.user_id,
+            hotelName: hotel ? hotel.name_cn : '',
+            hotelNameCn: hotel ? hotel.name_cn : '',
+            hotelNameEn: hotel ? hotel.name_en : '',
+            hotelImage: hotel ? hotel.banner_url : '',
+            roomType: room ? room.name : '',
+            checkIn: order.check_in_date,
+            checkOut: order.check_out_date,
+            totalPrice: order.total_price,
+            status: order.status,
+            guestName: order.guestName,
+            guestPhone: order.guestPhone,
+            createdAt: order.createdAt
         };
 
         res.json({
@@ -304,9 +330,54 @@ const cancelBooking = async (req, res) => {
     }
 };
 
+/**
+ * 更新订单状态 (通用)
+ */
+const updateBookingStatus = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { status } = req.body;
+        const { phone } = req.user;
+
+        if (!status) {
+            return res.status(400).json({ code: 400, message: '请提供新的状态' });
+        }
+
+        // 查找用户
+        const user = await User.findOne({ phone });
+        if (!user) {
+            return res.status(404).json({ code: 404, message: '用户不存在' });
+        }
+
+        // 查找订单
+        const order = await Order.findById(id);
+        if (!order) {
+            return res.status(404).json({ code: 404, message: '订单不存在' });
+        }
+
+        // 检查权限
+        if (order.user_id.toString() !== user._id.toString()) {
+            return res.status(403).json({ code: 403, message: '无权操作此订单' });
+        }
+
+        // 更新订单状态
+        order.status = status;
+        await order.save();
+
+        res.json({
+            code: 200,
+            data: { id: order._id, status: order.status },
+            message: '订单状态更新成功'
+        });
+    } catch (error) {
+        res.status(500).json({ code: 500, message: error.message });
+    }
+};
+
 module.exports = {
     createBooking,
     getBookings,
     getBookingById,
-    cancelBooking
+    cancelBooking,
+    updateBookingStatus
 };

@@ -31,4 +31,11 @@ router.get('/bookings/:id', authMiddleware, mobileBookingController.getBookingBy
  */
 router.patch('/bookings/:id/cancel', authMiddleware, mobileBookingController.cancelBooking);
 
+/**
+ * @route   PATCH /api/v1/mobile/bookings/:id
+ * @desc    通用订单状态更新
+ * @access  Private
+ */
+router.patch('/bookings/:id', authMiddleware, mobileBookingController.updateBookingStatus);
+
 module.exports = router;

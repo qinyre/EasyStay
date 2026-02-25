@@ -52,12 +52,12 @@ const register = async (req, res) => {
         }
 
         // 保存新用户
-        const newUser = new User({ 
-            phone, 
-            email, 
-            password, 
-            name, 
-            role 
+        const newUser = new User({
+            phone,
+            email,
+            password,
+            name,
+            role
         });
         await newUser.save();
 
@@ -226,6 +226,7 @@ const sendResetCode = async (req, res) => {
         // 暂时模拟发送成功
         res.json({
             code: 200,
+            data: true,
             message: '验证码已发送至邮箱'
         });
     } catch (error) {
@@ -303,6 +304,7 @@ const resetPasswordWithCode = async (req, res) => {
             await user.save();
             return res.json({
                 code: 200,
+                data: true,
                 message: '密码重置成功'
             });
         }
@@ -311,6 +313,7 @@ const resetPasswordWithCode = async (req, res) => {
         // 暂时模拟重置成功
         res.json({
             code: 200,
+            data: true,
             message: '密码重置成功'
         });
     } catch (error) {
@@ -330,6 +333,7 @@ const logout = async (req, res) => {
         // 暂时直接返回成功
         res.json({
             code: 200,
+            data: true,
             message: '登出成功'
         });
     } catch (error) {

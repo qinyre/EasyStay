@@ -139,9 +139,9 @@ export const getCurrentUser = async (): Promise<User> => {
 /**
  * 用户登出
  */
-export const logout = async (): Promise<void> => {
+export const logout = async (): Promise<any> => {
   if (USE_REAL_API) {
-    await authClient.post('/auth/logout');
+    return await authClient.post('/auth/logout');
   }
 
   // 清除本地存储
@@ -152,7 +152,7 @@ export const logout = async (): Promise<void> => {
 /**
  * 发送密码重置验证码到邮箱
  */
-export const sendResetCode = async (params: SendVerificationCodeRequest): Promise<void> => {
+export const sendResetCode = async (params: SendVerificationCodeRequest): Promise<any> => {
   if (USE_REAL_API) {
     return await authClient.post('/auth/send-reset-code', params);
   }
@@ -174,7 +174,7 @@ export const sendResetCode = async (params: SendVerificationCodeRequest): Promis
 /**
  * 使用验证码重置密码
  */
-export const resetPasswordWithCode = async (params: ResetPasswordWithCodeRequest): Promise<void> => {
+export const resetPasswordWithCode = async (params: ResetPasswordWithCodeRequest): Promise<any> => {
   if (USE_REAL_API) {
     return await authClient.post('/auth/reset-password-with-code', params);
   }

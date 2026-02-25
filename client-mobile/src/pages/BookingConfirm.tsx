@@ -106,11 +106,9 @@ const BookingConfirm: React.FC = () => {
         const booking = await createBooking({
           hotelId: hotel.id,
           roomId: room.id,
-          userId: 'user_001',
           checkIn: dateRange.start.toISOString(),
           checkOut: dateRange.end.toISOString(),
           totalPrice: total,
-          status: 'pending',
           guestName: form.guestName,
           guestPhone: form.guestPhone,
         });
@@ -146,11 +144,9 @@ const BookingConfirm: React.FC = () => {
       await saveBooking({
         hotelId: hotel.id,
         roomId: room.id,
-        userId: 'user_001',
         checkIn: dateRange.start.toISOString(),
         checkOut: dateRange.end.toISOString(),
         totalPrice: total,
-        status: 'pending',
         guestName: form.guestName,
         guestPhone: form.guestPhone,
       });
@@ -208,7 +204,7 @@ const BookingConfirm: React.FC = () => {
                 <div>
                   <div className="text-xs text-gray-400">{t('home.check_in')}</div>
                   <div className="font-bold text-gray-900">{format(dateRange.start, 'MM月dd日')}</div>
-                  <div className="text-xs text-gray-400">{['周日','周一','周二','周三','周四','周五','周六'][dateRange.start.getDay()]}</div>
+                  <div className="text-xs text-gray-400">{['周日', '周一', '周二', '周三', '周四', '周五', '周六'][dateRange.start.getDay()]}</div>
                 </div>
                 <div className="text-center">
                   <div className="text-xs text-gray-400">{nights}晚</div>
@@ -217,7 +213,7 @@ const BookingConfirm: React.FC = () => {
                 <div className="text-right">
                   <div className="text-xs text-gray-400">{t('home.check_out')}</div>
                   <div className="font-bold text-gray-900">{format(dateRange.end, 'MM月dd日')}</div>
-                  <div className="text-xs text-gray-400">{['周日','周一','周二','周三','周四','周五','周六'][dateRange.end.getDay()]}</div>
+                  <div className="text-xs text-gray-400">{['周日', '周一', '周二', '周三', '周四', '周五', '周六'][dateRange.end.getDay()]}</div>
                 </div>
               </div>
             </div>

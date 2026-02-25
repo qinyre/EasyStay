@@ -52,6 +52,8 @@ export interface Booking {
   hotelNameCn?: string;
   hotelImage?: string;
   roomType?: string;
+  hotelAddress?: string;
+  nights?: number;
 }
 
 // User Authentication Types
@@ -79,7 +81,7 @@ export interface RegisterRequest {
   phone: string;
   email: string;
   password: string;
-  confirmPassword?: string;
+  confirmPassword: string;
   name?: string;
   role?: 'user' | 'merchant';
 }

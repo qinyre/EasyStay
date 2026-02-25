@@ -95,7 +95,8 @@ const CITY_NAME_MAP: Record<string, string> = {
 export interface GetHotelsParams {
   city?: string;
   keyword?: string;
-  date?: Date;
+  checkIn?: string;
+  checkOut?: string;
   page?: number;
   starLevel?: number;
   priceMin?: number;
@@ -109,10 +110,15 @@ interface BackendHotelListItem {
   name_cn: string;
   name_en: string;
   address: string;
+  location?: Location;
   star_level: number;
-  banner_url?: string;
+  image?: string;
+  rating?: number;
   tags?: string[];
-  min_price?: number;
+  price_start?: number;
+  is_offline?: boolean;
+  audit_status?: string;
+  created_at?: string;
 }
 
 export const getHotels = async (params?: GetHotelsParams): Promise<Hotel[]> => {
@@ -121,14 +127,20 @@ export const getHotels = async (params?: GetHotelsParams): Promise<Hotel[]> => {
     try {
       // 将前端的参数映射到后端的参数名
       const backendParams: Record<string, string | number | undefined> = {};
-      if (params?.city) backendParams.location = params.city; // 后端用 location
+      if (params?.city) backendParams.city = params.city;
       if (params?.keyword) backendParams.keyword = params.keyword;
+      if (params?.checkIn) backendParams.checkIn = params.checkIn;
+      if (params?.checkOut) backendParams.checkOut = params.checkOut;
       if (params?.starLevel) backendParams.starLevel = params.starLevel;
+      if (params?.priceMin) backendParams.priceMin = params.priceMin;
+      if (params?.priceMax) backendParams.priceMax = params.priceMax;
+      if (params?.tags && params.tags.length > 0) backendParams.tags = params.tags.join(',');
       if (params?.page) backendParams.page = params.page;
 
       const response = await apiClient.get('/mobile/hotels', { params: backendParams });
-      // 后端返回 { list, total, page, pageSize }，取 list
-      const list = response?.data?.list || response?.data || [];
+      // 响应拦截器已自动提取 data 字段，response 即为 { list, total, page, pageSize }
+      const responseData = response as any;
+      const list = responseData?.list || (Array.isArray(responseData) ? responseData : []);
 
       // 转换后端数据结构到前端期望的格式
       return list.map((h: BackendHotelListItem) => ({
@@ -136,19 +148,19 @@ export const getHotels = async (params?: GetHotelsParams): Promise<Hotel[]> => {
         name_cn: h.name_cn,
         name_en: h.name_en,
         star_level: h.star_level,
-        location: {
+        location: h.location || {
           province: '',
           city: '',
           address: h.address || ''
         },
-        image: h.banner_url,
-        rating: 4.5,
+        image: h.image,
+        rating: h.rating || 4.5,
         tags: h.tags || [],
-        price_start: h.min_price,
+        price_start: h.price_start,
         rooms: [],
-        is_offline: false,
-        audit_status: 'approved' as const,
-        created_at: new Date().toISOString()
+        is_offline: h.is_offline || false,
+        audit_status: (h.audit_status || 'approved') as 'pending' | 'approved' | 'rejected',
+        created_at: h.created_at || new Date().toISOString()
       }));
     } catch (error) {
       console.error('获取酒店列表失败，回退到 Mock 数据:', error);
@@ -218,7 +230,7 @@ export const getHotelById = async (id: string): Promise<Hotel | undefined> => {
   if (USE_REAL_API) {
     try {
       const response = await apiClient.get(`/mobile/hotels/${id}`);
-      return response.data;
+      return response as unknown as Hotel;
     } catch (error) {
       console.error('获取酒店详情失败，回退到 Mock 数据:', error);
     }
@@ -228,11 +240,28 @@ export const getHotelById = async (id: string): Promise<Hotel | undefined> => {
   return MOCK_HOTELS.find(h => h.id === id);
 };
 
-export const getPopularCities = async () => {
+export const getBanners = async () => {
   if (USE_REAL_API) {
     try {
       const response = await apiClient.get('/mobile/home/banners');
-      return response.data || [];
+      return (response as any) || [];
+    } catch (error) {
+      console.error('获取首页Banner失败，回退到 Mock 数据:', error);
+    }
+  }
+
+  await new Promise(resolve => setTimeout(resolve, 300));
+  return [
+    { id: 'banner_1', name: '上海陆家嘴禧酒店', image: 'https://images.unsplash.com/photo-1542314831-c53cd3816002?auto=format&fit=crop&q=80&w=1000', hotelId: 'hotel_123' },
+    { id: 'banner_2', name: '北京王府井希尔顿酒店', image: 'https://images.unsplash.com/photo-1551632436-cbf8dd35adfa?auto=format&fit=crop&q=80&w=1000', hotelId: 'hotel_456' },
+  ];
+};
+
+export const getPopularCities = async () => {
+  if (USE_REAL_API) {
+    try {
+      const response = await apiClient.get('/mobile/home/popular-cities');
+      return (response as any) || [];
     } catch (error) {
       console.error('获取热门城市失败，回退到 Mock 数据:', error);
     }
@@ -247,13 +276,16 @@ export const getPopularCities = async () => {
   ];
 };
 
-export const getBookings = async (status?: string): Promise<Booking[]> => {
+export const getBookings = async (status?: string, page = 1, pageSize = 10): Promise<Booking[]> => {
   if (USE_REAL_API) {
     try {
-      const response = await apiClient.get('/bookings', {
-        params: status && status !== 'all' ? { status } : undefined
-      });
-      return response.data || [];
+      const params: any = { page, pageSize };
+      if (status && status !== 'all') {
+        params.status = status;
+      }
+      const response = await apiClient.get('/mobile/bookings', { params });
+      const responseData = response as any;
+      return responseData?.list || (Array.isArray(responseData) ? responseData : []);
     } catch (error) {
       console.error('获取订单列表失败，回退到 Mock 数据:', error);
     }
@@ -267,6 +299,15 @@ export const getBookings = async (status?: string): Promise<Booking[]> => {
 };
 
 export const getBookingById = async (id: string): Promise<Booking | undefined> => {
+  if (USE_REAL_API) {
+    try {
+      const response = await apiClient.get(`/mobile/bookings/${id}`);
+      return response as unknown as Booking;
+    } catch (error) {
+      console.error('获取订单详情失败，回退到 Mock 数据:', error);
+    }
+  }
+
   await new Promise(resolve => setTimeout(resolve, 500));
   return MOCK_BOOKINGS.find(b => b.id === id);
 };
@@ -274,11 +315,9 @@ export const getBookingById = async (id: string): Promise<Booking | undefined> =
 export interface CreateBookingParams {
   hotelId: string;
   roomId: string;
-  userId: string;
   checkIn: string;
   checkOut: string;
   totalPrice: number;
-  status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
   guestName: string;
   guestPhone: string;
 }
@@ -286,8 +325,8 @@ export interface CreateBookingParams {
 export const createBooking = async (params: CreateBookingParams): Promise<Booking> => {
   if (USE_REAL_API) {
     try {
-      const response = await apiClient.post('/bookings', params);
-      return response.data;
+      const response = await apiClient.post('/mobile/bookings', params);
+      return response as unknown as Booking;
     } catch (error) {
       console.error('创建订单失败，回退到 Mock 数据:', error);
     }
@@ -306,11 +345,11 @@ export const createBooking = async (params: CreateBookingParams): Promise<Bookin
     id: bookingId,
     hotelId: params.hotelId,
     roomId: params.roomId,
-    userId: params.userId,
+    userId: '',
     checkIn: params.checkIn,
     checkOut: params.checkOut,
     totalPrice: params.totalPrice,
-    status: params.status,
+    status: 'pending',
     guestName: params.guestName,
     guestPhone: params.guestPhone,
     createdAt: new Date().toISOString(),
@@ -330,8 +369,8 @@ export const createBooking = async (params: CreateBookingParams): Promise<Bookin
 export const cancelBooking = async (bookingId: string): Promise<Booking> => {
   if (USE_REAL_API) {
     try {
-      const response = await apiClient.patch(`/bookings/${bookingId}`, { status: 'cancelled' });
-      return response.data;
+      const response = await apiClient.patch(`/mobile/bookings/${bookingId}/cancel`, {});
+      return response as unknown as Booking;
     } catch (error) {
       console.error('取消订单失败，回退到 Mock 数据:', error);
     }
@@ -353,8 +392,8 @@ export const cancelBooking = async (bookingId: string): Promise<Booking> => {
 export const saveBooking = async (params: CreateBookingParams): Promise<Booking> => {
   if (USE_REAL_API) {
     try {
-      const response = await apiClient.post('/bookings', { ...params, status: 'pending' });
-      return response.data;
+      const response = await apiClient.post('/mobile/bookings', { ...params, status: 'pending' });
+      return response as unknown as Booking;
     } catch (error) {
       console.error('保存订单失败，回退到 Mock 数据:', error);
     }
@@ -373,7 +412,7 @@ export const saveBooking = async (params: CreateBookingParams): Promise<Booking>
     id: bookingId,
     hotelId: params.hotelId,
     roomId: params.roomId,
-    userId: params.userId,
+    userId: '',
     checkIn: params.checkIn,
     checkOut: params.checkOut,
     totalPrice: params.totalPrice,
@@ -397,8 +436,8 @@ export const saveBooking = async (params: CreateBookingParams): Promise<Booking>
 export const updateBookingStatus = async (bookingId: string, status: 'confirmed' | 'cancelled' | 'completed'): Promise<Booking> => {
   if (USE_REAL_API) {
     try {
-      const response = await apiClient.patch(`/bookings/${bookingId}`, { status });
-      return response.data;
+      const response = await apiClient.patch(`/mobile/bookings/${bookingId}`, { status });
+      return response as unknown as Booking;
     } catch (error) {
       console.error('更新订单状态失败，回退到 Mock 数据:', error);
     }
