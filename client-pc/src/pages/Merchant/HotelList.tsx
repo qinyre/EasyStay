@@ -272,6 +272,24 @@ const HotelList: React.FC = () => {
                     </Tag>
                   )}
                 </Descriptions.Item>
+                <Descriptions.Item label="拒绝理由">
+                  {selectedHotel.reject_reason ||
+                    selectedHotel.fail_reason ||
+                    "-"}
+                </Descriptions.Item>
+                <Descriptions.Item label="酒店介绍" span={2}>
+                  {selectedHotel.description || "-"}
+                </Descriptions.Item>
+                <Descriptions.Item label="酒店设施" span={2}>
+                  {selectedHotel.facilities &&
+                  selectedHotel.facilities.length > 0
+                    ? selectedHotel.facilities.map(
+                        (facility: string, index: number) => (
+                          <Tag key={index}>{facility}</Tag>
+                        ),
+                      )
+                    : "-"}
+                </Descriptions.Item>
                 <Descriptions.Item label="酒店标签" span={2}>
                   {selectedHotel.tags && selectedHotel.tags.length > 0
                     ? selectedHotel.tags.map((tag: string, index: number) => (
@@ -291,13 +309,24 @@ const HotelList: React.FC = () => {
                       className="mb-4"
                     >
                       <Descriptions.Item label="房型名称">
-                        {room.type_name}
+                        {room.name || room.type_name}
                       </Descriptions.Item>
                       <Descriptions.Item label="价格">
                         ¥{room.price}
                       </Descriptions.Item>
                       <Descriptions.Item label="库存">
-                        {room.stock}间
+                        {room.capacity || room.stock}间
+                      </Descriptions.Item>
+                      <Descriptions.Item label="房型图片">
+                        {room.image_url ? (
+                          <img
+                            src={room.image_url}
+                            alt={room.name || room.type_name}
+                            className="w-24 h-24 object-cover"
+                          />
+                        ) : (
+                          "-"
+                        )}
                       </Descriptions.Item>
                     </Descriptions>
                   ))

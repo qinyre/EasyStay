@@ -243,12 +243,15 @@ const HotelForm: React.FC = () => {
               <Select
                 mode="multiple"
                 placeholder="请选择酒店标签（用户可通过这些标签筛选酒店）"
-                options={HOTEL_TAGS.map(t => ({ label: `${t.icon} ${t.label}`, value: t.id }))}
+                options={HOTEL_TAGS.map((t) => ({
+                  label: `${t.icon} ${t.label}`,
+                  value: t.id,
+                }))}
                 maxTagCount="responsive"
               />
             </Form.Item>
 
-            <Form.Item name="description" label="关于酒店">
+            <Form.Item name="description" label="酒店介绍">
               <Input.TextArea
                 rows={4}
                 placeholder="请输入酒店描述，如地理位置、周边环境、服务特色等"
@@ -261,7 +264,10 @@ const HotelForm: React.FC = () => {
               <Select
                 mode="multiple"
                 placeholder="请选择酒店提供的设施"
-                options={HOTEL_FACILITIES.map(f => ({ label: `${f.icon} ${f.label}`, value: f.id }))}
+                options={HOTEL_FACILITIES.map((f) => ({
+                  label: `${f.icon} ${f.label}`,
+                  value: f.id,
+                }))}
                 maxTagCount="responsive"
               />
             </Form.Item>
@@ -335,16 +341,33 @@ const HotelForm: React.FC = () => {
                     </div>
 
                     <div className="mb-4">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">房型图片</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        房型图片
+                      </label>
                       <Upload
                         name="file"
                         listType="picture"
                         maxCount={1}
                         action={`${API_ORIGIN}/merchant/upload`}
-                        fileList={room.image_url ? [{ uid: room.image_url, name: 'image.png', status: 'done', url: room.image_url }] : []}
+                        fileList={
+                          room.image_url
+                            ? [
+                                {
+                                  uid: room.image_url,
+                                  name: "image.png",
+                                  status: "done",
+                                  url: room.image_url,
+                                },
+                              ]
+                            : []
+                        }
                         onChange={(info) => {
                           if (info.file.status === "done") {
-                            handleRoomChange(index, "image_url", info.file.response.data.url);
+                            handleRoomChange(
+                              index,
+                              "image_url",
+                              info.file.response.data.url,
+                            );
                           }
                         }}
                       >

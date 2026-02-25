@@ -212,6 +212,53 @@ const AuditList: React.FC = () => {
                 <Descriptions.Item label="星级">
                   {"★".repeat(selectedHotel.star_level)}
                 </Descriptions.Item>
+                <Descriptions.Item label="酒店介绍" span={2}>
+                  {selectedHotel.description || "-"}
+                </Descriptions.Item>
+                <Descriptions.Item label="酒店设施" span={2}>
+                  {selectedHotel.facilities &&
+                  Array.isArray(selectedHotel.facilities) &&
+                  selectedHotel.facilities.length > 0 ? (
+                    <div className="flex flex-wrap gap-2">
+                      {selectedHotel.facilities.map(
+                        (
+                          facility:
+                            | string
+                            | number
+                            | bigint
+                            | boolean
+                            | React.ReactElement<
+                                unknown,
+                                string | React.JSXElementConstructor<any>
+                              >
+                            | Iterable<React.ReactNode>
+                            | React.ReactPortal
+                            | Promise<
+                                | string
+                                | number
+                                | bigint
+                                | boolean
+                                | React.ReactPortal
+                                | React.ReactElement<
+                                    unknown,
+                                    string | React.JSXElementConstructor<any>
+                                  >
+                                | Iterable<React.ReactNode>
+                                | null
+                                | undefined
+                              >
+                            | null
+                            | undefined,
+                          index: React.Key | null | undefined,
+                        ) => (
+                          <Tag key={index}>{facility}</Tag>
+                        ),
+                      )}
+                    </div>
+                  ) : (
+                    "-"
+                  )}
+                </Descriptions.Item>
                 <Descriptions.Item label="开业时间">
                   {selectedHotel.open_date || "-"}
                 </Descriptions.Item>
@@ -268,6 +315,17 @@ const AuditList: React.FC = () => {
                       </Descriptions.Item>
                       <Descriptions.Item label="库存">
                         {room.stock}间
+                      </Descriptions.Item>
+                      <Descriptions.Item label="房型图片">
+                        {room.image_url ? (
+                          <img
+                            src={room.image_url}
+                            alt={room.type_name}
+                            className="w-24 h-24 object-cover"
+                          />
+                        ) : (
+                          "-"
+                        )}
                       </Descriptions.Item>
                     </Descriptions>
                   ))

@@ -69,42 +69,47 @@ export const createHotel = async (data: any): Promise<HotelResponse> => {
             : "https://via.placeholder.com/600x400",
         // 确保tags是数组
         tags: Array.isArray(data.tags) ? data.tags : [],
+        // 确保description是字符串
+        description:
+          typeof data.description === "string" ? data.description : "",
+        // 确保facilities是数组
+        facilities: Array.isArray(data.facilities) ? data.facilities : [],
         // 确保rooms是数组且至少有一个元素
         rooms:
           Array.isArray(data.rooms) && data.rooms.length > 0
             ? data.rooms.map((room: any) => ({
-              name:
-                typeof room.name === "string"
-                  ? room.name
-                  : typeof room.type_name === "string"
-                    ? room.type_name
-                    : typeof room.type === "string"
-                      ? room.type
-                      : "",
-              price:
-                typeof room.price === "number" && !isNaN(room.price)
-                  ? room.price
-                  : 0,
-              capacity:
-                typeof room.capacity === "number" && !isNaN(room.capacity)
-                  ? room.capacity
-                  : typeof room.stock === "number" && !isNaN(room.stock)
-                    ? room.stock
+                name:
+                  typeof room.name === "string"
+                    ? room.name
+                    : typeof room.type_name === "string"
+                      ? room.type_name
+                      : typeof room.type === "string"
+                        ? room.type
+                        : "",
+                price:
+                  typeof room.price === "number" && !isNaN(room.price)
+                    ? room.price
                     : 0,
-              description: room.description || "",
-              image_url: room.image_url || "",
-              amenities: Array.isArray(room.amenities) ? room.amenities : [],
-            }))
+                capacity:
+                  typeof room.capacity === "number" && !isNaN(room.capacity)
+                    ? room.capacity
+                    : typeof room.stock === "number" && !isNaN(room.stock)
+                      ? room.stock
+                      : 0,
+                description: room.description || "",
+                image_url: room.image_url || "",
+                amenities: Array.isArray(room.amenities) ? room.amenities : [],
+              }))
             : [
-              {
-                name: "",
-                price: 0,
-                capacity: 0,
-                description: "",
-                image_url: "",
-                amenities: [],
-              },
-            ],
+                {
+                  name: "",
+                  price: 0,
+                  capacity: 0,
+                  description: "",
+                  image_url: "",
+                  amenities: [],
+                },
+              ],
       };
 
       // 添加默认状态到请求数据
@@ -179,9 +184,23 @@ export const updateHotel = async (
   } else {
     // 后端API调用
     try {
+      // 确保关键字段被正确处理
+      const processedData = {
+        ...data,
+        // 确保description是字符串
+        description:
+          typeof data.description === "string"
+            ? data.description
+            : data.description || "",
+        // 确保facilities是数组
+        facilities: Array.isArray(data.facilities)
+          ? data.facilities
+          : data.facilities || [],
+      };
+
       const result = (await api.put(
         `/merchant/hotels/${id}`,
-        data,
+        processedData,
       )) as unknown as HotelResponse;
       return result;
     } catch (error: any) {
