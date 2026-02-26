@@ -120,7 +120,7 @@ EasyStay 是一个功能完善的酒店预订管理系统，采用前后端分�
 
    ```bash
    cd client-pc
-   npm start
+   npm run dev
    ```
 
 4. **访问应用**
@@ -235,19 +235,73 @@ EasyStay/
 | `name_en` | TEXT | 酒店英文名 |
 | `address` | TEXT | 酒店详细地址 |
 | `star_level` | INTEGER | 星级（1-5） |
+| `location` | TEXT | 位置信息（JSON：省份、城市、地址、经纬度） |
+| `description` | TEXT | 酒店描述 |
+| `facilities` | TEXT | 设施列表（JSON 数组） |
+| `rating` | REAL | 评分（0-5） |
+| `image` | TEXT | 主图 URL |
+| `images` | TEXT | 图片列表（JSON 数组） |
+| `tags` | TEXT | 标签（JSON 数组） |
+| `price_start` | REAL | 起始价格 |
+| `open_date` | TEXT | 开业时间 |
+| `banner_url` | TEXT | Banner 图片 URL |
 | `audit_status` | TEXT | 审核状态（Pending/Approved/Rejected） |
 | `is_offline` | INTEGER | 是否下线（0/1） |
-| `tags` | TEXT | 标签（JSON 数组） |
+| `fail_reason` | TEXT | 审核拒绝原因 |
+| `merchant_id` | TEXT | 所属商户 ID |
+| `merchant_username` | TEXT | 所属商户用户名 |
+| `created_at` | TEXT | 创建时间 |
+| `updated_at` | TEXT | 更新时间 |
+
+### 房型表（rooms）
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `id` | TEXT | 房型唯一标识（UUID） |
+| `name` | TEXT | 房型名称 |
+| `price` | REAL | 房型价格 |
+| `capacity` | INTEGER | 容纳人数 |
+| `description` | TEXT | 房型描述 |
+| `image_url` | TEXT | 房型图片 URL |
+| `amenities` | TEXT | 设施列表（JSON 数组） |
+| `hotelId` | TEXT | 所属酒店 ID（外键） |
 
 ### 用户表（users）
 
 | 字段 | 类型 | 说明 |
 |------|------|------|
-| `id` | TEXT | 用户唯一标识 |
-| `phone` | TEXT | 手机号（移动端） |
-| `username` | TEXT | 用户名（PC端） |
-| `password` | TEXT | 加密后的密码 |
+| `id` | TEXT | 用户唯一标识（UUID） |
+| `phone` | TEXT | 手机号（移动端登录） |
+| `email` | TEXT | 邮箱（用于密码重置） |
+| `username` | TEXT | 用户名（PC端登录） |
+| `password` | TEXT | 加密后的密码（bcryptjs） |
+| `name` | TEXT | 用户昵称 |
+| `avatar` | TEXT | 用户头像 URL |
 | `role` | TEXT | 角色（user/merchant/admin） |
+| `created_at` | TEXT | 注册时间 |
+
+### 订单表（orders）
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `id` | TEXT | 订单唯一标识 |
+| `user_id` | TEXT | 下单用户 ID（外键） |
+| `hotel_id` | TEXT | 预订酒店 ID（外键） |
+| `room_id` | TEXT | 预订房型 ID（外键） |
+| `check_in_date` | TEXT | 入住日期（yyyy-MM-dd） |
+| `check_out_date` | TEXT | 离店日期（yyyy-MM-dd） |
+| `guests` | INTEGER | 入住人数 |
+| `total_price` | REAL | 订单总价 |
+| `status` | TEXT | 订单状态（pending/confirmed/completed/cancelled） |
+| `payment_status` | TEXT | 支付状态（unpaid/paid/refunded） |
+| `guestName` | TEXT | 入住人姓名 |
+| `guestPhone` | TEXT | 入住人电话 |
+| `hotelName` | TEXT | 酒店名称（冗余字段） |
+| `hotelImage` | TEXT | 酒店图片（冗余字段） |
+| `roomType` | TEXT | 房型名称（冗余字段） |
+| `nights` | INTEGER | 间夜数 |
+| `created_at` | TEXT | 创建时间 |
+| `updated_at` | TEXT | 更新时间 |
 
 > 完整定义请查看 [docs/technical/data_schema.md](docs/technical/data_schema.md)
 

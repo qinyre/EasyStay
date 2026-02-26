@@ -110,7 +110,7 @@ The system implements a complete information audit workflow—hotel information 
    Start PC management client (default port 3002):
    ```bash
    cd client-pc
-   npm start
+   npm run dev
    ```
 
 4. **Access the application**

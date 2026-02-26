@@ -37,7 +37,23 @@
 │   ├── CLAUDE.md          # AI 上下文文档
 │   ├── README.md          # 项目说明
 │   └── API_INTEGRATION.md # API 对接文档
-├── /client-pc             # PC 管理端源代码 (React)
+├── /client-pc             # PC 管理端源代码 (React + TypeScript + Vite)
+│   ├── /src
+│   │   ├── /assets        # 项目资源文件
+│   │   ├── /images        # 图片资源
+│   │   ├── /constants     # 常量定义 (设施、标签)
+│   │   ├── /layouts       # 布局组件 (侧边栏 + Header)
+│   │   ├── /mock          # Mock 数据
+│   │   ├── /pages         # 页面组件
+│   │   │   ├── /Admin      # 管理员页面 (审核、上下线)
+│   │   │   ├── /Auth       # 认证页面 (登录、注册)
+│   │   │   └── /Merchant   # 商户页面 (酒店列表、表单)
+│   │   ├── /services      # API 服务层
+│   │   ├── /test-data     # 测试数据管理 (LocalStorage)
+│   │   ├── App.tsx        # 路由配置
+│   │   └── main.tsx       # 应用入口
+│   ├── CLAUDE.md          # AI 上下文文档
+│   └── README.md          # 项目说明
 ├── /server                # Node.js 后端源代码
 │   ├── /config            # 数据库连接 (database.js) 与缓存配置 (cache.js)
 │   ├── /controllers       # 控制器（业务逻辑层）
@@ -246,7 +262,116 @@ export const getHotels = async (params) => {
 
 ---
 
-## 7. 移动端主要 API 端点
+## 8. PC 管理端技术实现
+
+### 8.1 技术栈
+
+| 类别 | 技术 | 版本 | 用途 |
+| :--- | :--- | :--- | :--- |
+| 框架 | React | 19.2.0 | UI 框架 |
+| 语言 | TypeScript | 5.9.3 | 类型安全 |
+| 构建工具 | Vite | 7.3.1 | 开发服务器与构建 |
+| 路由 | React Router DOM | 7.13.0 | 页面路由 |
+| UI 组件库 | Ant Design | 6.3.0 | PC 端组件 |
+| 图标库 | @ant-design/icons | 6.1.0 | Ant Design 图标 |
+| 样式 | Tailwind CSS | 3.4.17 | 原子化 CSS |
+| HTTP 客户端 | Axios | 1.13.5 | API 请求 |
+| 状态管理 | Zustand | 5.0.11 | 状态管理（已引入未使用） |
+
+### 8.2 核心页面路由
+
+#### 公开路由
+| 路由 | 组件 | 功能 |
+| :--- | :--- | :--- |
+| `/login` | `Login` | 登录页（手机号+密码，自动角色跳转） |
+| `/register` | `Register` | 注册页（选择商户/管理员角色） |
+| `/` | 自动跳转 | 根据角色跳转到对应页面 |
+
+#### 需要认证的路由 (ProtectedRoute)
+| 路由 | 角色 | 组件 | 功能 |
+| :--- | :--- | :--- | :--- |
+| `/merchant/hotels` | merchant | `HotelList` | 商户酒店列表（分页、状态查看） |
+| `/merchant/add` | merchant | `HotelForm` | 添加酒店（表单录入） |
+| `/merchant/edit/:id` | merchant | `HotelForm` | 编辑酒店 |
+| `/admin/audit` | admin | `AuditList` | 审核管理（通过/拒绝） |
+| `/admin/publish` | admin | `PublishList` | 上下线管理（虚拟删除） |
+
+### 8.3 路由守卫机制
+
+```typescript
+// ProtectedRoute 组件实现基于角色的访问控制
+const ProtectedRoute: React.FC<{
+  children: React.ReactNode;
+  requiredRole?: string;
+}> = ({ children, requiredRole }) => {
+  const token = localStorage.getItem("token");
+  const userRole = localStorage.getItem("role");
+
+  if (!token) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (requiredRole && userRole !== requiredRole) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return <>{children}</>;
+};
+```
+
+### 8.4 数据源切换机制
+
+```typescript
+// src/services/config.ts
+export const DATA_SOURCE: string = "backend";  // "local" | "backend"
+
+// 所有服务层函数都根据此配置切换数据源
+if (DATA_SOURCE === "local") {
+  // 使用 LocalStorage 数据
+  const hotels = readHotels();
+} else {
+  // 调用后端 API
+  const result = await api.get("/merchant/hotels");
+}
+```
+
+### 8.5 布局组件
+
+**主布局 (Layout.tsx)**：
+- 侧边栏导航菜单（根据角色显示不同菜单）
+- 顶部 Header（用户信息 + 退出登录）
+- 响应式布局
+
+**菜单配置**：
+- 管理员：审核管理、上下线管理
+- 商户：我的酒店、添加酒店
+
+### 8.6 核心功能实现
+
+#### 商户功能
+- **酒店列表**：分页展示、状态 Tag（待审核/已通过/已拒绝）、操作按钮
+- **酒店表单**：
+  - 基本信息：中英文名、地址、星级、开业时间
+  - 酒店标签：多选（8个标签）
+  - 酒店设施：多选（12项设施）
+  - 房型管理：动态添加/删除房型
+  - 图片上传：支持上传酒店图片
+  - 表单验证：必填项检查、数据类型验证
+
+#### 管理员功能
+- **审核管理**：
+  - 仅显示待审核酒店
+  - 一键通过（自动上线）
+  - 拒绝时填写原因
+  - 查看详细信息
+- **上下线管理**：
+  - 仅显示已通过审核的酒店
+  - 上线/下线切换
+  - 虚拟删除（可恢复）
+
+---
+
+## 9. 移动端主要 API 端点
 
 ### 认证相关
 *   `POST /auth/register` - 用户注册
@@ -274,7 +399,27 @@ export const getHotels = async (params) => {
 
 ---
 
-## 8. 相关文档
+## 9. PC 管理端主要 API 端点
+
+### 认证相关
+*   `POST /auth/register` - 用户注册（商户/管理员）
+*   `POST /auth/login` - 用户登录
+
+### 商户接口
+*   `GET /merchant/hotels` - 获取商户酒店列表
+*   `POST /merchant/hotels` - 创建酒店
+*   `PUT /merchant/hotels/:id` - 更新酒店
+*   `DELETE /merchant/hotels/:id` - 删除酒店
+*   `POST /merchant/upload` - 上传图片
+
+### 管理员接口
+*   `GET /admin/hotels` - 获取所有酒店
+*   `PATCH /admin/audit/:id` - 审核酒店（通过/拒绝）
+*   `PATCH /admin/publish/:id` - 上下线酒店
+
+---
+
+## 10. 相关文档
 
 | 文档 | 路径 |
 | :--- | :--- |
@@ -284,3 +429,5 @@ export const getHotels = async (params) => {
 | 团队分工 | [docs/teamwork/teamwork_distribution.md](../teamwork/teamwork_distribution.md) |
 | 移动端文档 | [client-mobile/CLAUDE.md](../../client-mobile/CLAUDE.md) |
 | 移动端 API 对接 | [client-mobile/API_INTEGRATION.md](../../client-mobile/API_INTEGRATION.md) |
+| PC 管理端文档 | [client-pc/CLAUDE.md](../../client-pc/CLAUDE.md) |
+| PC 管理端说明 | [client-pc/README.md](../../client-pc/README.md) |
