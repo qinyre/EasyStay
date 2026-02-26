@@ -24,7 +24,6 @@ import PrivacyPage from './pages/legal/PrivacyPage';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
-import Settings from './pages/Settings';
 import About from './pages/About';
 import { ProtectedRoute } from './components/ProtectedRoute';
 
@@ -63,7 +62,6 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/settings" element={<Settings />} />
             <Route path="/about" element={<About />} />
             <Route path="/terms" element={<TermsPage />} />
             <Route path="/privacy" element={<PrivacyPage />} />

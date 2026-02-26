@@ -78,13 +78,13 @@ const getPopularCities = async (req, res) => {
             });
         }
 
-        // 模拟热门城市数据
+        // 模拟热门城市数据 (采用本地静态资源)
         const popularCities = [
-            { name: '上海', image: 'https://images.unsplash.com/photo-1548092372-0d1bd40894a3?auto=format&fit=crop&q=80&w=1000' },
-            { name: '北京', image: 'https://images.unsplash.com/photo-1544037835-7f51363191f5?auto=format&fit=crop&q=80&w=1000' },
-            { name: '三亚', image: 'https://images.unsplash.com/photo-1568850362944-036d337a2756?auto=format&fit=crop&q=80&w=1000' },
-            { name: '杭州', image: 'https://images.unsplash.com/photo-1584273258445-fb11a250d87e?auto=format&fit=crop&q=80&w=1000' },
-            { name: '成都', image: 'https://images.unsplash.com/photo-1588298723524-1509f144010d?auto=format&fit=crop&q=80&w=1000' }
+            { name: '上海', image: '/images/cities/city/Shanghai.jpg' },
+            { name: '北京', image: '/images/cities/city/BeiJing.jpg' },
+            { name: '三亚', image: '/images/cities/city/Sanya.jpg' },
+            { name: '杭州', image: '/images/cities/city/HangZhou.jpg' },
+            { name: '成都', image: '/images/cities/city/ChengDu.jpg' }
         ];
 
         await Cache.set('popular_cities', popularCities, 86400);

@@ -83,12 +83,6 @@ const Me: React.FC = () => {
         >
           {t('me.language')}
         </List.Item>
-        <List.Item
-          prefix={<Settings size={20} className="text-gray-500" />}
-          onClick={() => navigate('/settings')}
-        >
-          {t('me.settings')}
-        </List.Item>
       </List>
 
       <List header={t('me.about')}>
