@@ -78,7 +78,8 @@ const auditHotel = async (req, res) => {
 
     // 清除相关缓存
     await Cache.del('banners');
-    await Cache.del(`hotel:${hotelId}`);
+    await Cache.del(`hotel:v2:${hotelId}`);
+    await Cache.del(/^hotels:v2:/);
 
     res.json({
       code: 200,
@@ -129,7 +130,8 @@ const publishHotel = async (req, res) => {
 
     // 清除相关缓存
     await Cache.del('banners');
-    await Cache.del(`hotel:${hotelId}`);
+    await Cache.del(`hotel:v2:${hotelId}`);
+    await Cache.del(/^hotels:v2:/);
 
     res.json({
       code: 200,
