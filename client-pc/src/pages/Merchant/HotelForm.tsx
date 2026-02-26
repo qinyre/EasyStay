@@ -23,7 +23,7 @@ const { Option } = Select;
 const HotelForm: React.FC = () => {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
-  const [rooms, setRooms] = useState([
+  const [rooms, setRooms] = useState<any[]>([
     {
       name: "",
       price: 0,
@@ -31,6 +31,7 @@ const HotelForm: React.FC = () => {
       description: "",
       image_url: "",
       amenities: [],
+      _fileList: [],
     },
   ]);
   const navigate = useNavigate();
@@ -107,6 +108,14 @@ const HotelForm: React.FC = () => {
   const handleSubmit = async (values: any) => {
     setLoading(true);
     try {
+      // 调试：查看 Antd Form 收集到的值
+      console.log("[DEBUG] Form values from Antd:", {
+        description: values.description,
+        facilities: values.facilities,
+        tags: values.tags,
+        banner_url: values.banner_url,
+        allKeys: Object.keys(values),
+      });
       // tags 已经是数组（来自 Select multiple）
       const tagsArray = Array.isArray(values.tags) ? values.tags : [];
 
@@ -116,13 +125,13 @@ const HotelForm: React.FC = () => {
       // 转换房型数据结构，适配后端Room模型
       const transformedRooms = Array.isArray(hotelRooms)
         ? hotelRooms.map((room: any) => ({
-            name: room.name || room.type_name || "",
-            price: room.price || 0,
-            capacity: room.capacity || room.stock || 0,
-            description: room.description || "",
-            image_url: room.image_url || "",
-            amenities: room.amenities || [],
-          }))
+          name: room.name || room.type_name || "",
+          price: room.price || 0,
+          capacity: room.capacity || room.stock || 0,
+          description: room.description || "",
+          image_url: room.image_url || "",
+          amenities: room.amenities || [],
+        }))
         : [];
 
       // 获取当前登录的商户用户名
@@ -344,35 +353,43 @@ const HotelForm: React.FC = () => {
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         房型图片
                       </label>
-                      <Upload
-                        name="file"
-                        listType="picture"
-                        maxCount={1}
-                        action={`${API_ORIGIN}/merchant/upload`}
-                        fileList={
-                          room.image_url
-                            ? [
-                                {
-                                  uid: room.image_url,
-                                  name: "image.png",
-                                  status: "done",
-                                  url: room.image_url,
-                                },
-                              ]
-                            : []
-                        }
-                        onChange={(info) => {
-                          if (info.file.status === "done") {
-                            handleRoomChange(
-                              index,
-                              "image_url",
-                              info.file.response.data.url,
-                            );
-                          }
-                        }}
-                      >
-                        <Button icon={<UploadOutlined />}>上传图片</Button>
-                      </Upload>
+                      {room.image_url ? (
+                        <div className="relative inline-block">
+                          <img
+                            src={room.image_url.startsWith("http") ? room.image_url : `${API_ORIGIN}${room.image_url}`}
+                            alt="房型图片"
+                            style={{ width: 120, height: 120, objectFit: "cover", borderRadius: 8, border: "1px solid #d9d9d9" }}
+                          />
+                          <Button
+                            size="small"
+                            danger
+                            style={{ position: "absolute", top: -8, right: -8 }}
+                            onClick={() => handleRoomChange(index, "image_url", "")}
+                          >
+                            ✕
+                          </Button>
+                        </div>
+                      ) : (
+                        <Upload
+                          name="file"
+                          listType="picture-card"
+                          maxCount={1}
+                          action={`${API_ORIGIN}/merchant/upload`}
+                          onChange={(info) => {
+                            if (info.file.status === "done") {
+                              const url = info.file.response?.data?.url;
+                              if (url) {
+                                handleRoomChange(index, "image_url", url);
+                              }
+                            }
+                          }}
+                        >
+                          <div>
+                            <UploadOutlined />
+                            <div style={{ marginTop: 8 }}>上传图片</div>
+                          </div>
+                        </Upload>
+                      )}
                     </div>
                   </Card>
                 ))}

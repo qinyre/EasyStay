@@ -16,6 +16,8 @@ const getAllHotels = async (req, res) => {
         ...hotel,
         is_offline: !!hotel.is_offline,
         tags: hotel.tags ? JSON.parse(hotel.tags) : [],
+        facilities: hotel.facilities ? JSON.parse(hotel.facilities) : [],
+        description: hotel.description || '',
         rooms: rooms.map((r) => ({
           ...r,
           type_name: r.name, // 兼容 PC

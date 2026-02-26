@@ -97,13 +97,6 @@ const updateHotel = async (req, res) => {
 
     const now = new Date().toISOString();
 
-    // 调试：输出接收到的数据
-    console.log('[DEBUG] updateHotel received data:', {
-      description: updateData.description,
-      facilities: updateData.facilities,
-      tags: updateData.tags
-    });
-
     // 更新酒店基本信息
     db.prepare(
       `
@@ -125,14 +118,6 @@ const updateHotel = async (req, res) => {
       now,
       id
     );
-
-    // 调试：输出更新后的数据
-    const updatedHotel = db.prepare('SELECT * FROM hotels WHERE id = ?').get(id);
-    console.log('[DEBUG] Hotel after update:', {
-      id: updatedHotel.id,
-      description: updatedHotel.description,
-      facilities: updatedHotel.facilities
-    });
 
     // 更新房型信息
     if (updateData.rooms && updateData.rooms.length > 0) {

@@ -45,6 +45,8 @@ const hotelSchema = z.object({
     star_level: z.number().int().min(1, "星级最低为 1").max(5, "星级最高为 5").optional(),
     open_date: z.string().optional(),
     banner_url: z.string().optional(),
+    description: z.string().max(500, "酒店描述最多500个字符").optional(),
+    facilities: z.array(z.string()).optional(),
     tags: z.array(z.string()).max(10, "标签最多10个").optional(),
     // 必须包含至少一个房型
     rooms: z.array(roomSchema).min(1, "至少需要包含一种房型信息")

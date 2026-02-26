@@ -14,6 +14,7 @@ import {
 import { EditOutlined, DeleteOutlined, EyeOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import AdminLayout from "../../layouts/Layout";
+import { API_ORIGIN } from "../../services/config";
 
 const { Title } = Typography;
 
@@ -71,35 +72,35 @@ const HotelList: React.FC = () => {
             <Tag
               color={
                 record.audit_status === "pending" ||
-                record.audit_status === "Pending"
+                  record.audit_status === "Pending"
                   ? "blue"
                   : record.audit_status === "approved" ||
-                      record.audit_status === "Approved"
+                    record.audit_status === "Approved"
                     ? "green"
                     : record.audit_status === "rejected" ||
-                        record.audit_status === "Rejected"
+                      record.audit_status === "Rejected"
                       ? "red"
                       : "gray"
               }
             >
               {record.audit_status === "pending" ||
-              record.audit_status === "Pending"
+                record.audit_status === "Pending"
                 ? "待审核"
                 : record.audit_status === "approved" ||
-                    record.audit_status === "Approved"
+                  record.audit_status === "Approved"
                   ? "已通过"
                   : record.audit_status === "rejected" ||
-                      record.audit_status === "Rejected"
+                    record.audit_status === "Rejected"
                     ? "已拒绝"
                     : "未知"}
             </Tag>
             {/* 上下线状态 */}
             {(record.audit_status === "approved" ||
               record.audit_status === "Approved") && (
-              <Tag color={record.is_offline ? "red" : "green"}>
-                {record.is_offline ? "已下线" : "已上线"}
-              </Tag>
-            )}
+                <Tag color={record.is_offline ? "red" : "green"}>
+                  {record.is_offline ? "已下线" : "已上线"}
+                </Tag>
+              )}
             {/* 拒绝原因 */}
             {(record.audit_status === "rejected" ||
               record.audit_status === "Rejected") &&
@@ -242,25 +243,25 @@ const HotelList: React.FC = () => {
                   <Tag
                     color={
                       selectedHotel.audit_status === "pending" ||
-                      selectedHotel.audit_status === "Pending"
+                        selectedHotel.audit_status === "Pending"
                         ? "blue"
                         : selectedHotel.audit_status === "approved" ||
-                            selectedHotel.audit_status === "Approved"
+                          selectedHotel.audit_status === "Approved"
                           ? "green"
                           : selectedHotel.audit_status === "rejected" ||
-                              selectedHotel.audit_status === "Rejected"
+                            selectedHotel.audit_status === "Rejected"
                             ? "red"
                             : "gray"
                     }
                   >
                     {selectedHotel.audit_status === "pending" ||
-                    selectedHotel.audit_status === "Pending"
+                      selectedHotel.audit_status === "Pending"
                       ? "待审核"
                       : selectedHotel.audit_status === "approved" ||
-                          selectedHotel.audit_status === "Approved"
+                        selectedHotel.audit_status === "Approved"
                         ? "已通过"
                         : selectedHotel.audit_status === "rejected" ||
-                            selectedHotel.audit_status === "Rejected"
+                          selectedHotel.audit_status === "Rejected"
                           ? "已拒绝"
                           : "未知"}
                   </Tag>
@@ -282,19 +283,19 @@ const HotelList: React.FC = () => {
                 </Descriptions.Item>
                 <Descriptions.Item label="酒店设施" span={2}>
                   {selectedHotel.facilities &&
-                  selectedHotel.facilities.length > 0
+                    selectedHotel.facilities.length > 0
                     ? selectedHotel.facilities.map(
-                        (facility: string, index: number) => (
-                          <Tag key={index}>{facility}</Tag>
-                        ),
-                      )
+                      (facility: string, index: number) => (
+                        <Tag key={index}>{facility}</Tag>
+                      ),
+                    )
                     : "-"}
                 </Descriptions.Item>
                 <Descriptions.Item label="酒店标签" span={2}>
                   {selectedHotel.tags && selectedHotel.tags.length > 0
                     ? selectedHotel.tags.map((tag: string, index: number) => (
-                        <Tag key={index}>{tag}</Tag>
-                      ))
+                      <Tag key={index}>{tag}</Tag>
+                    ))
                     : "-"}
                 </Descriptions.Item>
               </Descriptions>
@@ -320,9 +321,9 @@ const HotelList: React.FC = () => {
                       <Descriptions.Item label="房型图片">
                         {room.image_url ? (
                           <img
-                            src={room.image_url}
+                            src={room.image_url.startsWith("http") ? room.image_url : `${API_ORIGIN}${room.image_url}`}
                             alt={room.name || room.type_name}
-                            className="w-24 h-24 object-cover"
+                            style={{ maxWidth: "100%", maxHeight: 80, objectFit: "cover", borderRadius: 4 }}
                           />
                         ) : (
                           "-"
