@@ -61,7 +61,8 @@ apiClient.interceptors.response.use(
 );
 
 // 是否使用真实 API (可通过环境变量控制)
-const USE_REAL_API = import.meta.env.VITE_USE_REAL_API === 'true';
+// Use real API by default, fallback to mock only if explicitly set to 'false'
+const USE_REAL_API = import.meta.env.VITE_USE_REAL_API !== 'false';
 
 const CITY_NAME_MAP: Record<string, string> = {
   '上海': 'Shanghai',

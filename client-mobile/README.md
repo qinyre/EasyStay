@@ -113,8 +113,8 @@ npm install
 # API 基础地址
 VITE_API_BASE_URL=http://localhost:3000/api/v1
 
-# 是否使用真实 API（true/false）
-VITE_USE_REAL_API=false
+# 是否使用真实 API（true/false，默认为 true）
+VITE_USE_REAL_API=true
 ```
 
 ### 3. 启动后端服务
@@ -155,14 +155,14 @@ npm run dev
 | 变量名 | 默认值 | 说明 |
 |-------|--------|------|
 | `VITE_API_BASE_URL` | `http://localhost:3000/api/v1` | 后端 API 地址 |
-| `VITE_USE_REAL_API` | `false` | 是否使用真实 API（false 使用 Mock 数据） |
+| `VITE_USE_REAL_API` | `true` | 是否使用真实 API（设置 `false` 使用本地 Mock 数据） |
 
 ### 开发模式 vs 生产模式
 
 | 模式 | VITE_USE_REAL_API | 数据来源 |
 |------|-------------------|---------|
-| 开发模式 (Mock) | `false` | 本地 Mock 数据 + localStorage |
-| 真实模式 | `true` | 后端 API 服务 |
+| 真实模式(默认) | 未配置 或 `true` | 后端 API 服务 |
+| 开发模式(Mock) | `false` | 本地 Mock 数据 + localStorage |
 
 ---
 
@@ -450,7 +450,8 @@ describe('SearchContext', () => {
 
 ```typescript
 // src/services/auth.ts
-const USE_REAL_API = import.meta.env.VITE_USE_REAL_API === 'true';
+// 默认使用真实API，除非显式指定为 'false'
+const USE_REAL_API = import.meta.env.VITE_USE_REAL_API !== 'false';
 
 export const login = async (params: LoginRequest) => {
   if (USE_REAL_API) {

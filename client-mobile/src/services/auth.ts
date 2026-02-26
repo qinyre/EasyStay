@@ -41,7 +41,8 @@ authClient.interceptors.response.use(
 );
 
 // 是否使用真实 API
-const USE_REAL_API = import.meta.env.VITE_USE_REAL_API === 'true';
+// Use real API by default, fallback to mock only if explicitly set to 'false'
+const USE_REAL_API = import.meta.env.VITE_USE_REAL_API !== 'false';
 
 // ============================================================
 // 认证 API 函数
