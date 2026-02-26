@@ -73,3 +73,4 @@ server/uploads/*
 !server/uploads/file-1771998373744-208236319.png
 .trae/documents/EasyStay 后端系统改进计划.md
 server/db_dump.txt
+md-backup/
