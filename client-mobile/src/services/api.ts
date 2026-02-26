@@ -286,11 +286,11 @@ export const getPopularCities = async () => {
 
   await new Promise(resolve => setTimeout(resolve, 500));
   return [
-    { name: '上海', image: 'https://images.unsplash.com/photo-1548919973-5cef591cdbc9?auto=format&fit=crop&w=400&h=500&q=80' }, // 上海外滩夜景
-    { name: '北京', image: 'https://images.unsplash.com/photo-1508804185872-d7badad00f7d?auto=format&fit=crop&w=400&h=500&q=80' }, // 北京故宫
-    { name: '三亚', image: 'https://images.unsplash.com/photo-1559128010-7c1ad6e1b6a5?auto=format&fit=crop&w=400&h=500&q=80' }, // 三亚海滨
-    { name: '杭州', image: 'https://images.unsplash.com/photo-1580674285054-bed31e145f59?auto=format&fit=crop&w=400&h=500&q=80' }, // 杭州西湖
-    { name: '成都', image: 'https://images.unsplash.com/photo-1628103190669-69a23a7db74e?auto=format&fit=crop&w=400&h=500&q=80' }, // 成都
+    { name: '上海', image: '/images/cities/city/Shanghai.jpg' },
+    { name: '北京', image: '/images/cities/city/BeiJing.jpg' },
+    { name: '三亚', image: '/images/cities/city/Sanya.jpg' },
+    { name: '杭州', image: '/images/cities/city/HangZhou.jpg' },
+    { name: '成都', image: '/images/cities/city/ChengDu.jpg' },
   ];
 };
 

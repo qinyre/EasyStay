@@ -185,9 +185,27 @@ EasyStay/
 
 ### 开发工具
 
-- Git（版本控制）
-- ESLint（代码规范）
-- Prettier（代码格式化）
+- **版本控制**：Git
+- **代码规范**：ESLint
+- **代码格式化**：Prettier
+
+### AI 辅助开发（Vibe Coding）
+
+本项目采用 Vibe Coding 模式进行开发，使用以下 AI 开发工具：
+
+| 开发工具 | 说明 |
+|---------|------|
+| **Trae CN** | 字节跳动推出的AI编程助手 |
+| **Trae** | 国际版 Trae AI 编程工具 |
+| **Antigravity** | AI 辅助开发工具 |
+| **Claude Code** | Anthropic 官方 CLI 编程助手 |
+
+**使用的 AI 模型**：
+- GLM-5
+- Doubao-Seed-Code（豆包）
+- Gemini-3.1 Pro
+- Claude Opus 4.6
+- Claude Sonnet 4.6
 
 ---
 

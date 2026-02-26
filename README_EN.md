@@ -172,9 +172,27 @@ EasyStay/
 - **Password Hashing**: bcryptjs
 
 ### Development Tools
-- Git (Version Control)
-- ESLint (Code Linting)
-- Prettier (Code Formatting)
+- **Version Control**: Git
+- **Code Linting**: ESLint
+- **Code Formatting**: Prettier
+
+### AI-Assisted Development (Vibe Coding)
+
+This project is developed using Vibe Coding methodology with the following AI development tools:
+
+| Tool | Description |
+|------|-------------|
+| **Trae CN** | ByteDance's AI programming assistant |
+| **Trae** | International version of Trae AI coding tool |
+| **Antigravity** | AI-assisted development tool |
+| **Claude Code** | Anthropic's official CLI programming assistant |
+
+**AI Models Used**:
+- GLM-5
+- Doubao-Seed-Code
+- Gemini-3.1 Pro
+- Claude Opus 4.6
+- Claude Sonnet 4.6
 
 ---
 
