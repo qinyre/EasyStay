@@ -1,18 +1,24 @@
-# EasyStay 酒店管理系统 - 前端 PC 端
+# EasyStay 酒店管理系统 - PC 管理端
 
 ## 项目介绍
 
-EasyStay 是一个现代化的酒店管理系统，本仓库为 PC 端管理界面，主要面向酒店商户和系统管理员，提供酒店信息管理、审核管理、上下线管理等功能。
+EasyStay 是一个现代化的酒店预订管理系统，本仓库为 **PC 管理端**，主要面向酒店商户和系统管理员，提供酒店信息管理、审核管理、上下线管理等功能。
+
+---
 
 ## 技术栈
 
-- **前端框架**: React 19.2.0 + TypeScript 5.9.3
-- **UI 组件库**: Ant Design 6.3.0
-- **样式方案**: Tailwind CSS 3.4.17
-- **路由管理**: React Router 7.13.0
-- **状态管理**: Zustand 5.0.11
-- **构建工具**: Vite 7.3.1
-- **包管理器**: npm
+| 技术 | 版本 | 用途 |
+|------|------|------|
+| React | 19.2.0 | UI 框架 |
+| TypeScript | 5.9.3 | 类型安全 |
+| Ant Design | 6.3.0 | UI 组件库 |
+| Tailwind CSS | 3.4.17 | 原子化 CSS |
+| React Router | 7.13.0 | 路由管理 |
+| Axios | 1.13.5 | HTTP 客户端 |
+| Vite | 7.3.1 | 构建工具 |
+
+---
 
 ## 快速开始
 
@@ -24,132 +30,257 @@ EasyStay 是一个现代化的酒店管理系统，本仓库为 PC 端管理界�
 ### 安装依赖
 
 ```bash
-# 进入项目目录
 cd client-pc
-
-# 安装依赖
 npm install
 ```
 
 ### 启动开发服务器
 
 ```bash
-# 启动开发服务器
 npm run dev
 ```
+
+访问：**http://localhost:3002**
+
+### 构建生产版本
+
+```bash
+npm run build
+```
+
+### 预览构建结果
+
+```bash
+npm run preview
+```
+
+---
 
 ## 项目结构
 
 ```
 client-pc/
-├── public/              # 静态资源
+├── public/                  # 静态资源
 ├── src/
-│   ├── assets/         # 项目资源文件
-│   ├── images/         # 图片资源
-│   ├── layouts/        # 布局组件
-│   ├── mock/           # 模拟数据
-│   ├── pages/          # 页面组件
-│   │   ├── Admin/      # 管理员页面
-│   │   ├── Auth/       # 登录注册页面
-│   │   └── Merchant/   # 商户页面
-│   ├── services/       # API 服务
-│   ├── test-data/      # 测试数据
-│   ├── App.tsx         # 应用入口组件
-│   ├── main.tsx        # 应用启动文件
-│   └── index.css       # 全局样式
-├── tailwind.config.js  # Tailwind 配置
-├── tsconfig.json       # TypeScript 配置
-├── vite.config.ts      # Vite 配置
-└── package.json        # 项目依赖
+│   ├── assets/             # 项目资源文件
+│   │   └── react.svg       # React 图标
+│   ├── images/             # 图片资源
+│   │   └── background.png  # 登录页背景图
+│   ├── constants/          # 常量定义
+│   │   ├── facilities.ts   # 酒店设施列表 (12项)
+│   │   └── hotelTags.ts    # 酒店标签列表 (8个)
+│   ├── layouts/            # 布局组件
+│   │   └── Layout.tsx      # 主布局 (侧边栏 + Header)
+│   ├── mock/               # Mock 数据
+│   │   ├── hotel.ts        # 酒店测试数据
+│   │   └── user.ts         # 用户测试数据
+│   ├── pages/              # 页面组件
+│   │   ├── Admin/          # 管理员页面
+│   │   │   ├── AuditList.tsx       # 审核管理
+│   │   │   └── PublishList.tsx     # 上下线管理
+│   │   ├── Auth/           # 认证页面
+│   │   │   ├── Login.tsx            # 登录
+│   │   │   └── Register.tsx         # 注册
+│   │   └── Merchant/       # 商户页面
+│   │       ├── HotelForm.tsx        # 酒店表单 (添加/编辑)
+│   │       └── HotelList.tsx        # 酒店列表
+│   ├── services/           # API 服务
+│   │   ├── api.ts          # Axios 实例配置
+│   │   ├── auth.ts         # 认证服务
+│   │   ├── config.ts       # 配置文件
+│   │   └── hotel.ts        # 酒店服务
+│   ├── test-data/          # 测试数据管理
+│   │   └── dataManager.ts  # LocalStorage 数据管理器
+│   ├── App.tsx             # 应用入口组件 (路由配置)
+│   ├── App.css             # 应用样式
+│   ├── main.tsx            # 应用启动文件
+│   └── index.css           # 全局样式 (Tailwind)
+├── index.html              # HTML 入口
+├── vite.config.ts          # Vite 配置
+├── tailwind.config.js      # Tailwind 配置
+├── tsconfig.json           # TypeScript 配置
+├── eslint.config.js        # ESLint 配置
+├── package.json            # 项目依赖
+├── CLAUDE.md               # AI 上下文文档
+└── README.md               # 项目说明
 ```
+
+---
 
 ## 核心功能
 
 ### 1. 认证系统
 
 - **登录/注册**：支持商户和管理员账号登录注册
-- **权限管理**：基于角色的访问控制，商户只能管理自己的酒店，管理员可以管理所有酒店
+- **角色选择**：注册时选择商户或管理员角色
+- **自动跳转**：登录后根据角色自动跳转到对应页面
+- **Token 持久化**：使用 localStorage 存储 token
 
 ### 2. 商户功能
 
-- **酒店管理**：添加、编辑、查看、删除酒店信息
-- **房型管理**：为酒店添加多个房型，设置价格和库存
-- **图片上传**：支持酒店图片上传功能
-- **状态查看**：实时查看酒店的审核状态和上下线状态
+| 功能 | 描述 |
+|------|------|
+| **我的酒店** | 查看商户名下所有酒店，支持分页 |
+| **添加酒店** | 录入酒店信息，包括基本信息、设施、标签、房型 |
+| **编辑酒店** | 修改酒店信息，编辑后重新进入待审核状态 |
+| **删除酒店** | 删除酒店数据 |
+| **图片上传** | 支持酒店图片上传 |
+| **状态查看** | 实时查看酒店的审核状态和上下线状态 |
 
 ### 3. 管理员功能
 
-- **审核管理**：审核商户提交的酒店信息，支持通过或拒绝
-- **上下线管理**：管理酒店的上线和下线状态
-- **酒店详情**：查看所有酒店的详细信息
+| 功能 | 描述 |
+|------|------|
+| **审核管理** | 查看待审核酒店列表，支持一键通过/拒绝 |
+| **拒绝原因** | 拒绝时需填写原因并保存 |
+| **上下线管理** | 管理已通过审核的酒店上线/下线状态 |
+| **虚拟删除** | 下线功能采用虚拟删除，数据可恢复 |
+| **酒店详情** | 查看所有酒店的详细信息 |
 
 ### 4. 特色功能
 
-- **响应式设计**：适配不同屏幕尺寸的设备
-- **优雅的 UI**：采用 Ant Design 和 Tailwind CSS 构建现代化界面
-- **背景图片**：登录注册页面使用酒店主题背景图片
+- **响应式设计**：适配不同屏幕尺寸
+- **优雅的 UI**：Ant Design + Tailwind CSS 现代化界面
+- **背景图片**：登录注册页面使用酒店主题背景
 - **表单验证**：完善的表单验证和错误提示
-- **数据可视化**：直观的状态显示和操作反馈
-- **错误处理**：优雅的错误处理和边界情况处理
+- **数据可视化**：直观的状态 Tag 显示（待审核/已通过/已拒绝）
+- **数据源切换**：支持本地存储和后端 API 无缝切换
+
+---
+
+## 数据源切换
+
+项目支持两种数据源模式：
+
+### 本地存储模式 (local)
+
+使用 localStorage 模拟数据存储，适合开发和测试。
+
+```typescript
+// src/services/config.ts
+export const DATA_SOURCE: string = "local";
+```
+
+### 后端 API 模式 (backend)
+
+调用真实的后端 API，适合生产环境。
+
+```typescript
+// src/services/config.ts
+export const DATA_SOURCE: string = "backend";
+export const API_BASE_URL = "http://localhost:3000/api/v1";
+```
+
+---
+
+## API 端点
+
+### 认证接口
+
+| 方法 | 路径 | 描述 |
+|------|------|------|
+| POST | `/auth/register` | 用户注册 |
+| POST | `/auth/login` | 用户登录 |
+
+### 商户接口
+
+| 方法 | 路径 | 描述 |
+|------|------|------|
+| GET | `/merchant/hotels` | 获取商户酒店列表 |
+| POST | `/merchant/hotels` | 创建酒店 |
+| PUT | `/merchant/hotels/:id` | 更新酒店 |
+| DELETE | `/merchant/hotels/:id` | 删除酒店 |
+| POST | `/merchant/upload` | 上传图片 |
+
+### 管理员接口
+
+| 方法 | 路径 | 描述 |
+|------|------|------|
+| GET | `/admin/hotels` | 获取所有酒店 |
+| PATCH | `/admin/audit/:id` | 审核酒店 |
+| PATCH | `/admin/publish/:id` | 上下线酒店 |
+
+---
 
 ## 开发指南
 
 ### 代码规范
 
-- 使用 TypeScript 类型定义
-- 组件命名使用 PascalCase
-- 变量和函数命名使用 camelCase
-- 常量使用 UPPER_SNAKE_CASE
-- 缩进使用 2 个空格
-- 每行代码长度不超过 100 个字符
+| 类型 | 约定 | 示例 |
+|------|------|------|
+| 组件 | PascalCase | `HotelForm.tsx` |
+| 函数 | camelCase | `handleSubmit` |
+| 常量 | UPPER_SNAKE_CASE | `API_BASE_URL` |
+| 类型/接口 | PascalCase | `Hotel` |
 
 ### 组件开发
 
-1. **功能组件**：放在 `src/components` 目录
-2. **页面组件**：放在 `src/pages` 对应角色目录下
-3. **布局组件**：放在 `src/layouts` 目录
-4. **服务层**：放在 `src/services` 目录，处理 API 调用
+1. **页面组件**：放在 `src/pages/` 对应角色目录下
+2. **布局组件**：放在 `src/layouts/` 目录
+3. **服务层**：放在 `src/services/` 目录，处理 API 调用
+4. **常量定义**：放在 `src/constants/` 目录
 
-### API 服务
+### 数据模型
 
-本项目提供了两种数据源模式：
-
-1. **本地存储模式**：使用 localStorage 模拟数据存储，适合开发和测试
-2. **后端 API 模式**：调用真实的后端 API，适合生产环境
-
-可在 `src/services/config.ts` 中切换数据源模式：
-
+#### Hotel（酒店）
 ```typescript
-export const DATA_SOURCE: string = "local"; // 本地存储模式
-// export const DATA_SOURCE: string = "backend"; // 后端 API 模式
+interface Hotel {
+  id: string;
+  name_cn: string;          // 酒店中文名（必须）
+  name_en: string;          // 酒店英文名（必须）
+  address: string;          // 地址（必须）
+  star_level: number;       // 星级 1-5
+  open_date: string;        // 开业时间
+  banner_url: string;       // Banner 图片 URL
+  description?: string;     // 酒店介绍
+  tags?: string[];          // 标签
+  facilities?: string[];    // 设施列表
+  rooms: Room[];            // 房型列表
+  audit_status: 'pending' | 'approved' | 'rejected';
+  is_offline: boolean;
+  fail_reason?: string;     // 审核拒绝原因
+}
 ```
 
-## 后端集成
+#### Room（房型）
+```typescript
+interface Room {
+  id?: string;
+  name: string;             // 房型名称（必须）
+  price: number;            // 价格（必须）
+  capacity: number;         // 容纳人数
+  description?: string;     // 描述
+  image_url?: string;       // 图片 URL
+  amenities?: string[];     // 设施列表
+}
+```
 
-本项目默认配置为使用本地存储模拟数据，如需集成后端服务，请：
+---
 
-1. 修改 `src/services/config.ts` 中的 API_BASE_URL：
+## 常见问题
 
-   ```typescript
-   export const API_BASE_URL = "http://localhost:3000/api/v1";
-   ```
+**Q: 如何切换到后端 API？**
+A: 修改 `src/services/config.ts`，将 `DATA_SOURCE` 改为 `"backend"`。
 
-2. 切换到后端 API 模式：
+**Q: 审核通过后酒店是否自动上线？**
+A: 是的，审核通过时 `is_offline` 自动设为 `false`。
 
-   ```typescript
-   export const DATA_SOURCE: string = "backend";
-   ```
+**Q: 下线的酒店能否恢复？**
+A: 可以，通过上下线管理页面的"上线"按钮恢复。
 
-3. 确保后端服务提供以下 API 端点：
-   - POST `/auth/login` - 用户登录
-   - POST `/auth/register` - 用户注册
-   - GET `/merchant/hotels` - 商户获取酒店列表
-   - POST `/merchant/hotels` - 商户添加酒店
-   - PUT `/merchant/hotels/:id` - 商户编辑酒店
-   - DELETE `/merchant/hotels/:id` - 商户删除酒店
-   - POST `/merchant/upload` - 商户上传图片
-   - GET `/admin/hotels` - 管理员获取所有酒店
-   - PATCH `/admin/audit/:hotelId` - 管理员审核酒店
-   - PATCH `/admin/publish/:hotelId` - 管理员上下线酒店
+**Q: 编辑酒店后需要重新审核吗？**
+A: 是的，编辑后的酒店 `audit_status` 会重置为 `"pending"`。
 
-**感谢使用 EasyStay 酒店管理系统！** 🎉# React + TypeScript + Vite
+---
+
+## 相关文档
+
+| 文档 | 路径 |
+|------|------|
+| AI 上下文 | [CLAUDE.md](./CLAUDE.md) |
+| 后端文档 | [../server/CLAUDE.md](../server/CLAUDE.md) |
+| 移动端文档 | [../client-mobile/CLAUDE.md](../client-mobile/CLAUDE.md) |
+
+---
+
+**感谢使用 EasyStay 酒店管理系统！** 🎉

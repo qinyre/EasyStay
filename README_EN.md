@@ -29,9 +29,14 @@ The system implements a complete information audit workflow—hotel information 
 
 ### User Side (Mobile)
 - Homepage banner display and navigation
-- Hotel listing search (location-based, keyword search, date filter, star rating filter)
+- Hotel listing search (location-based, keyword search, date filter, star rating filter, price range)
 - Hotel detail display (room types auto-sorted by price ascending)
-- Long list optimization rendering
+- Long list optimization rendering (virtual list, pull-to-refresh, infinite scroll)
+- User authentication (login, registration, email verification for password reset)
+- Order management (create booking, booking list, booking details, cancel booking)
+- Order countdown timer (15-minute payment deadline)
+- Personal center (settings, language switching, about us)
+- Internationalization support (Chinese/English)
 
 ### Management Side (PC)
 - **Merchant Features**
@@ -99,13 +104,13 @@ The system implements a complete information audit workflow—hotel information 
    Start mobile client (default port 3001):
    ```bash
    cd client-mobile
-   npm start
+   npm run dev
    ```
 
    Start PC management client (default port 3002):
    ```bash
    cd client-pc
-   npm start
+   npm run dev
    ```
 
 4. **Access the application**
@@ -120,7 +125,7 @@ The system implements a complete information audit workflow—hotel information 
 
 ```
 EasyStay/
-├── client-mobile/          # Mobile frontend application (React)
+├── client-mobile/          # Mobile frontend application (React + TypeScript + Vite)
 ├── client-pc/              # PC management frontend application (React)
 ├── server/                 # Backend service (Node.js + SQLite)
 │   ├── config/             # Configuration files
@@ -138,7 +143,8 @@ EasyStay/
 │   ├── technical/          # Technical specification documents
 │   └── teamwork/           # Team collaboration documents
 ├── .gitignore
-└── README.md
+├── README.md               # Chinese documentation
+└── README_EN.md            # English documentation
 ```
 
 ---
@@ -146,10 +152,16 @@ EasyStay/
 ## Tech Stack
 
 ### Frontend
-- **Framework**: React 18
-- **State Management**: React Context / Hooks
+- **Framework**: React 18 + TypeScript
+- **Build Tool**: Vite 6
+- **State Management**: React Context API (SearchContext, AuthContext)
+- **Routing**: React Router DOM 7
 - **HTTP Client**: Axios
-- **UI Library**: Ant Design Mobile (Mobile) / Ant Design (PC)
+- **UI Library**: Ant Design Mobile 5 (Mobile) / Ant Design (PC)
+- **Styling**: Tailwind CSS 3
+- **Internationalization**: i18next
+- **Date Handling**: date-fns
+- **Testing**: Vitest + Testing Library
 
 ### Backend
 - **Runtime**: Node.js
@@ -176,8 +188,13 @@ The system uses RESTful API design with base path `/api/v1`
 
 ### Mobile Endpoints
 - `GET /mobile/home/banners` - Get homepage banners
-- `GET /mobile/hotels` - Hotel listing search
+- `GET /mobile/home/popular-cities` - Get popular cities
+- `GET /mobile/hotels` - Hotel listing search (multi-dimension filtering)
 - `GET /mobile/hotels/:id` - Get hotel details
+- `POST /mobile/bookings` - Create booking
+- `GET /mobile/bookings` - Get booking list
+- `GET /mobile/bookings/:id` - Get booking details
+- `PATCH /mobile/bookings/:id/cancel` - Cancel booking
 
 ### Management Endpoints
 - `POST /merchant/hotels` - Input hotel information
@@ -191,30 +208,86 @@ The system uses RESTful API design with base path `/api/v1`
 
 ## Data Structure
 
-The system uses SQLite database (`server/data/easystay.db`) with four tables: `users`, `hotels`, `rooms`, and `orders`.
+The system uses SQLite database (`server/data/easystay.db`), containing the following four tables:
 
 ### Hotels Table
+
 | Field | Type | Description |
-|-------|------|-------------|
+|------|------|------|
 | `id` | TEXT | Unique hotel ID (UUID) |
 | `name_cn` | TEXT | Hotel name (Chinese) |
 | `name_en` | TEXT | Hotel name (English) |
-| `address` | TEXT | Hotel address |
+| `address` | TEXT | Hotel detailed address |
 | `star_level` | INTEGER | Star rating (1-5) |
+| `location` | TEXT | Location info (JSON: province, city, address, coordinates) |
+| `description` | TEXT | Hotel description |
+| `facilities` | TEXT | Facilities list (JSON array) |
+| `rating` | REAL | Rating (0-5) |
+| `image` | TEXT | Main image URL |
+| `images` | TEXT | Image list (JSON array) |
+| `tags` | TEXT | Tags (JSON array) |
+| `price_start` | REAL | Starting price |
+| `open_date` | TEXT | Opening date |
+| `banner_url` | TEXT | Banner image URL |
 | `audit_status` | TEXT | Audit status (Pending/Approved/Rejected) |
 | `is_offline` | INTEGER | Offline flag (0/1) |
-| `tags` | TEXT | Tags (JSON array) |
+| `fail_reason` | TEXT | Audit rejection reason |
+| `merchant_id` | TEXT | Merchant ID |
+| `merchant_username` | TEXT | Merchant username |
+| `created_at` | TEXT | Creation time |
+| `updated_at` | TEXT | Update time |
+
+### Rooms Table
+
+| Field | Type | Description |
+|------|------|------|
+| `id` | TEXT | Unique room type ID (UUID) |
+| `name` | TEXT | Room type name |
+| `price` | REAL | Room type price |
+| `capacity` | INTEGER | Capacity (persons) |
+| `description` | TEXT | Room type description |
+| `image_url` | TEXT | Room type image URL |
+| `amenities` | TEXT | Amenities list (JSON array) |
+| `hotelId` | TEXT | Hotel ID (foreign key) |
 
 ### Users Table
-| Field | Type | Description |
-|-------|------|-------------|
-| `id` | TEXT | Unique user ID |
-| `phone` | TEXT | Phone number (mobile) |
-| `username` | TEXT | Username (PC) |
-| `password` | TEXT | Hashed password |
-| `role` | TEXT | Role (user/merchant/admin) |
 
-> See [docs/technical/data_schema.md](docs/technical/data_schema.md) for complete schema
+| Field | Type | Description |
+|------|------|------|
+| `id` | TEXT | Unique user ID (UUID) |
+| `phone` | TEXT | Phone number (mobile login) |
+| `email` | TEXT | Email (for password reset) |
+| `username` | TEXT | Username (PC login) |
+| `password` | TEXT | Hashed password (bcryptjs) |
+| `name` | TEXT | User nickname |
+| `avatar` | TEXT | User avatar URL |
+| `role` | TEXT | Role (user/merchant/admin) |
+| `created_at` | TEXT | Registration time |
+
+### Orders Table
+
+| Field | Type | Description |
+|------|------|------|
+| `id` | TEXT | Unique order ID |
+| `user_id` | TEXT | Booking user ID (foreign key) |
+| `hotel_id` | TEXT | Booked hotel ID (foreign key) |
+| `room_id` | TEXT | Booked room type ID (foreign key) |
+| `check_in_date` | TEXT | Check-in date (yyyy-MM-dd) |
+| `check_out_date` | TEXT | Check-out date (yyyy-MM-dd) |
+| `guests` | INTEGER | Number of guests |
+| `total_price` | REAL | Total order price |
+| `status` | TEXT | Order status (pending/confirmed/completed/cancelled) |
+| `payment_status` | TEXT | Payment status (unpaid/paid/refunded) |
+| `guestName` | TEXT | Guest name |
+| `guestPhone` | TEXT | Guest phone number |
+| `hotelName` | TEXT | Hotel name (redundant field) |
+| `hotelImage` | TEXT | Hotel image (redundant field) |
+| `roomType` | TEXT | Room type name (redundant field) |
+| `nights` | INTEGER | Number of nights |
+| `created_at` | TEXT | Creation time |
+| `updated_at` | TEXT | Update time |
+
+> For complete definitions, see [docs/technical/data_schema.md](docs/technical/data_schema.md)
 
 ---
 
