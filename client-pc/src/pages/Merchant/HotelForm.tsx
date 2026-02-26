@@ -34,6 +34,7 @@ const HotelForm: React.FC = () => {
       _fileList: [],
     },
   ]);
+  const [fileList, setFileList] = useState<any[]>([]);
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const location = useLocation();
@@ -60,6 +61,19 @@ const HotelForm: React.FC = () => {
             description: hotel.description || "",
             facilities: hotel.facilities || [],
           });
+
+          // 初始化文件列表，显示已上传的图片
+          if (hotel.banner_url) {
+            setFileList([
+              {
+                uid: "-1",
+                name: "", // 为空避免显示重复的文件名
+                status: "done",
+                url: hotel.banner_url,
+                thumbUrl: hotel.banner_url, // 添加thumbUrl确保预览图正确显示
+              },
+            ]);
+          }
           // 填充房型数据
           if (hotel.rooms && hotel.rooms.length > 0) {
             const transformedRooms = hotel.rooms.map((room: any) => ({
@@ -125,13 +139,13 @@ const HotelForm: React.FC = () => {
       // 转换房型数据结构，适配后端Room模型
       const transformedRooms = Array.isArray(hotelRooms)
         ? hotelRooms.map((room: any) => ({
-          name: room.name || room.type_name || "",
-          price: room.price || 0,
-          capacity: room.capacity || room.stock || 0,
-          description: room.description || "",
-          image_url: room.image_url || "",
-          amenities: room.amenities || [],
-        }))
+            name: room.name || room.type_name || "",
+            price: room.price || 0,
+            capacity: room.capacity || room.stock || 0,
+            description: room.description || "",
+            image_url: room.image_url || "",
+            amenities: room.amenities || [],
+          }))
         : [];
 
       // 获取当前登录的商户用户名
@@ -231,19 +245,79 @@ const HotelForm: React.FC = () => {
                   name="file"
                   listType="picture"
                   maxCount={1}
+                  fileList={fileList}
                   action={`${API_ORIGIN}/merchant/upload`}
                   onChange={(info) => {
+                    console.log("上传文件信息:", info);
+
                     if (info.file.status === "done") {
                       // 上传成功后，将返回的URL设置到表单字段
-                      if (info.file.response && info.file.response.data) {
+                      if (
+                        info.file.response &&
+                        info.file.response.data &&
+                        info.file.response.data.url
+                      ) {
+                        const imageUrl = info.file.response.data.url;
+                        console.log("上传成功，图片URL:", imageUrl);
+
                         form.setFieldsValue({
-                          banner_url: info.file.response.data.url,
+                          banner_url: imageUrl,
                         });
+
+                        // 确保使用完整的图片URL路径
+                        const fullImageUrl = imageUrl.startsWith("http")
+                          ? imageUrl
+                          : `${API_ORIGIN}${imageUrl}`;
+                        console.log("完整图片URL:", fullImageUrl);
+
+                        // 上传成功后更新文件列表，确保预览图正确显示
+                        const uploadedFile = {
+                          uid: info.file.uid,
+                          name: "",
+                          status: "done",
+                          url: fullImageUrl,
+                          thumbUrl: fullImageUrl, // 确保thumbUrl设置正确
+                        };
+                        console.log("更新文件列表:", uploadedFile);
+                        setFileList([uploadedFile]);
+
+                        // 同时更新表单字段为完整URL
+                        form.setFieldsValue({
+                          banner_url: fullImageUrl,
+                        });
+                      } else {
+                        console.error(
+                          "上传成功但响应数据格式不正确:",
+                          info.file.response,
+                        );
                       }
+                    } else if (info.file.status === "removed") {
+                      // 文件被移除时清空文件列表
+                      setFileList([]);
+                    } else {
+                      // 其他状态（如上传中），更新文件列表以显示上传进度
+                      setFileList([info.file]);
                     }
                   }}
+                  // 禁用预览功能，避免跳转到登录页面
+                  onPreview={() => false}
+                  style={{ width: "100%" }}
                 >
-                  <Button icon={<UploadOutlined />}>上传图片</Button>
+                  {fileList.length < 1 && (
+                    <div
+                      style={{
+                        width: "100%",
+                        height: 200,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        border: "1px dashed #d9d9d9",
+                        borderRadius: 8,
+                      }}
+                    >
+                      <Button icon={<UploadOutlined />}>上传酒店图片</Button>
+                    </div>
+                  )}
                 </Upload>
               </Form.Item>
             </div>
@@ -353,21 +427,38 @@ const HotelForm: React.FC = () => {
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         房型图片
                       </label>
-                      {room.image_url ? (
+                      {room.image_url && room.image_url.trim() !== "" ? (
                         <div className="relative inline-block">
                           <img
-                            src={room.image_url.startsWith("http") ? room.image_url : `${API_ORIGIN}${room.image_url}`}
+                            src={
+                              room.image_url.startsWith("http")
+                                ? room.image_url
+                                : `${API_ORIGIN}${room.image_url}`
+                            }
                             alt="房型图片"
-                            style={{ width: 120, height: 120, objectFit: "cover", borderRadius: 8, border: "1px solid #d9d9d9" }}
+                            style={{
+                              width: 150,
+                              height: 150,
+                              objectFit: "cover",
+                              borderRadius: 8,
+                              border: "1px solid #d9d9d9",
+                            }}
                           />
-                          <Button
-                            size="small"
-                            danger
-                            style={{ position: "absolute", top: -8, right: -8 }}
-                            onClick={() => handleRoomChange(index, "image_url", "")}
+                          <div
+                            className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 cursor-pointer hover:bg-red-600"
+                            onClick={() =>
+                              handleRoomChange(index, "image_url", "")
+                            }
+                            style={{
+                              width: 24,
+                              height: 24,
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                            }}
                           >
                             ✕
-                          </Button>
+                          </div>
                         </div>
                       ) : (
                         <Upload
