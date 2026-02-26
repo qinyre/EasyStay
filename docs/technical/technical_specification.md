@@ -55,12 +55,45 @@
 │   ├── CLAUDE.md          # AI 上下文文档
 │   └── README.md          # 项目说明
 ├── /server                # Node.js 后端源代码
-│   ├── /config            # 数据库连接 (database.js) 与缓存配置 (cache.js)
+│   ├── /config            # 配置文件
+│   │   ├── database.js    # SQLite 数据库连接与表结构定义
+│   │   └── cache.js       # 内存缓存实现 (替代 Redis)
 │   ├── /controllers       # 控制器（业务逻辑层）
+│   │   ├── adminController.js    # 管理员业务逻辑
+│   │   ├── authController.js     # 移动端认证业务
+│   │   ├── merchantController.js # 商户业务逻辑
+│   │   ├── mobileController.js   # 移动端首页和酒店查询
+│   │   ├── mobileBookingController.js # 移动端订单业务
+│   │   ├── orderController.js    # PC 端订单业务
+│   │   └── userController.js     # PC 端用户认证业务
 │   ├── /data              # SQLite 数据库文件 (easystay.db, 自动生成)
 │   ├── /routes            # API 路由处理
+│   │   ├── admin.js       # 管理员路由
+│   │   ├── auth.js        # 移动端认证路由
+│   │   ├── merchant.js    # 商户路由
+│   │   ├── mobile.js      # 移动端路由
+│   │   ├── mobileBookings.js # 移动端订单路由
+│   │   ├── order.js       # PC 端订单路由
+│   │   └── user.js        # PC 端用户路由
+│   ├── /middlewares       # 中间件（认证、上传、验证）
+│   │   ├── auth.js        # JWT 认证 + 角色权限检查
+│   │   ├── upload.js      # Multer 图片上传配置
+│   │   └── validate.js    # Zod 数据验证中间件
+│   ├── /validators        # Zod 数据验证模式
+│   │   └── schemas.js     # 注册、酒店、房型验证规则
+│   ├── /utils             # 工具函数
+│   │   ├── file.js        # JSON 文件读写工具 (已废弃)
+│   │   ├── location.js    # 地址解析工具 (省市提取)
+│   │   └── swagger.js     # Swagger API 文档配置
+│   ├── /scripts           # 工具脚本
+│   │   ├── migrateData.js # JSON 到 SQLite 数据迁移脚本
+│   │   ├── pc-integration.ps1 # PC 端集成测试脚本
+│   │   └── smoke.ps1      # 接口冒烟测试脚本
+│   ├── /tests             # 测试文件
+│   │   └── authController.test.js # 认证控制器单元测试
 │   ├── /uploads           # 上传的图片文件
-│   └── /middlewares       # 中间件（认证、上传、验证）
+│   ├── index.js           # 应用入口文件
+│   └── importMockData.js  # Mock 数据导入脚本
 └── /docs                  # 开发文档、接口规范、截图资产
 ```
 
@@ -199,43 +232,69 @@ export const getHotels = async (params) => {
 
 ## 5. 数据库 Schema 设计 (SQLite 表结构)
 
-核心数据表定义如下：
+系统使用 SQLite 数据库 (`server/data/easystay.db`)，通过 `better-sqlite3` 驱动进行同步读写。
+
+### 数据库配置
+
+- **数据库文件**: `server/data/easystay.db`
+- **WAL 模式**: 开启 (提升并发性能)
+- **外键约束**: 开启
 
 ### Hotels 表
 
 | 字段名 | 类型 | 说明 |
 | :--- | :--- | :--- |
 | `id` | TEXT (PK) | 酒店唯一标识（UUID） |
-| `name_cn` | TEXT | 酒店中文名 (必须维度) |
-| `name_en` | TEXT | 酒店英文名 (必须维度) |
+| `name_cn` | TEXT | 酒店中文名 (必须) |
+| `name_en` | TEXT | 酒店英文名 |
+| `address` | TEXT | 酒店详细地址 (必须) |
 | `star_level` | INTEGER | 星级 (1-5) |
-| `address` | TEXT | 酒店详细地址 |
-| `tags` | TEXT | JSON 数组，如 `["亲子","豪华"]` |
-| `is_offline` | INTEGER | 是否已下线 (虚拟删除标志, 0/1) |
-| `audit_status` | TEXT | 枚举值：`Pending`, `Approved`, `Rejected` |
-| `createdAt` | TEXT | 创建时间 (ISO 8601 格式) |
+| `location` | TEXT | 位置信息 JSON（省份、城市、地址、经纬度） |
+| `description` | TEXT | 酒店描述 |
+| `facilities` | TEXT | 设施列表 JSON 数组 |
+| `rating` | REAL | 评分 (0-5) |
+| `image` | TEXT | 主图 URL |
+| `images` | TEXT | 图片列表 JSON 数组 |
+| `tags` | TEXT | 标签 JSON 数组 |
+| `price_start` | REAL | 起始价格 |
+| `open_date` | TEXT | 开业时间 |
+| `banner_url` | TEXT | Banner 图片 URL |
+| `audit_status` | TEXT | 审核状态：`Pending`, `Approved`, `Rejected` |
+| `is_offline` | INTEGER | 是否下线 (虚拟删除标志, 0/1) |
+| `fail_reason` | TEXT | 审核拒绝原因 |
+| `merchant_id` | TEXT | 所属商户 ID |
+| `merchant_username` | TEXT | 所属商户用户名 |
+| `created_at` | TEXT | 创建时间 |
+| `updated_at` | TEXT | 更新时间 |
 
 ### Rooms 表
 
 | 字段名 | 类型 | 说明 |
 | :--- | :--- | :--- |
-| `id` | TEXT (PK) | 房型唯一标识 |
-| `name` | TEXT | 房型名称 |
-| `price` | REAL | 房型价格 |
-| `hotelId` | TEXT (FK) | 所属酒店 ID |
+| `id` | TEXT (PK) | 房型唯一标识（UUID） |
+| `name` | TEXT | 房型名称 (必须) |
+| `price` | REAL | 房型价格 (必须，用于排序) |
+| `capacity` | INTEGER | 容纳人数 |
+| `description` | TEXT | 房型描述 |
+| `image_url` | TEXT | 房型图片 URL |
+| `amenities` | TEXT | 设施列表 JSON 数组 |
+| `hotelId` | TEXT (FK) | 所属酒店 ID (外键) |
 
 ### Users 表
 
 | 字段名 | 类型 | 说明 |
 | :--- | :--- | :--- |
-| `id` | TEXT (PK) | 用户唯一标识 |
+| `id` | TEXT (PK) | 用户唯一标识（UUID） |
 | `phone` | TEXT (UNIQUE) | 手机号（移动端登录） |
 | `email` | TEXT (UNIQUE) | 邮箱（用于密码重置） |
 | `username` | TEXT (UNIQUE) | 用户名（PC端登录） |
 | `password` | TEXT | bcryptjs 加密后的密码 |
+| `name` | TEXT | 用户昵称 |
+| `avatar` | TEXT | 用户头像 URL |
 | `role` | TEXT | 角色：`user`, `merchant`, `admin` |
+| `created_at` | TEXT | 注册时间 |
 
-### Orders 表（新增）
+### Orders 表
 
 | 字段名 | 类型 | 说明 |
 | :--- | :--- | :--- |
@@ -243,12 +302,22 @@ export const getHotels = async (params) => {
 | `user_id` | TEXT (FK) | 下单用户 ID |
 | `hotel_id` | TEXT (FK) | 预订酒店 ID |
 | `room_id` | TEXT (FK) | 预订房型 ID |
-| `check_in_date` | TEXT | 入住日期 |
-| `check_out_date` | TEXT | 离店日期 |
+| `check_in_date` | TEXT | 入住日期 (yyyy-MM-dd) |
+| `check_out_date` | TEXT | 离店日期 (yyyy-MM-dd) |
+| `guests` | INTEGER | 入住人数 |
 | `total_price` | REAL | 订单总价 |
 | `status` | TEXT | 订单状态：`pending`, `confirmed`, `completed`, `cancelled` |
+| `payment_status` | TEXT | 支付状态：`unpaid`, `paid`, `refunded` |
+| `payment_method` | TEXT | 支付方式 |
+| `transaction_id` | TEXT | 交易流水号 |
 | `guestName` | TEXT | 入住人姓名 |
 | `guestPhone` | TEXT | 入住人电话 |
+| `hotelName` | TEXT | 酒店名称（冗余字段） |
+| `hotelImage` | TEXT | 酒店图片（冗余字段） |
+| `roomType` | TEXT | 房型名称（冗余字段） |
+| `nights` | INTEGER | 间夜数 |
+| `created_at` | TEXT | 创建时间 |
+| `updated_at` | TEXT | 更新时间 |
 
 ---
 
@@ -371,6 +440,188 @@ if (DATA_SOURCE === "local") {
 
 ---
 
+## 7. 后端技术实现
+
+### 7.1 技术栈
+
+| 类别 | 技术 | 版本 | 用途 |
+| :--- | :--- | :--- | :--- |
+| 运行环境 | Node.js | >= 16 | JavaScript 运行时 |
+| Web 框架 | Express | 4.19.2 | HTTP 服务器 |
+| 数据库 | SQLite | - | better-sqlite3 驱动 (12.6.2) |
+| 认证 | JWT | 9.0.2 | jsonwebtoken 令牌生成/验证 |
+| 密码加密 | bcryptjs | 3.0.3 | 密码哈希加密 |
+| 文件上传 | Multer | 2.0.2 | 图片上传处理 |
+| 数据验证 | Zod | 4.3.6 | Schema 校验 |
+| API 文档 | Swagger UI | 5.0.1 | 接口文档生成 |
+| 跨域 | CORS | 2.8.5 | 跨域资源共享 |
+| 环境变量 | dotenv | 16.4.5 | 环境配置管理 |
+
+### 7.2 项目结构
+
+```
+server/
+├── index.js              # 应用入口，Express 服务器配置
+├── package.json
+├── .env                  # 环境变量配置
+├── importMockData.js     # Mock 数据导入脚本
+├── config/               # 配置文件
+│   ├── database.js       # SQLite 数据库连接与建表
+│   └── cache.js          # 内存缓存实现 (替代 Redis)
+├── routes/               # API 路由定义
+│   ├── auth.js           # 移动端认证路由 (7个端点)
+│   ├── mobile.js         # 移动端首页/酒店路由 (4个端点)
+│   ├── mobileBookings.js # 移动端订单路由 (5个端点)
+│   ├── user.js           # PC 端用户路由 (4个端点)
+│   ├── merchant.js       # 商户路由 (6个端点)
+│   ├── admin.js          # 管理员路由 (4个端点)
+│   └── order.js          # PC 端订单路由 (6个端点)
+├── controllers/          # 业务逻辑控制器
+│   ├── authController.js        # 移动端认证业务
+│   ├── mobileController.js      # 移动端首页/酒店业务
+│   ├── mobileBookingController.js # 移动端订单业务
+│   ├── userController.js        # PC 端用户业务
+│   ├── merchantController.js    # 商户业务
+│   ├── adminController.js       # 管理员业务
+│   └── orderController.js       # PC 端订单业务
+├── middlewares/          # 中间件
+│   ├── auth.js           # JWT 认证 + 角色检查
+│   ├── upload.js         # Multer 图片上传配置
+│   └── validate.js       # Zod 数据验证中间件
+├── validators/           # Zod 数据验证模式
+│   └── schemas.js        # 注册、酒店、房型验证规则
+├── utils/                # 工具函数
+│   ├── file.js           # JSON 文件读写工具 (已废弃)
+│   ├── location.js       # 地址解析工具 (省市提取)
+│   └── swagger.js        # Swagger API 文档配置
+├── scripts/              # 工具脚本
+│   ├── migrateData.js    # JSON 到 SQLite 数据迁移脚本
+│   ├── pc-integration.ps1 # PC 端集成测试脚本
+│   └── smoke.ps1         # 接口冒烟测试脚本
+├── tests/                # 测试文件
+│   └── authController.test.js # 认证控制器单元测试
+├── uploads/              # 图片上传目录
+└── data/                 # 数据存储
+    └── easystay.db       # SQLite 主数据库文件
+```
+
+### 7.3 核心中间件
+
+#### 认证中间件 (`middlewares/auth.js`)
+
+```javascript
+// JWT 验证
+authMiddleware(req, res, next)
+
+// 角色检查
+roleCheck(['admin', 'merchant'])(req, res, next)
+```
+
+**JWT 配置**:
+- 密钥来源: `process.env.JWT_SECRET`
+- 令牌有效期: 7 天
+- 认证头格式: `Authorization: Bearer <token>`
+
+#### 上传中间件 (`middlewares/upload.js`)
+
+```javascript
+// 单文件上传
+upload.single('file')
+```
+
+**上传规则**:
+- 存储目录: `server/uploads/`
+- 文件命名: `file-{timestamp}-{random}.{ext}`
+- 允许类型: `image/jpeg`, `image/jpg`, `image/png`, `image/webp`
+- 文件大小限制: 50 MB
+- URL 访问: `http://localhost:3000/uploads/{filename}`
+
+### 7.4 缓存策略 (`config/cache.js`)
+
+**内存缓存实现** (替代 Redis):
+- 底层结构: `Map` + TTL 过期机制
+- 缓存键示例:
+  - `banners`: 首页轮播图 (1 小时)
+  - `popular_cities`: 热门城市 (24 小时)
+  - `hotels:v2:{params}`: 酒店列表 (30 分钟)
+  - `hotel:v2:{id}`: 酒店详情 (1 小时)
+
+**操作方法**:
+```javascript
+Cache.set(key, value, expiration)  // 设置缓存
+Cache.get(key)                     // 获取缓存
+Cache.del(key | RegExp)            // 删除缓存 (支持正则批量)
+```
+
+**缓存失效**:
+- 创建/更新/删除酒店时自动清除相关缓存
+- 使用 `Cache.del(/^hotels:v2:/)` 批量清除
+
+### 7.5 数据验证模式 (`validators/schemas.js`)
+
+#### 注册验证
+```javascript
+{
+  username: string(3-20字符),
+  password: string(≥6字符),
+  role: 'merchant' | 'admin'
+}
+```
+
+#### 酒店验证
+```javascript
+{
+  name_cn: string(2-50字符),
+  name_en?: string(≥2字符),
+  address: string(≥5字符),
+  star_level?: number(1-5),
+  open_date?: string(YYYY-MM-DD),
+  banner_url?: string,
+  description?: string(≤500字符),
+  facilities?: string[],
+  tags?: string[](≤10个),
+  rooms: array(≥1个房型)
+}
+```
+
+### 7.6 双认证体系
+
+**移动端认证** (`/auth`):
+- 登录方式: 手机号 + 密码
+- 注册方式: 手机号 + 密码 + 邮箱
+
+**PC 端认证** (`/user`):
+- 登录方式: 用户名 + 密码
+- 注册方式: 用户名 + 密码 + 角色
+
+### 7.7 启动与开发
+
+**启动命令**:
+```bash
+npm start          # 生产模式 (端口 3000)
+npm run dev        # 开发模式 (nodemon 热重启)
+npm test           # 运行单元测试
+npm run lint       # ESLint 代码检查
+npm run format     # Prettier 代码格式化
+```
+
+**环境变量** (`.env`):
+```bash
+PORT=3000
+NODE_ENV=development
+JWT_SECRET=easystay_jwt_secret_key_2024_please_change_this_in_production
+```
+
+**API 文档**: http://localhost:3000/api-docs (Swagger UI)
+
+**数据导入**:
+```bash
+node importMockData.js    # 导入 5 家精选酒店数据
+node scripts/migrateData.js  # JSON 到 SQLite 迁移
+```
+
+---
+
 ## 9. 移动端主要 API 端点
 
 ### 认证相关
@@ -399,7 +650,7 @@ if (DATA_SOURCE === "local") {
 
 ---
 
-## 9. PC 管理端主要 API 端点
+## 10. PC 管理端主要 API 端点
 
 ### 认证相关
 *   `POST /auth/register` - 用户注册（商户/管理员）
@@ -419,7 +670,7 @@ if (DATA_SOURCE === "local") {
 
 ---
 
-## 10. 相关文档
+## 11. 相关文档
 
 | 文档 | 路径 |
 | :--- | :--- |

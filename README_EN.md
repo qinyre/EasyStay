@@ -208,30 +208,86 @@ The system uses RESTful API design with base path `/api/v1`
 
 ## Data Structure
 
-The system uses SQLite database (`server/data/easystay.db`) with four tables: `users`, `hotels`, `rooms`, and `orders`.
+The system uses SQLite database (`server/data/easystay.db`), containing the following four tables:
 
 ### Hotels Table
+
 | Field | Type | Description |
-|-------|------|-------------|
+|------|------|------|
 | `id` | TEXT | Unique hotel ID (UUID) |
 | `name_cn` | TEXT | Hotel name (Chinese) |
 | `name_en` | TEXT | Hotel name (English) |
-| `address` | TEXT | Hotel address |
+| `address` | TEXT | Hotel detailed address |
 | `star_level` | INTEGER | Star rating (1-5) |
+| `location` | TEXT | Location info (JSON: province, city, address, coordinates) |
+| `description` | TEXT | Hotel description |
+| `facilities` | TEXT | Facilities list (JSON array) |
+| `rating` | REAL | Rating (0-5) |
+| `image` | TEXT | Main image URL |
+| `images` | TEXT | Image list (JSON array) |
+| `tags` | TEXT | Tags (JSON array) |
+| `price_start` | REAL | Starting price |
+| `open_date` | TEXT | Opening date |
+| `banner_url` | TEXT | Banner image URL |
 | `audit_status` | TEXT | Audit status (Pending/Approved/Rejected) |
 | `is_offline` | INTEGER | Offline flag (0/1) |
-| `tags` | TEXT | Tags (JSON array) |
+| `fail_reason` | TEXT | Audit rejection reason |
+| `merchant_id` | TEXT | Merchant ID |
+| `merchant_username` | TEXT | Merchant username |
+| `created_at` | TEXT | Creation time |
+| `updated_at` | TEXT | Update time |
+
+### Rooms Table
+
+| Field | Type | Description |
+|------|------|------|
+| `id` | TEXT | Unique room type ID (UUID) |
+| `name` | TEXT | Room type name |
+| `price` | REAL | Room type price |
+| `capacity` | INTEGER | Capacity (persons) |
+| `description` | TEXT | Room type description |
+| `image_url` | TEXT | Room type image URL |
+| `amenities` | TEXT | Amenities list (JSON array) |
+| `hotelId` | TEXT | Hotel ID (foreign key) |
 
 ### Users Table
-| Field | Type | Description |
-|-------|------|-------------|
-| `id` | TEXT | Unique user ID |
-| `phone` | TEXT | Phone number (mobile) |
-| `username` | TEXT | Username (PC) |
-| `password` | TEXT | Hashed password |
-| `role` | TEXT | Role (user/merchant/admin) |
 
-> See [docs/technical/data_schema.md](docs/technical/data_schema.md) for complete schema
+| Field | Type | Description |
+|------|------|------|
+| `id` | TEXT | Unique user ID (UUID) |
+| `phone` | TEXT | Phone number (mobile login) |
+| `email` | TEXT | Email (for password reset) |
+| `username` | TEXT | Username (PC login) |
+| `password` | TEXT | Hashed password (bcryptjs) |
+| `name` | TEXT | User nickname |
+| `avatar` | TEXT | User avatar URL |
+| `role` | TEXT | Role (user/merchant/admin) |
+| `created_at` | TEXT | Registration time |
+
+### Orders Table
+
+| Field | Type | Description |
+|------|------|------|
+| `id` | TEXT | Unique order ID |
+| `user_id` | TEXT | Booking user ID (foreign key) |
+| `hotel_id` | TEXT | Booked hotel ID (foreign key) |
+| `room_id` | TEXT | Booked room type ID (foreign key) |
+| `check_in_date` | TEXT | Check-in date (yyyy-MM-dd) |
+| `check_out_date` | TEXT | Check-out date (yyyy-MM-dd) |
+| `guests` | INTEGER | Number of guests |
+| `total_price` | REAL | Total order price |
+| `status` | TEXT | Order status (pending/confirmed/completed/cancelled) |
+| `payment_status` | TEXT | Payment status (unpaid/paid/refunded) |
+| `guestName` | TEXT | Guest name |
+| `guestPhone` | TEXT | Guest phone number |
+| `hotelName` | TEXT | Hotel name (redundant field) |
+| `hotelImage` | TEXT | Hotel image (redundant field) |
+| `roomType` | TEXT | Room type name (redundant field) |
+| `nights` | INTEGER | Number of nights |
+| `created_at` | TEXT | Creation time |
+| `updated_at` | TEXT | Update time |
+
+> For complete definitions, see [docs/technical/data_schema.md](docs/technical/data_schema.md)
 
 ---
 
