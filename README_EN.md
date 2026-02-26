@@ -194,6 +194,14 @@ This project is developed using Vibe Coding methodology with the following AI de
 - Claude Opus 4.6
 - Claude Sonnet 4.6
 
+**Skills (Plugins) Used**:
+- `ui-ux-pro-max` - UI/UX design assistant with 50 styles, 21 color palettes, 50 font pairings
+- `frontend-design` - Frontend web design and development for high-quality interfaces
+
+**MCP Tools (Model Context Protocol) Used**:
+- `playwright` - Web automation testing and browser control
+- `chrome-devtools-mcp` - Chrome DevTools integration for web debugging and testing
+
 ---
 
 ## API Endpoints

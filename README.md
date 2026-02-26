@@ -207,6 +207,14 @@ EasyStay/
 - Claude Opus 4.6
 - Claude Sonnet 4.6
 
+**使用的 Skills（技能插件）**：
+- `ui-ux-pro-max` - UI/UX 设计智能助手，提供50种风格、21种配色方案、50种字体搭配
+- `frontend-design` - 前端网页设计开发，创建高质量前端界面
+
+**使用的 MCP 工具（Model Context Protocol）**：
+- `playwright` - 网页自动化测试与浏览器控制
+- `chrome-devtools-mcp` - Chrome 开发者工具集成，用于网页调试与测试
+
 ---
 
 ## API 接口
