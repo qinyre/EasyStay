@@ -16,7 +16,7 @@ import {
   EyeOutlined,
 } from "@ant-design/icons";
 import AdminLayout from "../../layouts/Layout";
-
+import { API_ORIGIN } from "../../services/config";
 const STYLES = `
   @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;600&family=Playfair+Display:wght@400;600&display=swap');
 
@@ -373,9 +373,20 @@ const PublishList: React.FC = () => {
                       <Descriptions.Item label="房型图片">
                         {room.image_url ? (
                           <img
-                            src={room.image_url}
+                            src={
+                              room.image_url.startsWith("http")
+                                ? room.image_url
+                                : `${API_ORIGIN}${room.image_url}`
+                            }
                             alt={room.type_name}
-                            className="w-24 h-24 object-cover"
+                            style={{
+                              width: "120px",
+                              height: "120px",
+                              objectFit: "cover",
+                              borderRadius: "8px",
+                              border: "1px solid #f0f0f0",
+                              maxWidth: "100%",
+                            }}
                           />
                         ) : (
                           "-"
