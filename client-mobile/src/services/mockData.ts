@@ -9,7 +9,7 @@ export const MOCK_HOTELS: Hotel[] = [
     location: {
       province: 'Shanghai',
       city: 'Shanghai',
-      address: 'No. 88, The Bund, Huangpu District',
+      address: '上海市黄浦区外滩88号',
       latitude: 31.2304,
       longitude: 121.4737,
     },
@@ -53,7 +53,7 @@ export const MOCK_HOTELS: Hotel[] = [
     location: {
       province: 'Beijing',
       city: 'Beijing',
-      address: 'No. 123, Wangfujing Street, Dongcheng District',
+      address: '北京市东城区王府井大街123号',
       latitude: 39.9042,
       longitude: 116.4074,
     },
@@ -96,7 +96,7 @@ export const MOCK_HOTELS: Hotel[] = [
     location: {
       province: 'Hainan',
       city: 'Sanya',
-      address: 'Yalong Bay National Resort District',
+      address: '海南省三亚市亚龙湾国家旅游度假区',
       latitude: 18.2528,
       longitude: 109.5119,
     },
@@ -131,7 +131,7 @@ export const MOCK_HOTELS: Hotel[] = [
     location: {
       province: 'Zhejiang',
       city: 'Wuzhen',
-      address: 'Xizha Scenic Area',
+      address: '浙江省桐乡市乌镇西栅景区',
       latitude: 30.7539,
       longitude: 120.4967,
     },
@@ -166,7 +166,7 @@ export const MOCK_HOTELS: Hotel[] = [
     location: {
       province: 'Singapore',
       city: 'Singapore',
-      address: '10 Bayfront Avenue',
+      address: '新加坡海湾舫大道10号',
       latitude: 1.2835,
       longitude: 103.8607,
     },

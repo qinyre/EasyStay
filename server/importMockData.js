@@ -1,0 +1,267 @@
+const Database = require('better-sqlite3');
+const path = require('path');
+const crypto = require('crypto');
+
+const DB_PATH = path.join(__dirname, 'data', 'easystay.db');
+const db = new Database(DB_PATH);
+
+const MOCK_HOTELS = [
+    {
+        id: '1',
+        name_cn: '易宿君悦大酒店',
+        name_en: 'EasyStay Grand Hotel',
+        star_level: 5,
+        location: {
+            province: 'Shanghai',
+            city: 'Shanghai',
+            address: '上海市黄浦区外滩88号',
+            latitude: 31.2304,
+            longitude: 121.4737,
+        },
+        rooms: [
+            {
+                id: 'r1',
+                type: '豪华江景房',
+                price: 1288,
+                stock: 5,
+                description: '俯瞰外滩全景，50平方米，特大号床',
+                image: 'https://images.unsplash.com/photo-1591088398332-8a7791972843?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+            },
+            {
+                id: 'r2',
+                type: '行政套房',
+                price: 2588,
+                stock: 2,
+                description: '宽敞套房带客厅，80平方米',
+                image: 'https://images.unsplash.com/photo-1578683010236-d716f9a3f461?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+            },
+        ],
+        facilities: ['免费Wi-Fi', '游泳池', '健身房', '餐厅', '酒吧'],
+        description: '坐落于历史悠久的外滩，提供浦东天际线的绝美景色。',
+        rating: 4.8,
+        image: 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+        images: [
+            'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+            'https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+        ],
+        is_offline: false,
+        audit_status: 'approved',
+        created_at: '2023-01-01T00:00:00Z',
+        price_start: 1288,
+        tags: ['奢华', '江景', '市中心'],
+    },
+    {
+        id: '2',
+        name_cn: '易宿城市客栈',
+        name_en: 'EasyStay City Inn',
+        star_level: 3,
+        location: {
+            province: 'Beijing',
+            city: 'Beijing',
+            address: '北京市东城区王府井大街123号',
+            latitude: 39.9042,
+            longitude: 116.4074,
+        },
+        rooms: [
+            {
+                id: 'r3',
+                type: '标准双床房',
+                price: 358,
+                stock: 10,
+                description: '舒适双床，25平方米',
+                image: 'https://images.unsplash.com/photo-1560185893-a55cbc8c57e5?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+            },
+            {
+                id: 'r4',
+                type: '商务大床房',
+                price: 428,
+                stock: 8,
+                description: '商务出行首选，30平方米',
+                image: 'https://images.unsplash.com/photo-1554995207-c18c203602cb?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+            },
+        ],
+        facilities: ['免费Wi-Fi', '含早餐', '24小时前台'],
+        description: '位于王府井购物区附近，交通便利，经济实惠之选。',
+        rating: 4.5,
+        image: 'https://images.unsplash.com/photo-1582719508461-905c673771fd?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+        images: [
+            'https://images.unsplash.com/photo-1582719508461-905c673771fd?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+        ],
+        is_offline: false,
+        audit_status: 'approved',
+        created_at: '2023-02-15T00:00:00Z',
+        price_start: 358,
+        tags: ['经济', '近地铁', '购物'],
+    },
+    {
+        id: '3',
+        name_cn: '易宿海景度假村',
+        name_en: 'EasyStay Seaview Resort',
+        star_level: 5,
+        location: {
+            province: 'Hainan',
+            city: 'Sanya',
+            address: '海南省三亚市亚龙湾国家旅游度假区',
+            latitude: 18.2528,
+            longitude: 109.5119,
+        },
+        rooms: [
+            {
+                id: 'r5',
+                type: '海景别墅',
+                price: 3888,
+                stock: 3,
+                description: '私人泳池别墅，直达沙滩',
+                image: 'https://images.unsplash.com/photo-1611892440504-42a792e24d32?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+            },
+        ],
+        facilities: ['私人沙滩', '水疗中心', '儿童俱乐部', '水上运动'],
+        description: '三亚终极放松体验，私人沙滩与奢华别墅的完美结合。',
+        rating: 4.9,
+        image: 'https://images.unsplash.com/photo-1611892440504-42a792e24d32?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+        images: [
+            'https://images.unsplash.com/photo-1611892440504-42a792e24d32?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+        ],
+        is_offline: false,
+        audit_status: 'approved',
+        created_at: '2023-03-10T00:00:00Z',
+        price_start: 3888,
+        tags: ['度假村', '海滩', '亲子'],
+    },
+    {
+        id: '4',
+        name_cn: '易宿古镇客栈',
+        name_en: 'EasyStay Ancient Town Inn',
+        star_level: 4,
+        location: {
+            province: 'Zhejiang',
+            city: 'Wuzhen',
+            address: '浙江省桐乡市乌镇西栅景区',
+            latitude: 30.7539,
+            longitude: 120.4967,
+        },
+        rooms: [
+            {
+                id: 'r6',
+                type: '临水雕花床房',
+                price: 688,
+                stock: 4,
+                description: '传统中式雕花大床，临河景观',
+                image: 'https://images.unsplash.com/photo-1505691938895-1758d7feb511?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+            },
+        ],
+        facilities: ['茶室', '花园', '免费Wi-Fi'],
+        description: '在历史悠久的水乡客栈中，体验江南古镇的独特魅力。',
+        rating: 4.7,
+        image: 'https://images.unsplash.com/photo-1505691938895-1758d7feb511?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+        images: [
+            'https://images.unsplash.com/photo-1564501049417-98d0b18608f3?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+        ],
+        is_offline: false,
+        audit_status: 'approved',
+        created_at: '2023-04-05T00:00:00Z',
+        price_start: 688,
+        tags: ['历史', '文化', '宁静'],
+    },
+    {
+        id: '5',
+        name_cn: '易宿滨海湾金沙酒店',
+        name_en: 'EasyStay Marina Bay Sands',
+        star_level: 5,
+        location: {
+            province: 'Singapore',
+            city: 'Singapore',
+            address: '新加坡海湾舫大道10号',
+            latitude: 1.2835,
+            longitude: 103.8607,
+        },
+        rooms: [
+            {
+                id: 'r7',
+                type: '豪华城市景观房',
+                price: 1888,
+                stock: 6,
+                description: '绝美城市景观，45平方米，特大号床',
+                image: 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+            },
+            {
+                id: 'r8',
+                type: '无边泳池套房',
+                price: 4888,
+                stock: 2,
+                description: '可享誉全球的无边泳池，75平方米',
+                image: 'https://images.unsplash.com/photo-1618773928121-c32242e63f39?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+            },
+        ],
+        facilities: ['无边泳池', '赌场', '购物中心', '空中花园', '精致餐饮'],
+        description: '新加坡地标性建筑，享誉全球的无边泳池俯瞰滨海湾美景。',
+        rating: 4.9,
+        image: 'https://images.unsplash.com/photo-1566312922674-e4dd2fab4b4f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+        images: [
+            'https://images.unsplash.com/photo-1566312922674-e4dd2fab4b4f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+            'https://images.unsplash.com/photo-1520483601560-389dff434fdf?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+        ],
+        is_offline: false,
+        audit_status: 'approved',
+        created_at: '2023-05-20T00:00:00Z',
+        price_start: 1888,
+        tags: ['奢华', '地标', '无边泳池'],
+    },
+];
+
+const insertHotel = db.prepare(`
+    INSERT INTO hotels (id, name_cn, name_en, address, star_level, open_date, banner_url, description, facilities, tags, audit_status, is_offline, merchant_username, createdAt, updatedAt)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Approved', 0, ?, ?, ?)
+`);
+
+const insertRoom = db.prepare(`
+    INSERT INTO rooms (id, name, price, capacity, description, image_url, amenities, hotelId)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+`);
+
+db.transaction(() => {
+    for (const hotel of MOCK_HOTELS) {
+        const existing = db.prepare('SELECT id FROM hotels WHERE id = ?').get(hotel.id);
+        if (!existing) {
+            insertHotel.run(
+                hotel.id,
+                hotel.name_cn,
+                hotel.name_en || null,
+                hotel.location?.address || '未知地址',
+                hotel.star_level || null,
+                null, // open_date
+                hotel.image || null, // banner_url
+                hotel.description || null,
+                hotel.facilities ? JSON.stringify(hotel.facilities) : null,
+                hotel.tags ? JSON.stringify(hotel.tags) : null,
+                'mock_merchant', // merchant_username
+                new Date().toISOString(),
+                new Date().toISOString()
+            );
+
+            if (hotel.rooms && hotel.rooms.length > 0) {
+                for (const room of hotel.rooms) {
+                    insertRoom.run(
+                        room.id,
+                        room.type, // type vs name
+                        room.price,
+                        room.stock || 2, // capacity
+                        room.description || null,
+                        room.image || null, // image_url
+                        null, // amenities
+                        hotel.id
+                    );
+                }
+            }
+            console.log(`Inserted hotel: ${hotel.name_cn}`);
+        } else {
+            db.prepare('UPDATE hotels SET address = ? WHERE id = ?').run(
+                hotel.location?.address || '未知地址',
+                hotel.id
+            );
+            console.log(`Updated hotel address: ${hotel.name_cn}`);
+        }
+    }
+})();
+
+console.log('Mock data insertion completed.');
