@@ -30,9 +30,14 @@ EasyStay 是一个功能完善的酒店预订管理系统，采用前后端分�
 ### 用户端（移动端）
 
 - 首页 Banner 展示与跳转
-- 酒店列表查询（支持定位、关键词搜索、日期筛选、星级过滤）
+- 酒店列表查询（支持定位、关键词搜索、日期筛选、星级过滤、价格区间）
 - 酒店详情展示（房型价格自动升序排列）
-- 长列表优化渲染
+- 长列表优化渲染（虚拟列表、下拉刷新、无限滚动）
+- 用户认证（登录、注册、验证码找回密码）
+- 订单管理（创建订单、订单列表、订单详情、取消订单）
+- 订单倒计时（15分钟支付时限）
+- 个人中心（设置、语言切换、关于我们）
+- 国际化支持（中文/英文）
 
 ### 管理端（PC端）
 
@@ -108,7 +113,7 @@ EasyStay 是一个功能完善的酒店预订管理系统，采用前后端分�
 
    ```bash
    cd client-mobile
-   npm start
+   npm run dev
    ```
 
    启动PC管理端（默认端口 3002）：
@@ -130,7 +135,7 @@ EasyStay 是一个功能完善的酒店预订管理系统，采用前后端分�
 
 ```
 EasyStay/
-├── client-mobile/          # 移动端前端应用（React）
+├── client-mobile/          # 移动端前端应用（React + TypeScript + Vite）
 ├── client-pc/              # PC管理端前端应用（React）
 ├── server/                 # 后端服务（Node.js + SQLite）
 │   ├── config/             # 配置文件
@@ -148,7 +153,8 @@ EasyStay/
 │   ├── technical/          # 技术规范文档
 │   └── teamwork/           # 团队协作文档
 ├── .gitignore
-└── README.md
+├── README.md               # 中文说明文档
+└── README_EN.md            # 英文说明文档
 ```
 
 ---
@@ -157,10 +163,16 @@ EasyStay/
 
 ### 前端
 
-- **框架**：React 18
-- **状态管理**：React Context / Hooks
+- **框架**：React 18 + TypeScript
+- **构建工具**：Vite 6
+- **状态管理**：React Context API (SearchContext, AuthContext)
+- **路由**：React Router DOM 7
 - **HTTP客户端**：Axios
-- **UI组件库**：Ant Design Mobile（移动端）/ Ant Design（PC端）
+- **UI组件库**：Ant Design Mobile 5（移动端）/ Ant Design（PC端）
+- **样式**：Tailwind CSS 3
+- **国际化**：i18next
+- **日期处理**：date-fns
+- **测试**：Vitest + Testing Library
 
 ### 后端
 
@@ -191,8 +203,13 @@ EasyStay/
 ### 移动端接口
 
 - `GET /mobile/home/banners` - 获取首页Banner
-- `GET /mobile/hotels` - 酒店列表查询
+- `GET /mobile/home/popular-cities` - 获取热门城市
+- `GET /mobile/hotels` - 酒店列表查询（支持多维度筛选）
 - `GET /mobile/hotels/:id` - 酒店详情获取
+- `POST /mobile/bookings` - 创建订单
+- `GET /mobile/bookings` - 获取订单列表
+- `GET /mobile/bookings/:id` - 获取订单详情
+- `PATCH /mobile/bookings/:id/cancel` - 取消订单
 
 ### 管理端接口
 

@@ -38,9 +38,10 @@ EasyStay 酒店预订平台的**移动端**用户界面。基于 React 18 + Type
 ### 交互特性
 - 流畅的下拉刷新与无限滚动
 - 图片懒加载与骨架屏占位
-- 日期选择器（支持入住/退房日期选择）
+- 日期选择器（支持入住/退房日期选择，最多180晚）
 - 城市与关键字智能搜索
 - 价格、评分、星级等多维度筛选
+- 订单倒计时（15分钟支付时限）
 - 响应式移动端适配
 
 ---
@@ -56,11 +57,13 @@ Frontend Framework
 UI & Styling
 ├── Ant Design Mobile 5.42.3  # 移动端组件库
 ├── Tailwind CSS 3.4.17       # 原子化样式
-└── lucide-react 0.511.0      # 图标库
+├── @ant-design/icons 6.1.0   # Ant Design 图标库
+└── lucide-react 0.511.0      # 补充图标库
 
 Routing & State
 ├── React Router DOM 7.3.0    # 路由管理
-└── Zustand 5.0.3             # 状态管理
+├── Context API               # 状态管理 (SearchContext, AuthContext)
+└── ahooks 3.9.6              # React Hooks 工具库
 
 HTTP & Utilities
 ├── Axios 1.13.5              # HTTP 请求
@@ -115,6 +118,9 @@ VITE_API_BASE_URL=http://localhost:3000/api/v1
 
 # 是否使用真实 API（true/false，默认为 true）
 VITE_USE_REAL_API=true
+
+# 应用标题
+VITE_APP_TITLE=易宿 EasyStay
 ```
 
 ### 3. 启动后端服务
@@ -156,6 +162,7 @@ npm run dev
 |-------|--------|------|
 | `VITE_API_BASE_URL` | `http://localhost:3000/api/v1` | 后端 API 地址 |
 | `VITE_USE_REAL_API` | `true` | 是否使用真实 API（设置 `false` 使用本地 Mock 数据） |
+| `VITE_APP_TITLE` | `易宿 EasyStay` | 应用标题 |
 
 ### 开发模式 vs 生产模式
 
@@ -173,47 +180,58 @@ client-mobile/
 ├── public/              # 静态资源
 ├── src/
 │   ├── components/      # 通用组件
-│   │   ├── DateRangePicker.tsx   # 日期范围选择器
+│   │   ├── BookingCard.tsx       # 订单卡片
+│   │   ├── CalendarPicker.tsx    # 日期选择器
+│   │   ├── CityPicker.tsx        # 城市选择器
 │   │   ├── HotelCard.tsx         # 酒店卡片
-│   │   ├── ImageSkeleton.tsx     # 图片骨架屏
-│   │   └── RatingStars.tsx       # 评分星星
+│   │   ├── OptimizedImage.tsx    # 优化图片组件
+│   │   ├── OptimizedSwiper.tsx   # 优化轮播图
+│   │   ├── PaymentModal.tsx      # 支付弹窗
+│   │   ├── ProtectedRoute.tsx    # 路由守卫
+│   │   └── RoomCard.tsx          # 房型卡片
 │   ├── contexts/        # React Context
 │   │   ├── AuthContext.tsx       # 用户认证上下文
 │   │   └── SearchContext.tsx     # 搜索上下文
+│   ├── hooks/           # 自定义 Hooks
+│   │   └── useCountdown.ts       # 倒计时 Hook
 │   ├── i18n/            # 国际化配置
 │   │   └── config.ts             # 语言配置
 │   ├── layouts/         # 布局组件
-│   │   ├── Layout.tsx            # 主布局
-│   │   └── TabBar.tsx            # 底部导航栏
+│   │   └── Layout.tsx            # 主布局（底部导航栏）
 │   ├── pages/           # 页面组件
-│   │   ├── Home.tsx              # 首页
-│   │   ├── HotelList.tsx         # 酒店列表
-│   │   ├── HotelDetail.tsx       # 酒店详情
+│   │   ├── About.tsx             # 关于我们
 │   │   ├── BookingConfirm.tsx    # 预订确认
-│   │   ├── BookingSuccess.tsx    # 预订成功
-│   │   ├── Bookings.tsx          # 我的订单
 │   │   ├── BookingDetail.tsx     # 订单详情
-│   │   ├── Me.tsx                # 个人中心
-│   │   ├── Login.tsx             # 登录
-│   │   ├── Register.tsx          # 注册
+│   │   ├── BookingSuccess.tsx    # 预订成功
+│   │   ├── Bookings/             # 我的订单
+│   │   │   └── index.tsx
 │   │   ├── ForgotPassword.tsx    # 忘记密码
+│   │   ├── Home.tsx              # 首页
+│   │   ├── HotelDetail.tsx       # 酒店详情
+│   │   ├── HotelList.tsx         # 酒店列表
+│   │   ├── Login.tsx             # 登录
+│   │   ├── Me/                   # 个人中心
+│   │   │   └── index.tsx
+│   │   ├── Register.tsx          # 注册
+│   │   ├── Settings.tsx          # 设置
 │   │   └── legal/                # 法律页面
+│   │       ├── PrivacyPage.tsx   # 隐私政策
+│   │       └── TermsPage.tsx     # 用户协议
 │   ├── services/         # API 服务
-│   │   ├── api.ts                # 通用 API 封装
+│   │   ├── api.ts                # 通用 API 封装（酒店、订单）
 │   │   ├── auth.ts               # 认证相关 API
-│   │   ├── hotel.ts              # 酒店相关 API
-│   │   └── booking.ts            # 预订相关 API
-│   ├── store/           # Zustand 状态管理
-│   │   └── useBookingStore.ts    # 预订状态
+│   │   ├── geolocation.ts        # IP 定位服务
+│   │   └── mockData.ts           # Mock 数据定义
 │   ├── test/            # 测试工具
 │   │   ├── setup.ts              # 测试环境设置
 │   │   └── test-utils.tsx        # 测试辅助函数
 │   ├── types/           # TypeScript 类型
 │   │   └── index.ts              # 类型定义
 │   ├── utils/           # 工具函数
-│   │   ├── date.ts               # 日期处理
-│   │   └── cn.ts                 # 类名合并
-│   ├── App.tsx          # 应用根组件
+│   │   ├── format.ts             # 格式化工具
+│   │   └── url.ts                # URL 工具
+│   ├── App.tsx          # 应用根组件（路由配置）
+│   ├── index.css        # 全局样式
 │   └── main.tsx         # 应用入口
 ├── index.html           # HTML 模板
 ├── package.json         # 项目配置
@@ -221,7 +239,11 @@ client-mobile/
 ├── tailwind.config.js   # Tailwind 配置
 ├── vite.config.ts       # Vite 配置
 ├── vitest.config.ts     # Vitest 测试配置
-└── README.md            # 项目文档
+├── eslint.config.js     # ESLint 配置
+├── .env                 # 环境变量
+├── CLAUDE.md            # AI 上下文文档
+├── README.md            # 项目文档
+└── API_INTEGRATION.md   # API 对接文档
 ```
 
 ---
@@ -250,7 +272,7 @@ client-mobile/
 |------|------|------|
 | 组件 | PascalCase | `HotelCard.tsx` |
 | 组件名称 | PascalCase | `HotelCard` |
-| Hook | camelCase，use 前缀 | `useBookingStore` |
+| Hook | camelCase，use 前缀 | `useCountdown` |
 | 工具函数 | camelCase | `formatPrice()` |
 | 常量 | UPPER_SNAKE_CASE | `API_BASE_URL` |
 | 类型/接口 | PascalCase | `Booking` |
@@ -272,7 +294,7 @@ docs: 更新 README 文档
 
 1. 在 `src/pages/` 创建页面组件
 2. 在 `src/App.tsx` 添加路由
-3. 如需底部导航，在 `src/layouts/TabBar.tsx` 添加标签
+3. 如需底部导航，在 `src/layouts/Layout.tsx` 添加标签
 
 ```tsx
 // src/pages/NewPage.tsx
@@ -440,26 +462,26 @@ describe('SearchContext', () => {
 
 | 文件 | 负责接口 |
 |------|---------|
+| `api.ts` | 酒店列表、详情、首页 Banner、热门城市、订单相关 |
 | `auth.ts` | 登录、注册、找回密码 |
-| `hotel.ts` | 酒店列表、详情、搜索 |
-| `booking.ts` | 创建订单、查询订单 |
+| `geolocation.ts` | IP 定位服务 |
 
 ### Mock 模式 vs 真实 API
 
 项目支持两种模式：
 
 ```typescript
-// src/services/auth.ts
+// src/services/api.ts
 // 默认使用真实API，除非显式指定为 'false'
 const USE_REAL_API = import.meta.env.VITE_USE_REAL_API !== 'false';
 
-export const login = async (params: LoginRequest) => {
+export const getHotels = async (params) => {
   if (USE_REAL_API) {
     // 真实 API 请求
-    return await authClient.post('/auth/login', params);
+    return await apiClient.get('/mobile/hotels', { params });
   }
   // Mock 数据返回
-  return mockLoginResponse;
+  return mockHotelsData;
 };
 ```
 
@@ -467,21 +489,31 @@ export const login = async (params: LoginRequest) => {
 
 ```
 # 认证相关
-POST /api/v1/auth/login              # 用户登录
-POST /api/v1/auth/register           # 用户注册
-POST /api/v1/auth/send-reset-code    # 发送验证码
-POST /api/v1/auth/reset-password-with-code  # 重置密码
+POST /api/v1/auth/login                      # 用户登录
+POST /api/v1/auth/register                   # 用户注册
+POST /api/v1/auth/send-reset-code            # 发送验证码
+POST /api/v1/auth/reset-password-with-code   # 重置密码
+POST /api/v1/auth/verify-reset-code          # 验证验证码
+GET  /api/v1/auth/me                         # 获取当前用户
+POST /api/v1/auth/logout                     # 用户登出
+
+# 首页相关
+GET  /api/v1/mobile/home/banners             # 首页 Banner
+GET  /api/v1/mobile/home/popular-cities      # 热门城市
 
 # 酒店相关
-GET  /api/v1/mobile/home/banners     # 首页 Banner
-GET  /api/v1/mobile/hotels           # 酒店列表
-GET  /api/v1/mobile/hotels/:id       # 酒店详情
+GET  /api/v1/mobile/hotels                   # 酒店列表
+GET  /api/v1/mobile/hotels/:id               # 酒店详情
 
-# 预订相关
-POST /api/v1/mobile/bookings         # 创建订单
-GET  /api/v1/mobile/bookings         # 订单列表
-GET  /api/v1/mobile/bookings/:id     # 订单详情
+# 订单相关
+POST /api/v1/mobile/bookings                 # 创建订单
+GET  /api/v1/mobile/bookings                 # 订单列表
+GET  /api/v1/mobile/bookings/:id             # 订单详情
+PATCH /api/v1/mobile/bookings/:id/cancel     # 取消订单
+PATCH /api/v1/mobile/bookings/:id            # 更新订单状态
 ```
+
+详细的 API 规范请参考 [API_INTEGRATION.md](./API_INTEGRATION.md)
 
 ---
 
@@ -582,7 +614,7 @@ server: {
 ### Q5: 验证码功能如何使用？
 
 1. **开发模式（Mock）**：验证码显示在页面黄色提示框中
-2. **生产模式**：需配置后端邮件服务（参考 `../server/EMAIL_SETUP.md`）
+2. **生产模式**：需配置后端邮件服务（参考 `../server/CLAUDE.md`）
 
 ### Q6: 如何切换语言？
 
@@ -601,16 +633,20 @@ rm -rf node_modules/.vite
 npm run dev
 ```
 
+### Q8: 房型排序规则？
+
+详情页房型必须按价格从低到高排序：`rooms.sort((a, b) => a.price - b.price)`
+
 ---
 
 ## 相关文档
 
 | 文档 | 路径 |
 |------|------|
-| 后端文档 | `../server/README.md` |
-| 邮件配置 | `../server/EMAIL_SETUP.md` |
-| API 规范 | `../docs/technical/api_spec.md` |
-| 项目总览 | `../README.md` |
+| 后端文档 | `../server/CLAUDE.md` |
+| PC 管理端 | `../client-pc/CLAUDE.md` |
+| API 对接文档 | `./API_INTEGRATION.md` |
+| 项目总览 | `../CLAUDE.md` |
 
 ---
 

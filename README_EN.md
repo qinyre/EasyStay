@@ -29,9 +29,14 @@ The system implements a complete information audit workflow—hotel information 
 
 ### User Side (Mobile)
 - Homepage banner display and navigation
-- Hotel listing search (location-based, keyword search, date filter, star rating filter)
+- Hotel listing search (location-based, keyword search, date filter, star rating filter, price range)
 - Hotel detail display (room types auto-sorted by price ascending)
-- Long list optimization rendering
+- Long list optimization rendering (virtual list, pull-to-refresh, infinite scroll)
+- User authentication (login, registration, email verification for password reset)
+- Order management (create booking, booking list, booking details, cancel booking)
+- Order countdown timer (15-minute payment deadline)
+- Personal center (settings, language switching, about us)
+- Internationalization support (Chinese/English)
 
 ### Management Side (PC)
 - **Merchant Features**
@@ -99,7 +104,7 @@ The system implements a complete information audit workflow—hotel information 
    Start mobile client (default port 3001):
    ```bash
    cd client-mobile
-   npm start
+   npm run dev
    ```
 
    Start PC management client (default port 3002):
@@ -120,7 +125,7 @@ The system implements a complete information audit workflow—hotel information 
 
 ```
 EasyStay/
-├── client-mobile/          # Mobile frontend application (React)
+├── client-mobile/          # Mobile frontend application (React + TypeScript + Vite)
 ├── client-pc/              # PC management frontend application (React)
 ├── server/                 # Backend service (Node.js + SQLite)
 │   ├── config/             # Configuration files
@@ -138,7 +143,8 @@ EasyStay/
 │   ├── technical/          # Technical specification documents
 │   └── teamwork/           # Team collaboration documents
 ├── .gitignore
-└── README.md
+├── README.md               # Chinese documentation
+└── README_EN.md            # English documentation
 ```
 
 ---
@@ -146,10 +152,16 @@ EasyStay/
 ## Tech Stack
 
 ### Frontend
-- **Framework**: React 18
-- **State Management**: React Context / Hooks
+- **Framework**: React 18 + TypeScript
+- **Build Tool**: Vite 6
+- **State Management**: React Context API (SearchContext, AuthContext)
+- **Routing**: React Router DOM 7
 - **HTTP Client**: Axios
-- **UI Library**: Ant Design Mobile (Mobile) / Ant Design (PC)
+- **UI Library**: Ant Design Mobile 5 (Mobile) / Ant Design (PC)
+- **Styling**: Tailwind CSS 3
+- **Internationalization**: i18next
+- **Date Handling**: date-fns
+- **Testing**: Vitest + Testing Library
 
 ### Backend
 - **Runtime**: Node.js
@@ -176,8 +188,13 @@ The system uses RESTful API design with base path `/api/v1`
 
 ### Mobile Endpoints
 - `GET /mobile/home/banners` - Get homepage banners
-- `GET /mobile/hotels` - Hotel listing search
+- `GET /mobile/home/popular-cities` - Get popular cities
+- `GET /mobile/hotels` - Hotel listing search (multi-dimension filtering)
 - `GET /mobile/hotels/:id` - Get hotel details
+- `POST /mobile/bookings` - Create booking
+- `GET /mobile/bookings` - Get booking list
+- `GET /mobile/bookings/:id` - Get booking details
+- `PATCH /mobile/bookings/:id/cancel` - Cancel booking
 
 ### Management Endpoints
 - `POST /merchant/hotels` - Input hotel information

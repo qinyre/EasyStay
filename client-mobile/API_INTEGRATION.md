@@ -1,7 +1,7 @@
 # EasyStay 移动端 API 对接文档
 
-> 版本: v1.0.1
-> 更新时间: 2026-02-23
+> 版本: v1.1.0
+> 更新时间: 2026-02-26
 > 联系人: 前端开发团队
 
 ---
@@ -33,7 +33,7 @@
 | 模式 | 配置 | 数据来源 |
 | :--- | :--- | :--- |
 | Mock 开发 | `VITE_USE_REAL_API=false` | 前端 Mock 数据 |
-| 真实联调 | `VITE_USE_REAL_API=true` | 后端 API 服务 |
+| 真实联调 | `VITE_USE_REAL_API=true` 或未设置 | 后端 API 服务 |
 
 **切换方式：** 修改 `.env` 文件后重启开发服务器
 
@@ -41,9 +41,10 @@
 
 ```text
 src/services/
-├── auth.ts      # 认证 API（已支持切换）
-├── api.ts       # 酒店和订单 API（已支持切换）
-└── mockData.ts  # Mock 数据定义
+├── api.ts        # 酒店、订单 API（已支持切换）
+├── auth.ts       # 认证 API（已支持切换）
+├── geolocation.ts # IP 定位服务
+└── mockData.ts   # Mock 数据定义
 ```
 
 ### ⚠️ 重要：响应处理
@@ -60,6 +61,22 @@ src/services/
 ```
 
 后端**必须**严格按照上述格式返回响应。
+
+### 🔄 自动回退机制
+
+当真实 API 请求失败时，前端会自动回退到 Mock 数据，确保开发不中断：
+
+```typescript
+if (USE_REAL_API) {
+  try {
+    return await apiClient.get('/mobile/hotels');
+  } catch (error) {
+    console.error('获取酒店列表失败，回退到 Mock 数据:', error);
+    // 自动回退到 Mock 数据
+  }
+}
+// Mock 数据逻辑
+```
 
 ---
 
@@ -538,7 +555,7 @@ Authorization: Bearer {token}
     "status": "pending",
     "guestName": "张三",
     "guestPhone": "13800138000",
-    "createdAt": "2026-02-23T10:30:00.000Z",
+    "createdAt": "2026-02-26T10:30:00.000Z",
     "hotelName": "上海陆家嘴禧酒店",
     "hotelImage": "https://example.com/hotel.jpg",
     "roomType": "经典双床房"
@@ -590,7 +607,7 @@ Authorization: Bearer {token}
         "status": "confirmed",
         "guestName": "张三",
         "guestPhone": "13800138000",
-        "createdAt": "2026-02-23T10:30:00.000Z"
+        "createdAt": "2026-02-26T10:30:00.000Z"
       }
     ],
     "total": 5,
@@ -626,7 +643,7 @@ Authorization: Bearer {token}
     "status": "confirmed",
     "guestName": "张三",
     "guestPhone": "13800138000",
-    "createdAt": "2026-02-23T10:30:00.000Z",
+    "createdAt": "2026-02-26T10:30:00.000Z",
     "hotelName": "上海陆家嘴禧酒店",
     "hotelImage": "https://example.com/hotel.jpg",
     "roomType": "经典双床房",
@@ -661,9 +678,55 @@ Authorization: Bearer {token}
 
 ---
 
+### 5.5 更新订单状态
+
+**接口地址:** `PATCH /mobile/bookings/:id`
+
+**请求头:**
+```http
+Authorization: Bearer {token}
+```
+
+**请求参数:**
+```json
+{
+  "status": "confirmed"
+}
+```
+
+**字段说明:**
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| status | string | 是 | 新状态：confirmed、cancelled、completed |
+
+**响应示例:**
+```json
+{
+  "code": 200,
+  "data": {
+    "id": "bk_1234567890_abc123",
+    "status": "confirmed"
+  }
+}
+```
+
+---
+
 ## 6. 数据结构定义
 
-### 6.1 User（用户）
+### 6.1 Location（位置）
+
+```typescript
+interface Location {
+  province: string;      // 省份
+  city: string;          // 城市
+  address: string;       // 详细地址
+  latitude?: number;     // 纬度
+  longitude?: number;    // 经度
+}
+```
+
+### 6.2 User（用户）
 
 ```typescript
 interface User {
@@ -677,7 +740,7 @@ interface User {
 }
 ```
 
-### 6.2 Hotel（酒店）
+### 6.3 Hotel（酒店）
 
 ```typescript
 interface Hotel {
@@ -685,13 +748,7 @@ interface Hotel {
   name_cn: string;                   // 酒店中文名
   name_en: string;                   // 酒店英文名
   star_level: number;                // 星级（1-5）
-  location: {
-    province: string;                // 省份
-    city: string;                    // 城市
-    address: string;                 // 详细地址
-    latitude?: number;               // 纬度
-    longitude?: number;              // 经度
-  };
+  location: Location;                // 位置信息
   description?: string;              // 酒店描述
   facilities?: string[];             // 设施列表
   rating: number;                    // 评分（0-5）
@@ -706,7 +763,7 @@ interface Hotel {
 }
 ```
 
-### 6.3 Room（房型）
+### 6.4 Room（房型）
 
 ```typescript
 interface Room {
@@ -719,7 +776,7 @@ interface Room {
 }
 ```
 
-### 6.4 Booking（订单）
+### 6.5 Booking（订单）
 
 ```typescript
 interface Booking {
@@ -736,10 +793,21 @@ interface Booking {
   createdAt: string;       // 创建时间
   // 以下为扩展字段（查询时返回）
   hotelName?: string;      // 酒店名称
+  hotelNameEn?: string;    // 酒店英文名
+  hotelNameCn?: string;    // 酒店中文名
   hotelImage?: string;     // 酒店图片
   hotelAddress?: string;   // 酒店地址
   roomType?: string;       // 房型名称
   nights?: number;         // 间夜数
+}
+```
+
+### 6.6 AuthResponse（认证响应）
+
+```typescript
+interface AuthResponse {
+  user: User;
+  token: string;
 }
 ```
 
@@ -760,7 +828,7 @@ interface Booking {
 
 ---
 
-## 8. 开联调注意事项
+## 8. 联调注意事项
 
 1. **CORS 配置**: 后端需要配置允许前端域名访问
 2. **Token 过期**: Token 有效期建议 7 天，过期后需要重新登录
@@ -768,6 +836,7 @@ interface Booking {
 4. **价格计算**: 价格计算应在后端完成，前端只负责展示
 5. **房型排序**: 酒店详情的房型列表必须按 `price` 从低到高排序
 6. **日期格式**: 统一使用 `yyyy-MM-dd` 格式
+7. **自动回退**: 前端实现了 API 请求失败自动回退到 Mock 数据的机制
 
 ---
 
@@ -780,4 +849,4 @@ interface Booking {
 
 ---
 
-*文档版本: v1.0.1 | 最后更新: 2026-02-23*
+*文档版本: v1.1.0 | 最后更新: 2026-02-26*

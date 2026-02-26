@@ -70,14 +70,18 @@
 | `user_id` | TEXT | 下单用户 ID | **外键**，关联 `users.id`。 |
 | `hotel_id` | TEXT | 预订酒店 ID | **外键**，关联 `hotels.id`。 |
 | `room_id` | TEXT | 预订房型 ID | **外键**，关联 `rooms.id`。 |
-| `check_in_date` | TEXT | 入住日期 | ISO 格式。NOT NULL。 |
-| `check_out_date` | TEXT | 离店日期 | ISO 格式。NOT NULL。 |
+| `check_in_date` | TEXT | 入住日期 | ISO 格式（yyyy-MM-dd）。NOT NULL。 |
+| `check_out_date` | TEXT | 离店日期 | ISO 格式（yyyy-MM-dd）。NOT NULL。 |
 | `guests` | INTEGER | 入住人数 | 默认 1。 |
 | `total_price` | REAL | 订单总价 | NOT NULL。 |
-| `status` | TEXT | 订单状态 | 枚举值：`pending`, `confirmed`, `completed`, `cancelled`。默认 `pending`。 |
-| `payment_status` | TEXT | 支付状态 | 枚举值：`unpaid`, `paid`, `refunded`。默认 `unpaid`。 |
+| `status` | TEXT | 订单状态 | 枚举值：`pending`（待支付）、`confirmed`（已确认）、`completed`（已完成）、`cancelled`（已取消）。默认 `pending`。 |
+| `payment_status` | TEXT | 支付状态 | 枚举值：`unpaid`（未支付）、`paid`（已支付）、`refunded`（已退款）。默认 `unpaid`。 |
 | `guestName` | TEXT | 入住人姓名 | 移动端下单时填写。 |
 | `guestPhone` | TEXT | 入住人电话 | 移动端下单时填写。 |
+| `hotelName` | TEXT | 酒店名称 | 冗余字段，用于订单列表展示。 |
+| `hotelImage` | TEXT | 酒店图片 | 冗余字段，用于订单列表展示。 |
+| `roomType` | TEXT | 房型名称 | 冗余字段，用于订单列表展示。 |
+| `nights` | INTEGER | 间夜数 | 计算字段，离店日期与入住日期的天数差。 |
 | `createdAt` | TEXT | 创建时间 | ISO 8601 格式。 |
 | `updatedAt` | TEXT | 更新时间 | ISO 8601 格式。 |
 
